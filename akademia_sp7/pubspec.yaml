@@ -1,5 +1,5 @@
 name: akademia_sp7
-description: "Centrum Nauki SP7 dla Klasy 6"
+description: "Centrum Nauki SP7 dla Klasy 1-6 z opcją druku"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.2.2
+  printing: ^5.11.0
+  pdf: ^3.10.4
 
 dev_dependencies:
   flutter_test:
@@ -18,5 +20,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/mapy/
