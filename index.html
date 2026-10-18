@@ -761,7 +761,6 @@
       const dash = document.getElementById('dashboardView');
       const chapView = document.getElementById('chapterView');
       if (dash) dash.classList.add('hidden');
-      if (chapView) chapView.classList.add('hidden'); // Fix: should be chapView.classList.remove('hidden')
       if (chapView) chapView.classList.remove('hidden');
     }
 
@@ -825,7 +824,7 @@
           q: `Oblicz wartość wyrażenia na osi liczbowej: ${start} + ${add} =`,
           options: [`${res}`, `${res - 2}`, `${res + 3}`, `${-res}`],
           a: `${res}`,
-          explanation: `Startując od ${start} i dodając ${5} (lub więcej), trafiamy na wynik ${res}.`
+          explanation: `Startując od ${start} i dodając ${add}, trafiamy na wynik ${res}.`
         };
       } else if (chapterName.includes('Równania z jedną')) {
         let m = Math.floor(Math.random() * 4) + 2;
@@ -848,7 +847,6 @@
           explanation: `Objętość sześcianu to a * a * a: ${edge} * ${edge} * ${edge} = ${vol} cm³.`
         };
       } else {
-        // Powtórka 1-6
         let a1 = Math.floor(Math.random() * 20) + 10;
         let a2 = Math.floor(Math.random() * 10) + 2;
         let a3 = Math.floor(Math.random() * 5) + 1;
@@ -863,7 +861,7 @@
       return qObj;
     }
 
-    // BAZA PYTAŃ DLA POZOSTAŁYCH PRZEDMIOTÓW (BOGATA, Z NACISKIEM NA CZYTANIE ZE ZROZUMIENIEM I PUŁAPKI)
+    // BAZA PYTAŃ DLA POZOSTAŁYCH PRZEDMIOTÓW
     function getChapterQuestions(subjKey, chapterName) {
       if (subjKey === 'matematyka') {
         let mathPool = [];
@@ -877,7 +875,7 @@
         geografia: {
           'Współrzędne geograficzne i czytanie mapy': [
             { q: "Uwaga na treść: Które ze zdań dotyczących południków jest FAŁSZEM?", options: ["Południki mają różne długości i nie są okręgami wielkimi", "Południki łączą biegun północny z południowym", "Wszystkie południki mają taką samą długość", "Południki wyznaczają kierunki północ-południe"], a: "Południki mają różne długości i nie są okręgami wielkimi", explanation: "Wszystkie południki mają dokładnie tę samą długość (ok. 20 tys. km)." },
-            { q: "Skala mapy wynosi 1:200 000. Ile to centymetrów w terenie na każdy 1 cm mapy?", options: ["2 kilometry", "20 kilometrów", "200 metrów", "20 metrów"], a: "2 kilometry", explanation: "200 000 cm = 2000 m = 2 km." },
+            { q: "Skala mapy wynosi 1:200 000. Ile to kilometrów w terenie na każdy 1 cm mapy?", options: ["2 kilometry", "20 kilometrów", "200 metrów", "20 metrów"], a: "2 kilometry", explanation: "200 000 cm = 2000 m = 2 km." },
             { q: "Główny południk zerowy (0°) przebiega przez słynne obserwatorium astronomiczne w miejscowości:", options: ["Greenwich (Londyn)", "Paryż", "Berlin", "Madryt"], a: "Greenwich (Londyn)", explanation: "Południk 0° wyznaczono przez Greenwich." },
             { q: "Warstwice (izohipsy) na mapie hipsometrycznej łączą punkty o:", options: ["Tej samej wysokości nad poziomem morza", "Tej samej temperaturze", "Takiej samej liczbie mieszkańców", "Tej samej odległości od równika"], a: "Tej samej wysokości nad poziomem morza", explanation: "Warstwice służą do odczytywania ukształtowania terenu." },
             { q: "Która półkula NIE jest wyznaczana przez linię równika?", options: ["Wschodnia i zachodnia", "Północna", "Południowa", "Żaden z powyższych – równik dzieli na północną i południową"], a: "Wschodnia i zachodnia", explanation: "Półkulę wschodnią i zachodnią wyznacza południk zerowy i 180°." }
@@ -927,7 +925,7 @@
             { q: "Organizmy cudzożywne to takie, które:", options: ["Pobierają gotowe substancje organiczne z pokarmem", "Same wytwarzają pokarm w fotosynteze", "Nie oddychają", "Żyją tylko w wodzie"], a: "Pobierają gotowe substancje organiczne z pokarmem", explanation: "Zwierzęta i grzyby są cudzożywne." }
           ],
           'Stawonogi i mięczaki': [
-            { q: "Uwaga – wyjątek: Które z wymienionych zwierząt jest OWADEM, a nie pajęczakiem?", options: ["Kleszcz / Pająk / Skorpion / Mchówka... Zobacz: Pszczoła", "Kleszcz", "Pająk krzyżak", "Skorpion"], a: "Pszczoła", explanation: "Pszczoła ma 3 pary odnóży i ciało podzielone na głowę, tułów i odwłok (owad)." },
+            { q: "Uwaga – wyjątek: Które z wymienionych zwierząt jest OWADEM, a nie pajęczakiem?", options: ["Pszczoła", "Kleszcz", "Pająk krzyżak", "Skorpion"], a: "Pszczoła", explanation: "Pszczoła ma 3 pary odnóży i ciało podzielone na głowę, tułów i odwłok (owad)." },
             { q: "Mięczaki (np. ślimaki czy małże) charakteryzują się zazwyczaj ciałem:", options: ["Miękkim, nieczłonowanym, często osłoniętym muszlą", "Pokrytym twardym pancerzem chitynowym", "Złożonym z segmentów z odnóżami", "Składającym się z piór i łusek"], a: "Miękkim, nieczłonowanym, często osłoniętym muszlą", explanation: "Ciało mięczaków nie jest podzielone na człony." },
             { q: "Głowonogi (np. ośmiornice, mity, kałamarnice) należą do gromady:", options: ["Mięczaków", "Stawonogów", "Ryb", "Płazów"], a: "Mięczaków", explanation: "Ośmiornica to wysoce rozwinięty mięczak." },
             { q: "Narządem wymiany gazowej u większości owadów lądowych są:", options: ["Tchawki", "Skrzela", "Płuca", "Cała powierzchnia skóry"], a: "Tchawki", explanation: "Tchawki to sieć rurek doprowadzających powietrze do tkanek." },
@@ -950,7 +948,7 @@
           'Ekologia i ochrona środowiska': [
             { q: "Czym jest biocenoza wchodząca w skład ekosystemu?", options: ["Ogółem wszystkich organizmów żywych (roślin, zwierząt, grzybów, bakterii)", "Środowiskiem nieożywionym (skały, woda, klimat)", "Tylko drapieżnikami lasu", "Sztuczną hodowlą"], a: "Ogółem wszystkich organizmów żywych (roślin, zwierząt, grzybów, bakterii)", explanation: "Biocenoza to ożywiona część ekosystemu." },
             { q: "Rola reducentów (np. bakterii i grzybów gnilnych) w przyrodzie polega na:", options: ["Rozkładzie szczątków organicznych na proste substancje mineralne", "Wytwarzaniu tlenu", "Zjadaniu żywych zwierząt", "Przeprowadzaniu fotosyntezy"], a: "Rozkładzie szczątków organicznych na proste substancje mineralne", explanation: "Zamykają obieg materii w przyrodzie." },
-            { q: "Najwyższą formą ochrony przyrody w Polsce jest utworzenie:", *options: ["Parku Narodowego", "Parku Krajobrazowego", "Obszaru Chronionego Krajobrazu", "Pomnika przyrody"], a: "Parku Narodowego", explanation: "Parki narodowe chronią całą przyrodę i krajobraz." },
+            { q: "Najwyższą formą ochrony przyrody w Polsce jest utworzenie:", options: ["Parku Narodowego", "Parku Krajobrazowego", "Obszaru Chronionego Krajobrazu", "Pomnika przyrody"], a: "Parku Narodowego", explanation: "Parki narodowe chronią całą przyrodę i krajobraz." },
             { q: "Gatunek zagrożony wyginięciem w skali kraju lub świata określamy jako:", options: ["Gatunek ginący / zagrożony", "Gatunek pospolity", "Chwast", "Szarańczę"], a: "Gatunek ginący / zagrożony", explanation: "Wymagają ścisłej ochrony." },
             { q: "Zależność pokarmowa, w której jeden organizm zjada drugi, to:", options: ["Łańcuch pokarmowy (troficzny)", "Symbiosis", "Komensalizm", "Konkurencja"], a: "Łańcuch pokarmowy (troficzny)", explanation: "Przenoszenie energii w ekosystemie." }
           ],
@@ -968,7 +966,7 @@
             { q: "Kto dowodził pierwszą historyczną morską wyprawą do Indii, opływając całą Afrykę od południa?", options: ["Vasco da Gama", "Ferdynand Magellan", "Amerigo Vespucci", "Bartłomiej Diaz"], a: "Vasco da Gama", explanation: "Dotarł do Indii w 1498 roku." },
             { q: "Wyprawa zapoczątkowana przez Ferdynanda Magellana przeszła do historię jako ta, która jako pierwsza:", options: ["Dokonała śmiałego rejsu dookoła świata", "Odkryła Australię", "Wylądowała w Ameryce Północnej", "Odnaleźła Atlantydę"], a: "Dokonała śmiałego rejsu dookoła świata", explanation: "Choć sam Magellan zginął w drodze, jego załoga wróciła do Europy." },
             { q: "Imieniem jakiego żeglarza nazwano nowo odkryte kontynenty (Amerykę)?", options: ["Amerigo Vespucciego", "Krzysztofa Kolumba", "Marco Polo", "Vasco de Balboa"], a: "Amerigo Vespucciego", explanation: "Vespucci jako pierwszy ogłosił, że to nowy ląd, a nie Azja." },
-            { q: "Wynalazek druku przez Jana Gutenberga (ok. 1450 r.) spowodował, że:", options: ["Książki stały się ogólnodostępne, co przyspieszyło rozwój nauki i oświaty", "Zegary zaczęły odmierzać czas", "Ustały wszelkie wojny w Europie", "Zbudowano tysiące zamków"], a: "Księża i uczeni zyskali masowy dostęp do pisma", explanation: "Druk zrewolucjonizował cywilizację." }
+            { q: "Wynalazek druku przez Jana Gutenberga (ok. 1450 r.) spowodował, że:", options: ["Książki stały się ogólnodostępne, co przyspieszyło rozwój nauki i oświaty", "Zegary zaczęły odmierzać czas", "Ustały wszelkie wojny w Europie", "Zbudowano tysiące zamków"], a: "Książki stały się ogólnodostępne, co przyspieszyło rozwój nauki i oświaty", explanation: "Druk zrewolucjonizował cywilizację." }
           ],
           'W Rzeczypospolitej szlacheckiej (Demokracja szlachecka)': [
             { q: "Ustrój Rzeczypospolitej Obojga Narodów w XVI wieku określa się mianem demokracji szlacheckiej. Oznaczało to, że:", options: ["Szlachta miała szerokie prawa polityczne i decydowała o losach państwa", "Wszyscy obywatele, w tym chłopi i mieszczanie, rządzili krajem", "Król posiadał władzę absolutną", "Państwem rządzili wyłącznie obcokrajowcy"], a: "Szlachta miała szerokie prawa polityczne i decydowała o losach państwa", explanation: "Demokracja dotyczyła stanu szlacheckiego." },
@@ -1001,7 +999,7 @@
           'Rewolucja francuska i epoka napoleońska': [
             { q: "Symboliczny początek rewolucji we Francji (14 lipca 1789 r.) wiąże się ze zdobyciem więzienia:", options: ["Bastylii", "Wersalu", "Tower w Londynie", "Luwru"], a: "Bastylii", explanation: "Zdobycie Bastylii to symbol obalenia absolutyzmu." },
             { q: "Napoleon Bonaparte przejął pełnię władzy we Francji w wyniku zamachu stanu w roku:", options: ["1799", "1789", "1815", "1804"], a: "1799", explanation: "Ustanowił rządy Konsulatu." },
-            { q: "Utworzone w 1807 roku na mocy traktatu w Tylży polskie państwo zależne od Napoleona nosiło nazwę:", options: ["Księstwa Warszawskiego", "Królestwa Polskiego", "Rzeczypospolitej Krakowskiej", "Wielkiego Księstwa Poznańskiego"], a: "Księstwa Warszawskiego", 'explanation': "Choć małe, dawało nadzieję na odzyskanie państwowości." },
+            { q: "Utworzone w 1807 roku na mocy traktatu w Tylży polskie państwo zależne od Napoleona nosiło nazwę:", options: ["Księstwa Warszawskiego", "Królestwa Polskiego", "Rzeczypospolitej Krakowskiej", "Wielkiego Księstwa Poznańskiego"], a: "Księstwa Warszawskiego", explanation: "Choć małe, dawało nadzieję na odzyskanie państwowości." },
             { q: "Ostateczna klęska wojsk Napoleona Bonaparte miała miejsce w bitwie pod:", options: ["Waterloo (1815 r.)", "Austerlitz", "Lipskiem", "Borodino"], a: "Waterloo (1815 r.)", explanation: "Bitwa pod Waterloo zakończyła epokę napoleońską." },
             { q: "Hymn Polski ('Mazurek Dąbrowskiego') został skomponowany i napisany we Włoszech w roku:", options: ["1797", "1791", "1815", "1918"], a: "1797", explanation: "Słowa napisał Józef Wybicki w Reggio Emilia." }
           ],
@@ -1010,7 +1008,7 @@
             { q: "Koronacja Bolesława Chrobrego na pierwszego króla Polski odbyła się w:", options: ["1025 roku", "966 roku", "1320 roku", "1795 roku"], a: "1025 roku", explanation: "Chrobry koronował się krótko przed śmiercią." },
             { q: "Zwycięska bitwa pod Grunwaldem stoczona z zakonem krzyżackim miała miejsce w roku:", options: ["1410", "1492", "1525", "1791"], a: "1410", explanation: "Połączone siły polsko-litewskie pokonały Krzyżaków." },
             { q: "Unia w Krewie (1385 rok) zapoczątkowała bliski związek Polski z:", options: ["Litwą", "Węgrami", "Szwecją", "Francją"], a: "Litwą", explanation: "Władysław Jagiełło objął polski tron." },
-            { q: "Odzyskanie niepodległości przez Polskę po I wojnie światowej nastąpiło jesienią roku:", options: ["1918", "1945", "1939", "1830"], a: "1918", explanation: "11 listopada 1918 roku zakończyła się niewola zaborowa." }
+            { q: "Odzyskanie niepodległości przez Polska po I wojnie światowej nastąpiło jesienią roku:", options: ["1918", "1945", "1939", "1830"], a: "1918", explanation: "11 listopada 1918 roku zakończyła się niewola zaborowa." }
           ]
         },
         angielski: {
@@ -1064,7 +1062,6 @@
             { q: "Uzupełnij zdanie: 'There .......... three cats in the garden.'", options: ["are", "is", "am", "be"], a: "are", explanation: "Konstrukcja There are w liczbie mnogiej." }
           ]
         },
-        biologia: { /* zawarte w wyżej przygotowanej strukturze */ },
         technika: {
           'Rysunek techniczny i wymiarowanie': [
             { q: "Do czego na rysunku technicznym służy linia ciągła gruba?", options: ["Do obrysowywania widocznych krawędzi i zarysów przedmiotu", "Do oznaczania osi symetrii", "Do rysowania wymiarów", "Do oznaczania krawędzi niewidocznych"], a: "Do obrysowywania widocznych krawędzi i zarysów przedmiotu", explanation: "Linia gruba to główny widoczny kontur." },
@@ -1102,7 +1099,7 @@
             { q: "Czynność polegająca na trasowaniu materiału to:", options: ["Wykreślanie linii i punktów cięcia na powierzchni materiału", "Malowanie pędzlem", "Smarowanie olejem", "Pakowanie w karton"], a: "Wykreślanie linii i punktów cięcia na powierzchni materiału", explanation: "Trasowanie poprzedza obróbkę mechaniczną." }
           ]
         },
-        historia: { /* zawarte w wyżej przygotowanej strukturze */ }
+        historia: {}
       };
 
       if (dbPools[subjKey] && dbPools[subjKey][chapterName]) {
