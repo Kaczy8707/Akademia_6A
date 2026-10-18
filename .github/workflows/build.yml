@@ -20,7 +20,6 @@ jobs:
           PROJECT_DIR=$(dirname $(find . -name "pubspec.yaml" -not -path "*/.*/*" | head -n 1))
           cd "$PROJECT_DIR"
           mkdir -p assets/mapy
-          flutter create --platforms=android .
           flutter pub get
           flutter build apk --release
 
@@ -46,7 +45,6 @@ jobs:
           Set-Location $projectDir
           New-Item -ItemType Directory -Force -Path "assets/mapy"
           flutter config --enable-windows-desktop
-          flutter create --platforms=windows .
           flutter pub get
           flutter build windows --release
 
