@@ -1,4 +1,4 @@
-import 'dartd:convert';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,12 +15,17 @@ class AkademiaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Akademia SP7 - Klasa 1-6',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
-        cardColor: const Color(0xFF1E293B),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF6366F1),
-          secondary: Color(0xFF06B6D4),
+      theme: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Jasne, czyste tło
+        cardColor: Colors.white,
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF4F46E5), // Nowoczesny fiolet Indigo
+          secondary: Color(0xFF0891B2), // Żywy turkus
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E1B4B),
+          foregroundColor: Colors.white,
+          elevation: 2,
         ),
       ),
       home: const MainHomeScreen(),
@@ -47,7 +52,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   bool _isReviewMode = false;
 
   final Map<String, SubjectData> _program = {
-    'angielski': SubjectData('Język Angielski (Klasy 1-6)', '🇬🇧', [
+    'angielski': SubjectData('Język Angielski', '🇬🇧', [
       'Klasy 1-3: Podstawowe Słownictwo (Kolory, Zwierzęta, Rodzina)',
       'Klasy 1-3: Liczby i Czasownik "to be"',
       'Klasa 4: Czas Present Simple & Present Continuous',
@@ -186,7 +191,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       } else {
         q = [
           Question(
-            text: 'Uzupełnij zdanie w czas Present Perfect: She has ___ (finish) her homework.',
+            text: 'Uzupełnij zdanie w czasie Present Perfect: She has ___ (finish) her homework.',
             options: ['finished', 'finishing', 'finishes', 'finish'],
             correctAnswer: 'finished',
             hint: 'W Present Perfect po "have/has" dajemy III formę (-ed).',
@@ -297,7 +302,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     if (_reviewPool.isEmpty) return;
     setState(() {
       _isReviewMode = true;
-      _selectedChapter = "Magazyn Powtórek (Zadania Problematyczne)";
+      _selectedChapter = "Magazyn Powtórek";
       _currentQuiz = List.from(_reviewPool);
     });
   }
@@ -306,11 +311,12 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.bar_chart, color: Colors.cyan),
+            Icon(Icons.insights, color: Color(0xFF4F46E5)),
             SizedBox(width: 8),
-            Text('Statystyki Nauki'),
+            Text('Twoje Statystyki', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -319,30 +325,34 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           children: [
             ListTile(
               leading: const Text('⭐', style: TextStyle(fontSize: 24)),
-              title: const Text('Punkty XP'),
-              trailing: Text('$_userXP', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: const Text('Punkty XP', style: TextStyle(fontWeight: FontWeight.w600)),
+              trailing: Text('$_userXP', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFD97706))),
             ),
             ListTile(
               leading: const Text('📝', style: TextStyle(fontSize: 24)),
-              title: const Text('Ukończone Testy'),
-              trailing: Text('$_totalTests', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: const Text('Ukończone Testy', style: TextStyle(fontWeight: FontWeight.w600)),
+              trailing: Text('$_totalTests', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF4F46E5))),
             ),
             ListTile(
               leading: const Text('✅', style: TextStyle(fontSize: 24)),
-              title: const Text('Przeanalizowane Zadania'),
-              trailing: Text('$_totalQuestionsAnswered', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: const Text('Przeanalizowane Zadania', style: TextStyle(fontWeight: FontWeight.w600)),
+              trailing: Text('$_totalQuestionsAnswered', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF059669))),
             ),
             ListTile(
               leading: const Text('⚠️', style: TextStyle(fontSize: 24)),
-              title: const Text('Do powtórki'),
-              trailing: Text('${_reviewPool.length}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 18)),
+              title: const Text('Do powtórki', style: TextStyle(fontWeight: FontWeight.w600)),
+              trailing: Text('${_reviewPool.length}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFDC2626), fontSize: 18)),
             ),
           ],
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4F46E5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             onPressed: () => Navigator.pop(context),
-            child: const Text('Zamknij'),
+            child: const Text('Zamknij', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -353,22 +363,22 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('⚡ AKADEMIA SP7 - KLASA 1-6', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('⚡ AKADEMIA SP7', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.bar_chart, color: Colors.cyan),
+            icon: const Icon(Icons.insights, color: Colors.amberAccent),
             onPressed: _showStatsDialog,
             tooltip: 'Statystyki',
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.2),
+              color: Colors.amber.withOpacity(0.25),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.amber),
+              border: Border.all(color: Colors.amber, width: 1.5),
             ),
-            child: Text('⭐ $_userXP XP', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
+            child: Text('⭐ $_userXP XP', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amberAccent)),
           )
         ],
       ),
@@ -412,23 +422,26 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_reviewPool.isNotEmpty) ...[
-            Card(
-              color: const Color(0xFF332A15),
-              shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+                ),
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: Colors.amber),
+                border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
               ),
               child: ListTile(
-                leading: const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 32),
-                title: Text('Powtórki do zrobienia: ${_reviewPool.length} zadań', style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Kliknij, aby przećwiczyć trudniejsze pytania'),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.amber, size: 16),
+                leading: const Icon(Icons.bolt, color: Color(0xFFD97706), size: 36),
+                title: Text('Powtórki: ${_reviewPool.length} zadań do opanowania', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF78350F))),
+                subtitle: const Text('Przećwicz pytania, w których pojawił się błąd', style: TextStyle(color: Color(0xFF92400E))),
+                trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFFD97706), size: 18),
                 onTap: _startReviewMode,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
           ],
-          const Text('Wybierz przedmiot:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text('Wybierz przedmiot:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.extrabold, color: Color(0xFF1E293B))),
           const SizedBox(height: 16),
           Expanded(
             child: GridView.count(
@@ -437,26 +450,33 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               mainAxisSpacing: 16,
               children: _program.entries.map((e) {
                 return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                  shadowColor: const Color(0xFF64748B).withOpacity(0.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
                   child: InkWell(
                     onTap: () {
                       setState(() {
                         _selectedSubject = e.key;
                       });
                     },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(e.value.icon, style: const TextStyle(fontSize: 40)),
-                        const SizedBox(height: 8),
-                        Text(
-                          e.value.title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ],
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(e.value.icon, style: const TextStyle(fontSize: 44)),
+                          const SizedBox(height: 10),
+                          Text(
+                            e.value.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -476,255 +496,33 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E293B),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () {
               setState(() {
                 _selectedSubject = null;
               });
             },
-            icon: const Icon(Icons.arrow_back),
-            label: const Text('Powrót do przedmiotów'),
+            icon: const Icon(Icons.arrow_back, size: 18),
+            label: const Text('Powrót do przedmiotów', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-          const SizedBox(height: 16),
-          Text('${subj.title} - Wybierz dział:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
+          Text('${subj.title} - Wybierz dział:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.extrabold, color: Color(0xFF0F172A))),
+          const SizedBox(height: 14),
           Expanded(
             child: ListView.builder(
               itemCount: subj.chapters.length,
               itemBuilder: (context, index) {
                 final chap = subj.chapters[index];
                 return Card(
+                  elevation: 1.5,
                   margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
                   child: ListTile(
-                    title: Text(chap, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _generateQuiz(chap),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SubjectData {
-  final String title;
-  final String icon;
-  final List<String> chapters;
-  SubjectData(this.title, this.icon, this.chapters);
-}
-
-class Question {
-  final String text;
-  final String? mapType;
-  final bool isOpen;
-  final List<String>? options;
-  final String correctAnswer;
-  final String hint;
-
-  Question({
-    required this.text,
-    this.mapType,
-    this.isOpen = false,
-    this.options,
-    required this.correctAnswer,
-    required this.hint,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'text': text,
-        'mapType': mapType,
-        'isOpen': isOpen,
-        'options': options,
-        'correctAnswer': correctAnswer,
-        'hint': hint,
-      };
-
-  factory Question.fromJson(Map<String, dynamic> json) => Question(
-        text: json['text'],
-        mapType: json['mapType'],
-        isOpen: json['isOpen'] ?? false,
-        options: json['options'] != null ? List<String>.from(json['options']) : null,
-        correctAnswer: json['correctAnswer'],
-        hint: json['hint'],
-      );
-}
-
-class QuizScreen extends StatefulWidget {
-  final String chapterTitle;
-  final List<Question> questions;
-  final bool isReviewMode;
-  final Function(List<Question> correct, List<Question> wrong) onComplete;
-  final VoidCallback onCancel;
-
-  const QuizScreen({
-    super.key,
-    required this.chapterTitle,
-    required this.questions,
-    this.isReviewMode = false,
-    required this.onComplete,
-    required this.onCancel,
-  });
-
-  @override
-  State<QuizScreen> createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  final Map<int, String> _userAnswers = {};
-  final Map<int, TextEditingController> _controllers = {};
-
-  @override
-  void dispose() {
-    for (var controller in _controllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(onPressed: widget.onCancel, child: const Text('Anuluj')),
-              Expanded(
-                child: Text(
-                  widget.chapterTitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.questions.length,
-              itemBuilder: (context, qIdx) {
-                final q = widget.questions[qIdx];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Zadanie ${qIdx + 1}:${q.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        if (q.mapType != null) ...[
-                          const SizedBox(height: 12),
-                          Container(
-                            height: 180,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white24),
-                            ),
-                            child: CustomPaint(
-                              painter: MapPainter(mapType: q.mapType!),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        if (q.isOpen) ...[
-                          TextField(
-                            controller: _controllers.putIfAbsent(qIdx, () => TextEditingController()),
-                            onChanged: (val) {
-                              _userAnswers[qIdx] = val.trim();
-                            },
-                            decoration: const InputDecoration(
-                              hintText: 'Wpisz odpowiedź...',
-                              border: OutlineInputBorder(),
-                              filled: true,
-                              fillColor: Color(0xFF0F172A),
-                            ),
-                          ),
-                        ] else if (q.options != null) ...[
-                          ...q.options!.map((opt) {
-                            final isSelected = _userAnswers[qIdx] == opt;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _userAnswers[qIdx] = opt;
-                                  });
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFF0891B2) : const Color(0xFF0F172A),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: isSelected ? Colors.cyan : Colors.white24),
-                                  ),
-                                  child: Text(opt, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              backgroundColor: const Color(0xFF6366F1),
-            ),
-            onPressed: () {
-              List<Question> correct = [];
-              List<Question> wrong = [];
-
-              for (int i = 0; i < widget.questions.length; i++) {
-                final ans = _userAnswers[i] ?? '';
-                if (ans.toLowerCase() == widget.questions[i].correctAnswer.toLowerCase()) {
-                  correct.add(widget.questions[i]);
-                } else {
-                  wrong.add(widget.questions[i]);
-                }
-              }
-              widget.onComplete(correct, wrong);
-            },
-            child: const Text('Sprawdź odpowiedzi i zapisz postęp', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MapPainter extends CustomPainter {
-  final String mapType;
-
-  MapPainter({required this.mapType});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (mapType == 'unia_lubelska') {
-      final fillKorona = Paint()..color = const Color(0xFFE57373);
-      final fillLitwa = Paint()..color = const Color(0xFF64B5F6);
-      final strokeBorder = Paint()..color = Colors.black87..style = PaintingStyle.stroke..strokeWidth = 2;
-
-      final pathKorona = Path()
-        ..moveTo(size.width * 0.1, size.height * 0.3)
-        ..lineTo(size.width * 0.45, size.height * 0.2)
-        ..lineTo(size.width * 0.42, size.height * 0.8)
-        ..lineTo(size.width * 0.15, size.height * 0.75)
-        ..close();
-
-      final pathLitwa = Path()
-        ..moveTo(size.width * 0.45, size.height * 0.2)
-        ..lineTo(size.width *
+                    title: Text(chap, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF1
