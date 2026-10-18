@@ -56,8 +56,8 @@
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wybierz opcję, aby kontynuować naukę</p>
 
       <div id="authTabs" class="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
-        <button type="button" onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow">LOGOWANIE</button>
-        <button type="button" onclick="switchAuthTab('register')" id="tabRegBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600">REJESTRACJA</button>
+        <button type="button" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer">LOGOWANIE</button>
+        <button type="button" id="tabRegBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer">REJESTRACJA</button>
       </div>
 
       <!-- LOGOWANIE -->
@@ -71,13 +71,13 @@
           <input type="password" id="loginPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
         
-        <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
+        <button type="button" id="loginSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
           ZALOGUJ SIĘ 🚀
         </button>
         
         <div class="text-center mt-3 flex justify-between items-center text-xs">
-          <button type="button" onclick="switchAuthTab('recovery')" class="text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
-          <button type="button" onclick="installPWA()" id="installBtnLogin" class="hidden text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">📱 Zainstaluj aplikację</button>
+          <button type="button" id="forgotPinBtn" class="text-indigo-600 hover:underline font-bold cursor-pointer">Zapomniałeś PIN-u?</button>
+          <button type="button" id="installBtnLogin" class="hidden text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">📱 Zainstaluj aplikację</button>
         </div>
       </div>
 
@@ -101,7 +101,7 @@
           <input type="text" id="regSecAnswer" placeholder="Odpowiedź..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
         </div>
         
-        <button type="button" onclick="handleRegister()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
+        <button type="button" id="regSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
           UTWÓRZ KONTO I STARTUJ ✨
         </button>
       </div>
@@ -120,11 +120,11 @@
           <label class="block text-xs font-bold text-slate-600 mb-1">Ustal NOWY PIN (4 cyfry):</label>
           <input type="password" id="recNewPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
-        <button type="button" onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-center block mt-2 cursor-pointer">
+        <button type="button" id="resetPinBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-center block mt-2 cursor-pointer">
           ZRESETUJ PIN I ZALOGUJ 🔑
         </button>
         <div class="text-center mt-2">
-          <button type="button" onclick="switchAuthTab('login')" class="text-xs text-slate-500 hover:underline font-bold">Powrót do logowania</button>
+          <button type="button" id="backToLoginBtn" class="text-xs text-slate-500 hover:underline font-bold cursor-pointer">Powrót do logowania</button>
         </div>
       </div>
 
@@ -144,7 +144,6 @@
           📱 Zainstaluj
         </button>
 
-        <!-- KAFELEK PROFILU I XP (KLIKALNY - OTWIERA SZCZEGÓŁOWE STATYSTYKI) -->
         <button onclick="openProfileModal()" class="flex items-center gap-2 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-600 px-3.5 py-1.5 rounded-2xl text-white shadow transition active:scale-95 cursor-pointer">
           <div class="text-amber-300 font-extrabold text-sm flex items-center gap-1">
             ⭐ <span id="xpDisplay">0</span> XP
@@ -155,7 +154,7 @@
           </div>
         </button>
 
-        <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-600 font-bold text-slate-300">
+        <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-600 font-bold text-slate-300 cursor-pointer">
           ⚙️ Wyjdź
         </button>
       </div>
@@ -166,7 +165,6 @@
   <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
 
     <div id="dashboardView">
-      <!-- MODUL TRUDNYCH / PROBLEMATYCZNYCH ZADAŃ -->
       <div id="mistakesModuleCard" class="hidden bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div class="flex justify-between items-center mb-2">
           <h2 class="font-extrabold text-rose-900 flex items-center gap-2 text-sm uppercase">
@@ -175,7 +173,7 @@
           <span class="text-xs text-rose-700 font-bold">Automatyczny trening błędów</span>
         </div>
         <p class="text-xs text-rose-800 mb-3">Masz w swojej pamięci pytania, na które wcześniej odpowiedziałeś błędnie. Przećwicz je ponownie!</p>
-        <button onclick="startMistakesQuiz()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95 text-xs uppercase tracking-wide">
+        <button onclick="startMistakesQuiz()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95 text-xs uppercase tracking-wide cursor-pointer">
           ROZPOCZNIJ TRENING PROBLEMATYCZNYCH ZADAŃ 🎯
         </button>
       </div>
@@ -193,7 +191,7 @@
           </div>
         </div>
 
-        <button onclick="openChallengeModal()" class="w-full bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-600 hover:to-amber-600 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wide">
+        <button onclick="openChallengeModal()" class="w-full bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-600 hover:to-amber-600 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wide cursor-pointer">
           ⚔️ Wyzwanie 1 vs 1 (Pojedynek z kolegą)
         </button>
       </div>
@@ -209,7 +207,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8" id="subjectGrid"></div>
     </div>
 
-    <!-- MODAL PROFILU I SZCZEGÓŁOWYCH STATYSTIK -->
+    <!-- MODAL PROFILU -->
     <div id="profileModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
       <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-left">
         <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
@@ -220,7 +218,7 @@
               <p class="text-xs text-indigo-600 font-bold">Profil Ucznia Szkoły Podstawowej nr 7</p>
             </div>
           </div>
-          <button onclick="closeProfileModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+          <button onclick="closeProfileModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
         </div>
 
         <div class="space-y-3 mb-6 text-sm">
@@ -246,7 +244,7 @@
           </div>
         </div>
 
-        <button onclick="closeProfileModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-xl shadow transition">
+        <button onclick="closeProfileModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-xl shadow transition cursor-pointer">
           POWRÓT DO NAUKI
         </button>
       </div>
@@ -257,7 +255,7 @@
       <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-black text-lg text-slate-800">⚔️ Rzuć Wyzwanie 1 vs 1</h3>
-          <button onclick="closeChallengeModal()" class="text-slate-400 font-bold text-lg">✕</button>
+          <button onclick="closeChallengeModal()" class="text-slate-400 font-bold text-lg cursor-pointer">✕</button>
         </div>
         
         <div class="space-y-4">
@@ -276,7 +274,7 @@
               <option value="technika">🛠️ Technika</option>
             </select>
           </div>
-          <button onclick="createChallenge()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-md transition active:scale-95 text-center mt-2">
+          <button onclick="createChallenge()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-md transition active:scale-95 text-center mt-2 cursor-pointer">
             WYŚLIJ WYZWANIE (+50 XP DO ZDOBYCIA)
           </button>
         </div>
@@ -285,7 +283,7 @@
 
     <!-- WIDOK DZIAŁU -->
     <div id="chapterView" class="hidden">
-      <button onclick="showDashboard()" class="mb-4 bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2">
+      <button onclick="showDashboard()" class="mb-4 bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer">
         ← Powrót do przedmiotów
       </button>
       <h2 id="chapterTitle" class="text-2xl font-extrabold text-slate-800 mb-4"></h2>
@@ -295,7 +293,7 @@
     <!-- WIDOK QUIZU -->
     <div id="quizView" class="hidden max-w-xl mx-auto bg-white rounded-3xl p-6 shadow-lg border border-slate-200">
       <div class="flex justify-between items-center mb-4">
-        <button onclick="showDashboard()" class="text-slate-400 font-bold text-sm">✕ Wyjdź</button>
+        <button onclick="showDashboard()" class="text-slate-400 font-bold text-sm cursor-pointer">✕ Wyjdź</button>
         <div class="w-2/3 bg-slate-200 h-3 rounded-full overflow-hidden">
           <div id="progressBar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
         </div>
@@ -304,7 +302,7 @@
       <div id="questionContainer" class="py-4"></div>
       <div id="feedbackBox" class="hidden p-4 rounded-2xl mb-4 font-bold text-sm text-center"></div>
 
-      <button id="nextBtn" onclick="submitAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-md transition active:scale-95 text-center">
+      <button id="nextBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-md transition active:scale-95 text-center cursor-pointer">
         SPRAWDŹ ODPOWIEDŹ
       </button>
     </div>
@@ -411,6 +409,15 @@
     };
 
     window.onload = function() {
+      // PODPIĘCIE NASŁUCHIWACZY ZDARZEŃ ZABEZPIECZAJĄCE PRZEŁĄCZANIE ZAKŁADEK
+      document.getElementById('tabLoginBtn').addEventListener('click', () => switchAuthTab('login'));
+      document.getElementById('tabRegBtn').addEventListener('click', () => switchAuthTab('register'));
+      document.getElementById('loginSubmitBtn').addEventListener('click', handleLogin);
+      document.getElementById('regSubmitBtn').addEventListener('click', handleRegister);
+      document.getElementById('forgotPinBtn').addEventListener('click', () => switchAuthTab('recovery'));
+      document.getElementById('resetPinBtn').addEventListener('click', resetPin);
+      document.getElementById('backToLoginBtn').addEventListener('click', () => switchAuthTab('login'));
+
       try {
         const savedUser = localStorage.getItem('akademia6a_saved_user');
         if (savedUser) {
@@ -432,24 +439,23 @@
       loginForm.classList.add('hidden');
       registerForm.classList.add('hidden');
       recoveryForm.classList.add('hidden');
-      authTabs.classList.add('hidden');
+      authTabs.classList.remove('hidden');
 
       const btnLog = document.getElementById('tabLoginBtn');
       const btnReg = document.getElementById('tabRegBtn');
-      btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600";
-      btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600";
+      btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer";
+      btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer";
 
       if (tab === 'login') {
         loginForm.classList.remove('hidden');
-        authTabs.classList.remove('hidden');
-        btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow";
+        btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer";
         subtitle.innerText = "Wpisz swój Nick i PIN, aby się zalogować";
       } else if (tab === 'register') {
         registerForm.classList.remove('hidden');
-        authTabs.classList.remove('hidden');
-        btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-emerald-600 text-white shadow";
+        btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-emerald-600 text-white shadow cursor-pointer";
         subtitle.innerText = "Załóż nowe konto ucznia w Akademii 6A";
       } else if (tab === 'recovery') {
+        authTabs.classList.add('hidden');
         recoveryForm.classList.remove('hidden');
         subtitle.innerText = "Odzyskiwanie dostępu do konta";
       }
@@ -781,7 +787,7 @@
             list.innerHTML += `
               <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200">
                 <span class="font-bold text-sm text-red-900">⚔️ ${ch.from} wyzwał Cię z: ${program[ch.subject].title}!</span>
-                <button onclick="acceptChallenge('${doc.id}', '${ch.subject}')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow">
+                <button onclick="acceptChallenge('${doc.id}', '${ch.subject}')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow cursor-pointer">
                   Graj (+50 XP)
                 </button>
               </div>
@@ -802,7 +808,7 @@
       for (let key in program) {
         const s = program[key];
         grid.innerHTML += `
-          <button onclick="openSubject('${key}')" class="bg-white border border-slate-200 hover:border-indigo-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition active:scale-95 text-center flex flex-col items-center">
+          <button onclick="openSubject('${key}')" class="bg-white border border-slate-200 hover:border-indigo-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition active:scale-95 text-center flex flex-col items-center cursor-pointer">
             <span class="text-5xl mb-2">${s.icon}</span>
             <span class="font-bold text-slate-800 text-sm">${s.title}</span>
           </button>
@@ -906,4 +912,186 @@
         } else {
           pool = [
             { q: "Zwierzęta stałocieplne (utrzymujące stałą temperaturę ciała) to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i owady"], a: "Ptaki i ssaki", explanation: "Ptaki i ssaki potrafią utrzymać stałą temperaturę ciała niezależnie od warunków zewnętrznych." },
-            { q: "Jedynymi kręgowcami potrafiącymi aktywnie latać
+            { q: "Jedynymi kręgowcami potrafiącymi aktywnie latać są zazwyczaj:", options: ["Ptaki", "Gady", "Płazy"], a: "Ptaki", explanation: "Ptaki posiadają skrzydła i lekką budowę kośćca umożliwiającą im aktywny lot." },
+            { q: "Płazy w swoim cyklu rozwojowym przechodzą proces przeobrażenia:", options: ["Z larwy (kijkanka) w osobnika dorosłego", "Z jaj w ssaka", "Bez żadnych zmian"], a: "Z larwy (kijkanka) w osobnika dorosłego", explanation: "Płazy (np. żaby) rozwijają się z jaj wodnych w wodne kijanki, które następnie przechodzą metamorfozę." },
+            { q: "Skóra gadów pokryta jest:", options: ["Rogowymi łuskami lub tarczzkami", "Śluzem i jest naga", "Miękkimi piórami"], a: "Rogowymi łuskami lub tarczzkami", explanation: "Rogowa łuska lub tarcza chroni gady przed wysychaniem w środowisku lądowym." },
+            { q: "Główną rolę w zapobieganiu degradacji środowiska odgrywa:", options: ["Ochrona przyrody i segregacja odpadów", "Wypalanie traw", "Budowa fabryk"], a: "Ochrona przyrody i segregacja odpadów", explanation: "Segregacja odpadów i ochrona gatunkowa pozwalają zachować równowagę w ekosystemach." }
+          ];
+        }
+      }
+      else if (subjKey === 'technika') {
+        if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
+          pool = [
+            { 
+              q: "Co oznacza ten oficjalny znak drogowy C-13 w polskim kodeksie?", 
+              svgGraphic: `<svg viewBox="0 0 500 240" class="w-full h-40 rounded-xl bg-slate-900 shadow-inner flex items-center justify-center"><rect width="500" height="240" fill="#0f172a"/><circle cx="250" cy="120" r="85" fill="#1d4ed8" stroke="#ffffff" stroke-width="6"/><path d="M210,140 L230,100 L260,100 L280,140" stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="210" cy="140" r="16" stroke="#ffffff" stroke-width="5" fill="none"/><circle cx="280" cy="140" r="16" stroke="#ffffff" stroke-width="5" fill="none"/></svg>`,
+              options: ["Droga dla rowerów", "Zakaz wjazdu", "Uwaga piesi"], 
+              a: "Droga dla rowerów",
+              explanation: "Znak C-13 nakazuje kierującym rowerami jazdę po wyznaczonej drodze dla rowerów."
+            },
+            { q: "Minimalny wiek dziecka do uzyskania karty rowerowej to:", options: ["10 lat", "12 lat", "14 lat"], a: "10 lat", explanation: "Zgodnie z przepisami polskiego prawa o ruchu drogowym kartę rowerową można uzyskać po ukończeniu 10. roku życia." },
+            { q: "Podstawowe obowiązkowe wyposażenie roweru to m.in.:", options: ["Światło pozycyjne przednie i tylne oraz hamulec", "Koszyk na zakupy i dzwonek muzyczny", "Lusterko wsteczne i bagażnik"], a: "Światło pozycyjne przednie i tylne oraz hamulec", explanation: "Rower musi być wyposażony w co najmniej jeden skuteczny hamulec oraz wymagane oświetlenie." },
+            { q: "Znak drogowy zakazu ma zazwyczaj kształt:", options: ["Okrągły z czerwoną obwódką", "Trójkątny żółty", "Kwadratowy niebieski"], a: "Okrągły z czerwoną obwódką", explanation: "Znaki zakazu wyróżniają się okrągłą formą, białym tłem oraz czerwoną obwódką." },
+            { q: "Poruszając się rowerem po drodze publicznej po zmroku, rowerzysta musi używać:", options: ["Elementów odblaskowych i oświetlenia", "Tylko kasku", "Jasnego ubrania"], a: "Elementów odblaskowych i oświetlenia", explanation: "Oświetlenie roweru po zmroku oraz elementy odblaskowe są bezwzględnie obowiązkowe dla bezpieczeństwa." }
+          ];
+        } else {
+          pool = [
+            { q: "Dobrym przewodnikiem prądu elektrycznego jest:", options: ["Miedź", "Drewno suche", "Plastik"], a: "Miedź", explanation: "Metale, w szczególności miedź i aluminium, doskonale przewodzą prąd elektryczny." },
+            { q: "Do łączenia elementów drewnianych używamy najczęściej:", options: ["Wkrętów do drewna i gwoździ", "Śrub imbusowych do stali", "Kleju epoksydowego do szkła"], a: "Wkrętów do drewna i gwoździ", explanation: "Wkręty oraz gwoździe to podstawowe elementy łączące w obróbce drewna." },
+            { q: "Rysunek techniczny przedstawia przedmiot w sposób:", options: ["Znormalizowany i zwymiarowany", "Artystyczny i malarski", "Dowolny i szkicowy"], a: "Znormalizowany i zwymiarowany", explanation: "Rysunek techniczny opiera się na ściśle określonych normach i podaje dokładne wymiary obiektu." },
+            { q: "Materiałem pochodzenia sztucznego (tworzywem polimerowym) jest:", options: ["Plastik / Polietylen", "Drewno sosnowe", "Miedź elektrolityczna"], a: "Plastik / Polietylen", explanation: "Tworzywa sztuczne są syntetycznymi polimerami wytwarzanymi w procesach chemicznych." },
+            { q: "Bezpiecznik elektryczny w obwodzie domowym służy do:", options: ["Ochrony przed przeciążeniem i zwarciem", "Zwiększania napięcia", "Oszczędzania żarówek"], a: "Ochrony przed przeciążeniem i zwarciem", explanation: "Bezpiecznik przerywa obwód w sytuacji przepływu zbyt dużego prądu, chroniąc instalację." }
+          ];
+        }
+      }
+      else if (subjKey === 'historia') {
+        pool = [
+          { q: "W którym roku Krzysztof Kolumb dotarł do wybrzeży Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok", explanation: "Rok 1492 uznawany jest w historii za symboliczny koniec średniowiecza i początek nowożytności." },
+          { q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791", explanation: "Konstytucja 3 Maja z 1791 roku była pierwszą w Europie i drugą na świecie nowoczesną ustawą zasadniczą." },
+          { q: "Bitwa pod Grunwaldem miała miejsce w roku:", options: ["1410", "1525", "1683"], a: "1410", explanation: "W 1410 roku połączone siły polsko-litewskie odniosły wielkie zwycięstwo nad zakonem krzyżackim." },
+          { q: "Ostatnim królem elekcyjnym Polski był:", options: ["Stanisław August Poniatowski", "Jan III Sobieski", "Stefan Batory"], a: "Stanisław August Poniatowski", explanation: "Stanisław August Poniatowski panował w okresie upadku Rzeczypospolitej pod koniec XVIII wieku." },
+          { q: "Epoka historyczna charakteryzująca się powrotem do antyku i rozkwitem sztuki to:", options: ["Renesans (Odrodzenie)", "Średniowiecze", "Starożytność"], a: "Renesans (Odrodzenie)", explanation: "Renesans (XV–XVI w.) przyniósł gigantyczny rozwój nauki, sztuki i filozofii nawiązującej do antyku." }
+        ];
+      }
+      else if (subjKey === 'matematyka') {
+        let v = (Math.floor(Math.random() * 6) + 4) * 10;
+        let t = Math.floor(Math.random() * 3) + 2;
+        let s = v * t;
+        pool = [
+          { q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokonamy w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km`, explanation: "Droga to iloczyn prędkości i czasu." },
+          { q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h", explanation: "Prędkość obliczamy dzieląc drogę przez czas." },
+          { q: "Wynik dodawania ułamków 1/4 + 2/4 wynosi:", options: ["3/4", "3/8", "1/2"], a: "3/4", explanation: "Przy jednakowych mianownikach dodajemy liczniki." },
+          { q: "Pole kwadratu o boku 7 cm wynosi:", options: ["49 cm²", "28 cm²", "14 cm²"], a: "49 cm²", explanation: "Pole kwadratu to kwadrat długości jego boku." },
+          { q: "Liczba odwrotna do liczby 2 to:", options: ["1/2", "-2", "2"], a: "1/2", explanation: "Liczba odwrotna daje z daną liczbą iloczyn równy 1." }
+        ];
+      }
+      else {
+        pool = [
+          { q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went", explanation: "Czasownik 'go' jest nieregularny: go -> went -> gone." },
+          { q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog", explanation: "Słowo 'pies' w języku angielskim to 'dog'." },
+          { q: "Który wyraz jest w czasie Present Continuous?", options: ["is running", "ran", "runs"], a: "is running", explanation: "Present Continuous tworzymy za pomocą 'to be' oraz formy z końcówką '-ing'." },
+          { q: "Przymiotnik 'good' w stopniu wyższym (comparative) to:", options: ["better", "best", "gooder"], a: "better", explanation: "Przymiotnik 'good' stopniuje się nieregularnie: good -> better." },
+          { q: "Co oznacza po angielsku słowo 'Apple'?", options: ["Jabłko", "Pomarańcza", "Banan"], a: "Jabłko", explanation: "'Apple' to w języku angielskim jabłko." }
+        ];
+      }
+
+      pool.sort(() => Math.random() - 0.5);
+      return pool.slice(0, 5);
+    }
+
+    function startQuiz(chapterName, subjKey) {
+      isMistakesMode = false;
+      currentQuiz = generateQuestionsForChapter(chapterName, subjKey || activeSubjectKey);
+      currentQIdx = 0;
+      
+      document.getElementById('chapterView').classList.add('hidden');
+      document.getElementById('quizView').classList.remove('hidden');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      selectedOption = null;
+      document.getElementById('feedbackBox').classList.add('hidden');
+      const q = currentQuiz[currentQIdx];
+      
+      const pct = ((currentQIdx) / currentQuiz.length) * 100;
+      document.getElementById('progressBar').style.width = pct + "%";
+
+      const container = document.getElementById('questionContainer');
+      
+      let svgHtml = '';
+      if (q.svgGraphic) {
+        svgHtml = `<div class="w-full mb-5 shadow-lg rounded-2xl overflow-hidden border border-slate-700">${q.svgGraphic}</div>`;
+      }
+
+      container.innerHTML = `
+        <h3 class="text-base font-black text-slate-800 mb-3">${q.q}</h3>
+        ${svgHtml}
+      `;
+
+      if (q.isOpen) {
+        container.innerHTML += `
+          <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600 mt-2">
+        `;
+      } else {
+        q.options.forEach(opt => {
+          container.innerHTML += `
+            <button onclick="selectOpt(this, '${opt}')" class="opt-btn w-full text-left p-3.5 rounded-xl border border-slate-200 font-bold mb-2 hover:bg-indigo-50 transition text-sm cursor-pointer">
+              ${opt}
+            </button>
+          `;
+        });
+      }
+
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.innerText = "SPRAWDŹ ODPOWIEDŹ";
+      nextBtn.onclick = submitAnswer;
+    }
+
+    function selectOpt(btn, opt) {
+      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('border-indigo-600', 'bg-indigo-50'));
+      btn.classList.add('border-indigo-600', 'bg-indigo-50');
+      selectedOption = opt;
+    }
+
+    function submitAnswer() {
+      const q = currentQuiz[currentQIdx];
+      let userAns = q.isOpen ? document.getElementById('openAns').value.trim().toLowerCase() : selectedOption;
+
+      if (!userAns) {
+        alert("Wybierz lub wpisz odpowiedź!");
+        return;
+      }
+
+      const fb = document.getElementById('feedbackBox');
+      fb.classList.remove('hidden');
+
+      let explanationText = q.explanation ? `<br><span class="text-xs font-normal opacity-90">💡 Wyjaśnienie: ${q.explanation}</span>` : '';
+
+      if (userAns.toLowerCase() === q.a.toLowerCase()) {
+        fb.className = "p-3 rounded-2xl mb-4 font-bold text-sm text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
+        fb.innerHTML = `🎉 Świetnie! Poprawna odpowiedź! ${explanationText}`;
+        addXP(10);
+        recordStat(true);
+        if (isMistakesMode) {
+          removeMistake(q);
+        }
+      } else {
+        fb.className = "p-3 rounded-2xl mb-4 font-bold text-sm text-center bg-rose-100 text-rose-800 border border-rose-300";
+        fb.innerHTML = `❌ Pomyłka! Prawidłowa odpowiedź to: <b>${q.a}</b> ${explanationText}`;
+        recordStat(false);
+        if (!isMistakesMode) {
+          recordMistake(q);
+        }
+      }
+
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.innerText = "NASTĘPNE ZADANIE ▶";
+      nextBtn.onclick = nextQuestion;
+    }
+
+    function nextQuestion() {
+      currentQIdx++;
+      if (currentQIdx < currentQuiz.length) {
+        renderQuestion();
+      } else {
+        recordTestCompleted();
+        if (isChallengeMode) {
+          addXP(50);
+          if (db && activeChallengeId) {
+            db.collection("challenges_6a").doc(activeChallengeId).update({ status: 'completed' });
+          }
+          alert("🏆 Wyzwanie 1 vs 1 zakończone sukcesem! Zdobycz: +50 BONUSOWYCH XP!");
+          isChallengeMode = false;
+        } else if (isMistakesMode) {
+          alert("Trening problematycznych zadań zakończony!");
+          isMistakesMode = false;
+        } else {
+          alert("Gratulacje! Ukończyłeś test z tego działu!");
+        }
+        showDashboard();
+      }
+    }
+  </script>
+</body>
+</html>
