@@ -1,4 +1,5 @@
-import 'dartd:math';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,12 +37,23 @@ class MainHomeScreen extends StatefulWidget {
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _userXP = 0;
+  int _totalTests = 0;
+  int _totalQuestionsAnswered = 0;
+  List<Question> _reviewPool = [];
+
   String? _selectedSubject;
   String? _selectedChapter;
   List<Question> _currentQuiz = [];
+  bool _isReviewMode = false;
 
-  // PEŁNY PROGRAM DLA KLASY 6 (WSZYSTKIE ROZDZIAŁY I DZIAŁY)
   final Map<String, SubjectData> _program = {
+    'biologia': SubjectData('Biologia (Puls Życia 6)', '🌿', [
+      'Dział I: Świat zwierząt',
+      'Dział II: Od parzydełkowców do pierścienic',
+      'Dział III: Stawonogi i mięczaki',
+      'Dział IV: Kręgowce zmiennocieplne',
+      'Dział V: Kręgowce stałocieplne',
+    ]),
     'historia': SubjectData('Historia (Wczoraj i dziś 6)', '⚔️', [
       'Rozdział I: Narodziny nowożytnego świata',
       'Rozdział II: W Rzeczypospolitej szlacheckiej',
@@ -56,13 +68,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       'Rozdział 3: Środowisko przyrodnicze i ludność Europy',
       'Rozdział 4: Gospodarka Europy',
       'Rozdział 5: Sąsiedzi Polski',
-    ]),
-    'biologia': SubjectData('Biologia (Puls Życia 6)', '🌿', [
-      'Dział I: Świat zwierząt',
-      'Dział II: Od parzydełkowców do pierścienic',
-      'Dział III: Stawonogi i mięczaki',
-      'Dział IV: Kręgowce zmiennocieplne',
-      'Dział V: Kręgowce stałocieplne',
     ]),
     'matematyka': SubjectData('Matematyka (M+ 6)', '📐', [
       'Dział 1: Liczby naturalne i ułamki',
@@ -85,30 +90,51 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadXP();
+    _loadStats();
   }
 
-  Future<void> _loadXP() async {
+  Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _userXP = prefs.getInt('user_xp') ?? 0;
+      _totalTests = prefs.getInt('total_tests') ?? 0;
+      _totalQuestionsAnswered = prefs.getInt('total_questions') ?? 0;
+      
+      final String? reviewJson = prefs.getString('review_pool');
+      if (reviewJson != null) {
+        final List<dynamic> decoded = jsonDecode(reviewJson);
+        _reviewPool = decoded.map((item) => Question.fromJson(item)).toList();
+      }
     });
   }
 
-  Future<void> _addXP(int points) async {
+  Future<void> _saveStats() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userXP += points;
-    });
     await prefs.setInt('user_xp', _userXP);
+    await prefs.setInt('total_tests', _totalTests);
+    await prefs.setInt('total_questions', _totalQuestionsAnswered);
+    
+    final String encoded = jsonEncode(_reviewPool.map((q) => q.toJson()).toList());
+    await prefs.setString('review_pool', encoded);
+  }
+
+  void _addWrongQuestionToReview(Question q) {
+    if (!_reviewPool.any((item) => item.text == q.text)) {
+      _reviewPool.add(q);
+    }
+  }
+
+  void _removeCorrectQuestionFromReview(Question q) {
+    _reviewPool.removeWhere((item) => item.text == q.text);
   }
 
   void _generateQuiz(String chapter) {
+    _isReviewMode = false;
     List<Question> q = [];
     final rand = Random();
 
     if (_selectedSubject == 'matematyka') {
-      for (int i = 1; i <= 10; i++) {
+      for (int i = 1; i <= 5; i++) {
         if (chapter.contains('Prędkość')) {
           int v = (rand.nextInt(6) + 4) * 10;
           int t = rand.nextInt(4) + 2;
@@ -137,7 +163,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
             text: 'Oblicz wartość wyrażenia z działu "$chapter": $a * $b =',
             options: ['$ans', '${ans + 10}', '${ans - 5}', '${ans + 12}'],
             correctAnswer: '$ans',
-            hint: 'Wykonaj mnożenie pisemne lub w pamięci.',
+            hint: 'Wykonaj mnożenie.',
           ));
         }
       }
@@ -162,18 +188,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           correctAnswer: 'viritim',
           hint: 'Elekcja viritim.',
         ),
-        Question(
-          text: 'Zgromadzenie szlachty z danego województwa, na którym wybierano posłów na Sejm Walny to:',
-          options: ['Sejmik ziemski', 'Trybunał Główny', 'Senat'],
-          correctAnswer: 'Sejmik ziemski',
-          hint: 'Sejmiki ziemskie odbywały się lokalnie.',
-        ),
-        Question(
-          text: 'Ustrój Rzeczypospolitej od XVI wieku, w którym szlachta współrządziła państwem z królem, nazywamy:',
-          options: ['Demokracją szlachecką', 'Monarchią absolutną', 'Republiką miejską'],
-          correctAnswer: 'Demokracją szlachecką',
-          hint: 'Demokracja szlachecka.',
-        ),
       ];
     } else if (chapter.contains('Współrzędne geograficzne')) {
       q = [
@@ -191,23 +205,11 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           correctAnswer: 'Północną (N) i Południową (S)',
           hint: 'Równik wyznacza półkule północną i południową.',
         ),
-        Question(
-          text: 'Wszystkie południki na globusie mają:',
-          options: ['Tę samą długość', 'Różną długość', 'Zmienną długość'],
-          correctAnswer: 'Tę samą długość',
-          hint: 'Południki łączą oba bieguny, więc są równe.',
-        ),
-        Question(
-          text: 'Wpisz symbol literowy kierunku geograficznego dla szerokości północnej (np. N):',
-          isOpen: true,
-          correctAnswer: 'N',
-          hint: 'N - North.',
-        ),
       ];
     } else {
       for (int i = 1; i <= 5; i++) {
         q.add(Question(
-          text: 'Zadanie $i/5 z działu "$chapter": Które stwierdzenie najlepiej opisuje analizowane pojęcie?',
+          text: 'Zadanie $i/5 z działu "$chapter": Które stwierdzenie jest prawdziwe?',
           options: [
             'Prawidłowa definicja zgodna z programem Klasy 6',
             'Błędna interpretacja zagadnienia',
@@ -225,14 +227,75 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     });
   }
 
+  void _startReviewMode() {
+    if (_reviewPool.isEmpty) return;
+    setState(() {
+      _isReviewMode = true;
+      _selectedChapter = "Magazyn Powtórek (Zadania Problematyczne)";
+      _currentQuiz = List.from(_reviewPool);
+    });
+  }
+
+  void _showStatsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.bar_chart, color: Colors.cyan),
+            SizedBox(width: 8),
+            Text('Statystyki Nauki'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              leading: const Text('⭐', style: TextStyle(fontSize: 24)),
+              title: const Text('Punkty XP'),
+              trailing: Text('$_userXP', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ),
+            ListTile(
+              leading: const Text('📝', style: TextStyle(fontSize: 24)),
+              title: const Text('Ukończone Testy'),
+              trailing: Text('$_totalTests', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ),
+            ListTile(
+              leading: const Text('✅', style: TextStyle(fontSize: 24)),
+              title: const Text('Przeanalizowane Zadania'),
+              trailing: Text('$_totalQuestionsAnswered', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ),
+            ListTile(
+              leading: const Text('⚠️', style: TextStyle(fontSize: 24)),
+              title: const Text('Do powtórki'),
+              trailing: Text('${_reviewPool.length}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber, fontSize: 18)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Zamknij'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('⚡ AKADEMIA SP7 - KLASA 6', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart, color: Colors.cyan),
+            onPressed: _showStatsDialog,
+            tooltip: 'Statystyki',
+          ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               color: Colors.amber.withOpacity(0.2),
@@ -247,9 +310,20 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           ? QuizScreen(
               chapterTitle: _selectedChapter!,
               questions: _currentQuiz,
-              onComplete: (score) {
-                _addXP(score * 10);
+              isReviewMode: _isReviewMode,
+              onComplete: (correctQuestions, wrongQuestions) {
                 setState(() {
+                  _userXP += correctQuestions.length * 10;
+                  _totalTests += 1;
+                  _totalQuestionsAnswered += (correctQuestions.length + wrongQuestions.length);
+
+                  for (var q in wrongQuestions) {
+                    _addWrongQuestionToReview(q);
+                  }
+                  for (var q in correctQuestions) {
+                    _removeCorrectQuestionFromReview(q);
+                  }
+                  _saveStats();
                   _selectedChapter = null;
                 });
               },
@@ -271,6 +345,23 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_reviewPool.isNotEmpty) ...[
+            Card(
+              color: const Color(0xFF332A15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Colors.amber),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 32),
+                title: Text('Powtórki do zrobienia: ${_reviewPool.length} zadań', style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Kliknij, aby przećwiczyć trudniejsze pytania'),
+                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.amber, size: 16),
+                onTap: _startReviewMode,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           const Text('Wybierz przedmiot:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Expanded(
@@ -288,256 +379,4 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                         _selectedSubject = e.key;
                       });
                     },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(e.value.icon, style: const TextStyle(fontSize: 44)),
-                        const SizedBox(height: 10),
-                        Text(
-                          e.value.title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChapterList() {
-    final subj = _program[_selectedSubject]!;
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ElevatedButton.icon(
-            onPressed: () {
-              setState(() {
-                _selectedSubject = null;
-              });
-            },
-            icon: const Icon(Icons.arrow_back),
-            label: const Text('Powrót do przedmiotów'),
-          ),
-          const SizedBox(height: 16),
-          Text('${subj.title} - Wybierz dział:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              itemCount: subj.chapters.length,
-              itemBuilder: (context, index) {
-                final chap = subj.chapters[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    title: Text(chap, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _generateQuiz(chap),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SubjectData {
-  final String title;
-  final String icon;
-  final List<String> chapters;
-  SubjectData(this.title, this.icon, this.chapters);
-}
-
-class Question {
-  final String text;
-  final String? mapType;
-  final bool isOpen;
-  final List<String>? options;
-  final String correctAnswer;
-  final String hint;
-
-  Question({
-    required this.text,
-    this.mapType,
-    this.isOpen = false,
-    this.options,
-    required this.correctAnswer,
-    required this.hint,
-  });
-}
-
-class QuizScreen extends StatefulWidget {
-  final String chapterTitle;
-  final List<Question> questions;
-  final Function(int) onComplete;
-  final VoidCallback onCancel;
-
-  const QuizScreen({
-    super.key,
-    required this.chapterTitle,
-    required this.questions,
-    required this.onComplete,
-    required this.onCancel,
-  });
-
-  @override
-  State<QuizScreen> createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  final Map<int, String> _userAnswers = {};
-  final Map<int, TextEditingController> _controllers = {};
-
-  @override
-  void dispose() {
-    for (var controller in _controllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(onPressed: widget.onCancel, child: const Text('Anuluj')),
-              Expanded(
-                child: Text(
-                  widget.chapterTitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.questions.length,
-              itemBuilder: (context, qIdx) {
-                final q = widget.questions[qIdx];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Zadanie ${qIdx + 1}:${q.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        if (q.mapType != null) ...[
-                          const SizedBox(height: 12),
-                          Container(
-                            height: 200,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white24),
-                            ),
-                            child: CustomPaint(
-                              painter: MapPainter(mapType: q.mapType!),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        if (q.isOpen) ...[
-                          TextField(
-                            controller: _controllers.putIfAbsent(qIdx, () => TextEditingController()),
-                            onChanged: (val) {
-                              _userAnswers[qIdx] = val.trim();
-                            },
-                            decoration: const InputDecoration(
-                              hintText: 'Wpisz odpowiedź...',
-                              border: OutlineInputBorder(),
-                              filled: true,
-                              fillColor: Color(0xFF0F172A),
-                            ),
-                          ),
-                        ] else if (q.options != null) ...[
-                          ...q.options!.map((opt) {
-                            final isSelected = _userAnswers[qIdx] == opt;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _userAnswers[qIdx] = opt;
-                                  });
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFF0891B2) : const Color(0xFF0F172A),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: isSelected ? Colors.cyan : Colors.white24),
-                                  ),
-                                  child: Text(opt, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              backgroundColor: const Color(0xFF6366F1),
-            ),
-            onPressed: () {
-              int score = 0;
-              for (int i = 0; i < widget.questions.length; i++) {
-                final ans = _userAnswers[i] ?? '';
-                if (ans.toLowerCase() == widget.questions[i].correctAnswer.toLowerCase()) {
-                  score++;
-                }
-              }
-              widget.onComplete(score);
-            },
-            child: const Text('Sprawdź odpowiedzi i odbierz XP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MapPainter extends CustomPainter {
-  final String mapType;
-
-  MapPainter({required this.mapType});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (mapType == 'unia_lubelska') {
-      final fillKorona = Paint()..color = const Color(0xFFE57373);
-      final fillLitwa = Paint()..color = const Color(0xFF64B5F6);
-      final strokeBorder = Paint()..color = Colors.black87..style = PaintingStyle.stroke..strokeWidth = 2;
-
-      final pathKorona = Path()
-        ..moveTo(size.width * 0.1, size.height * 0.3)
-        ..lineTo(size.width * 0.45, size.height * 0.2)
-        ..lineTo(size.width * 0.42
+                    borderRadius: BorderRadius
