@@ -744,165 +744,81 @@
       if (chapView) chapView.classList.remove('hidden');
     }
 
-    // ALGORITMY GENEROWANIA UNIKALNYCH WARIANTÓW (BEZ POWTÓRZEŃ W TEŚCIE)
-    function generateMathPool(chapterName) {
-      let pool = [];
-      for (let i = 0; i < 100; i++) {
-        let v = Math.floor(Math.random() * 15) * 10 + 20; 
-        let t = Math.floor(Math.random() * 5) + 1; 
-        let s = v * t;
-        pool.push({
-          q: `Zadanie matematyczne (Wariant ${i+1}): Pojazd jedzie ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`,
-          options: [`${s} km`, `${s + 20} km`, `${s - 15} km`, `${s + 40} km`],
-          a: `${s} km`,
-          explanation: `Droga to prędkość razy czas: ${v} * ${t} = ${s} km.`
-        });
-
-        let a = Math.floor(Math.random() * 20) + 3;
-        let b = Math.floor(Math.random() * 20) + 3;
-        let area = a * b;
-        pool.push({
-          q: `Geometria (Wariant ${i+1}): Jakie jest pole powierzchni prostokąta o bokach długości ${a} cm i ${b} cm?`,
-          options: [`${area} cm²`, `${2*(a+b)} cm²`, `${area + 10} cm²`, `${Math.abs(a-b)*5} cm²`],
-          a: `${area} cm²`,
-          explanation: `Pole prostokąta = a * b = ${a} * ${b} = ${area} cm².`
-        });
-
-        let mult = Math.floor(Math.random() * 8) + 2;
-        let add = Math.floor(Math.random() * 30) + 2;
-        let res = mult * (Math.floor(Math.random() * 15) + 2) + add;
-        let xVal = (res - add) / mult;
-        pool.push({
-          q: `Równanie (Wariant ${i+1}): Rozwiąż równanie ${mult}x + ${add} = ${res}. Podaj wartość x:`,
-          options: [`x = ${xVal}`, `x = ${xVal + 3}`, `x = ${xVal - 2}`, `x = ${xVal * 2}`],
-          a: `x = ${xVal}`,
-          explanation: `Przenosimy wyraz wolny i dzielimy przez współczynnik, otrzymując x = ${xVal}.`
-        });
+    // BAZA UNIKALNYCH, RZETELNYCH ZADAŃ DLA KLASY 6 (BEZ POWTÓRZEŃ I SZTUCZNYCH WARIANTÓW)
+    function getUniqueQuestionPool(subjKey, chapterName) {
+      if (subjKey === 'matematyka') {
+        return [
+          { q: "Pieszo pokonano dystans 12 km z prędkością 4 km/h. Ile czasu trwało to przejście?", options: ["3 godziny", "4 godziny", "2 godziny", "48 godzin"], a: "3 godziny", explanation: "Czas to droga podzielona przez prędkość: 12 / 4 = 3 godziny." },
+          { q: "Rowerzysta jechał przez 2 godziny ze stałą prędkością 15 km/h. Jaką drogę pokonał?", options: ["30 km", "17 km", "7,5 km", "45 km"], a: "30 km", explanation: "Droga to prędkość razy czas: 15 * 2 = 30 km." },
+          { q: "Jakie jest pole powierzchni prostokąta o wymiarach 7 cm na 9 cm?", options: ["63 cm²", "32 cm²", "56 cm²", "72 cm²"], a: "63 cm²", explanation: "Pole prostokąta = a * b = 7 * 9 = 63 cm²." },
+          { q: "Oblicz pole trójkąta o podstawie 10 cm i wysokości opuszczonej na tę podstawę wynoszącej 6 cm.", options: ["30 cm²", "60 cm²", "16 cm²", "15 cm²"], a: "30 cm²", explanation: "Pole trójkąta = (a * h) / 2 = (10 * 6) / 2 = 30 cm²." },
+          { q: "Rozwiąż równanie: 3x + 5 = 20. Podaj wartość x.", options: ["x = 5", "x = 3", "x = 7", "x = 15"], a: "x = 5", explanation: "3x = 20 - 5 => 3x = 15 => x = 5." },
+          { q: "Rozwiąż równanie: 4x - 8 = 16. Podaj wartość x.", options: ["x = 6", "x = 4", "x = 8", "x = 2"], a: "x = 6", explanation: "4x = 16 + 8 => 4x = 24 => x = 6." },
+          { q: "Zamień ułamek zwykły 3/4 na ułamek dziesiętny:", options: ["0,75", "0,34", "0,43", "0,80"], a: "0,75", explanation: "3 podzielone przez 4 to 0,75." },
+          { q: "Ile to jest 2,5 pomnożone przez 4?", options: ["10", "8", "9", "12"], a: "10", explanation: "2,5 * 4 = 10." },
+          { q: "Obwód kwadratu wynosi 36 cm. Jaka jest długość jednego boku tego kwadratu?", options: ["9 cm", "6 cm", "12 cm", "18 cm"], a: "9 cm", explanation: "Obwód kwadratu to 4 * a, więc a = 36 / 4 = 9 cm." },
+          { q: "Temperatura zamarzania wody wynosi w skali Celsjusza:", options: ["0°C", "100°C", "-10°C", "4°C"], a: "0°C", explanation: "Woda zamarza w temperaturze 0°C." },
+          { q: "Wynik działania 15 - 3 * 4 to:", options: ["3", "48", "12", "0"], a: "3", explanation: "Najpierw wykonujemy mnożenie: 3 * 4 = 12, potem odejmowanie: 15 - 12 = 3." },
+          { q: "Jaki procent stanowi liczba 5 z liczby 20?", options: ["25%", "20%", "50%", "5%"], a: "25%", explanation: "(5 / 20) * 100% = 1/4 * 100% = 25%." }
+        ];
+      } else if (subjKey === 'geografia') {
+        return [
+          { q: "Co przedstawiają linie zwane południkami na globusie i mapie?", options: ["Linie łączące biegun północny z południowym", "Równoległe okręgi wokół Ziemi", "Granice państw", "Przebieg głównych rzek"], a: "Linie łączące biegun północny z południowym", explanation: "Południki to półokręgi łączące oba bieguny Ziemi." },
+          { q: "Jak nazywa się główny południk zerowy (0°), który przechodzi przez obserwatorium w Greenwich w Londynie?", options: ["Południk zerowy", "Równik", "Zwrotnik Raka", "Koło podbiegunowe"], a: "Południk zerowy", explanation: "Południk 0° to południk zerowy (Greenwich)." },
+          { q: "Ruch obrotowy Ziemi (obrót wokół własnej osi) trwa:", options: ["24 godziny", "365 dni", "1 miesiąc", "12 godzin"], a: "24 godziny", explanation: "Pełny obrót Ziemi wokół własnej osi trwa jedną dobę (24 godziny)." },
+          { q: "Głównym skutkiem ruchu obiegowego Ziemi wokół Słońca jest:", options: ["Następstwo pór roku", "Zmienność dnia i nocy", "Powstawanie pływów morskich", "Ruch wiatrów pasatowych"], a: "Następstwo pór roku", explanation: "Ruch obiegowy w połączeniu z nachyleniem osi Ziemi powoduje zmianę pór roku." },
+          { q: "Jak nazywa się najdłuższa równoleżnikowa linia na kuli ziemskiej?", options: ["Równik", "Południk zerowy", "Zwrotnik Koziorożca", "Południk 180°"], a: "Równik", explanation: "Równik to równoleżnik 0°, dzielący Ziemię na półkulę północną i południową." },
+          { q: "W jakim regionie Europy leży Polska?", options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej", "W Europie Zachodniej"], a: "W Europie Środkowej", explanation: "Polska położona jest w Europie Środkowej." },
+          { q: "Które państwo jest wschodnim sąsiadem Polski?", options: ["Ukraina", "Niemcy", "Czechy", "Słowacja"], a: "Ukraina", explanation: "Ukraina leży na wschód od Polski." },
+          { q: "Najdłuższą rzeką w Polsce jest:", options: ["Wisła", "Odra", "Warta", "Bug"], a: "Wisła", explanation: "Wisła to najdłuższa rzeka w Polsce, uchodząca do Morza Bałtyckiego." },
+          { q: "Skrót n.p.m. zamieszczany przy wysokościach wzniesień oznacza:", options: ["nad poziomem morza", "na poziomie miast", "niższy pomiar", "najwyższy punkt"], a: "nad poziomem morza", explanation: "Oznacza wysokość mierzoną względem średniego poziomu morza." },
+          { q: "Stolicą Niemiec (zachodniego sąsiada Polski) jest:", options: ["Berlin", "Paryż", "Wiedeń", "Praga"], a: "Berlin", explanation: "Berlin to stolica i największe miasto Niemiec." }
+        ];
+      } else if (subjKey === 'biologia') {
+        return [
+          { q: "Na jakie trzy główne części (tagmy) dzielimy ciało owadów?", options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa i głowa", "Tylko odwłok"], a: "Głowa, tułów i odwłok", explanation: "Anatomia owadów składa się z głowy, tułowia oraz odwłoka." },
+          { q: "Która grupa kręgowców zaliczana jest do zwierząt stałocieplnych?", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy", "Wszystkie ryby"], a: "Ptaki i ssaki", explanation: "Ptaki i ssaki utrzymują stałą temperaturę ciała niezależnie od warunków." },
+          { q: "Zwierzęta zmiennocieplne (np. gady i płazy) charakteryzują się tym, że:", options: ["Ich temperatura ciała zależy od temperatury otoczenia", "Mają zawsze stałą temperaturę 37°C", "Nie potrzebują tlenu", "Żyją wyłącznie w wodzie"], a: "Ich temperatura ciała zależy od temperatury otoczenia", explanation: "Zwierzęta zmiennocieplne ogrzewają się w słońcu i chłodzą w cieniu." },
+          { q: "Do ssaków niezaliczanych do łożyskowców (składających jaja) należą m.in.:", options: ["Stekowce (np. kolczatka)", "Nietoperze", "Wieloryby", "Gryzonie"], a: "Stekowce (np. kolczatka)", explanation: "Stekowce to wyjątkowa grupa ssaków składających jaja." },
+          { q: "Która tkanka roślinna odpowiada za transport wody z solami mineralnymi od korzeni w górę?", options: ["Drewno (ksylem)", "Łyko (floem)", "Tkanka miękiszowa", "Korkowaciwo"], a: "Drewno (ksylem)", explanation: "Drewno transportuje wodę z korzeni do liści." },
+          { q: "Proces fotosyntezy u roślin zachodzi dzięki obecności w komórkach:", options: ["Chlorofilu", "Hemoglobiny", "Insuliny", "Chityny"], a: "Chlorofil", explanation: "Chlorofil pochłania energię słoneczną niezbędną do fotosyntezy." },
+          { q: "Bezkręgowce posiadające miękkie ciało, często chronione wapienną muszlą, to:", options: ["Mięczaki", "Stawonogi", "Płazińce", "Nicienie"], a: "Mięczaki", explanation: "Do mięczaków należą m.in. ślimaki, małże i głowonogi." },
+          { q: "Organy oddechowe ryb to:", options: ["Skrzela", "Płuca", "Tchawki", "Cała powierzchnia ciała"], a: "Skrzela", explanation: "Ryby pobierają tlen rozpuszczony w wodzie za pomocą skrzeli." },
+          { q: "Główną funkcją korzenia u roślin jest:", options: ["Pobieranie wody i soli mineralnych oraz mocowanie w glebie", "Przeprowadzanie fotosyntezy", "Wytwarzanie nasion", "Przyciąganie owadów"], a: "Pobieranie wody i soli mineralnych oraz mocowanie w glebie", explanation: "Korzeń utrzymuje roślinę w ziemi i pobiera składniki odżywcze." },
+          { q: "Ekosystem to:", options: ["Biocenoza wraz z biotopem (ożywiona przyroda i środowisko)", "Tylko zwierzęta danego lasu", "Sam klimat na ziemi", "Zbiór skał i minerałów"], a: "Biocenoza wraz z biotopem (ożywiona przyroda i środowisko)", explanation: "Ekosystem tworzą organizmy żywe oraz środowisko nieożywione, w którym żyją." }
+        ];
+      } else if (subjKey === 'technika') {
+        return [
+          { q: "Co oznacza niebieski okrągły znak drogowy z białym piktogramem roweru (znak C-13)?", options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Przejście dla pieszych", "Strefa zamieszkania"], a: "Droga dla rowerów (nakaz)", explanation: "Znak C-13 wyznacza obowiązkową ścieżkę dla rowerzystów." },
+          { q: "Który materiał jest doskonałym przewodnikiem prądu elektrycznego?", options: ["Miedź", "Suche drewno", "Guma", "Szkło kwarcowe"], a: "Miedź", explanation: "Miedź charakteryzuje się bardzo niskim oporem elektrycznym." },
+          { q: "Do materiałów izolacyjnych (nieprzewodzących prądu) należy:", options: ["Guma i tworzywo sztuczne", "Aluminium", "Żelazo", "Stal"], a: "Guma i tworzywo sztuczne", explanation: "Izolatory chronią przed porażeniem prądem." },
+          { q: "Rzut prostopadły w rysunku technicznym służy do:", options: ["Przedstawienia przedmiotu w widokach z góry, z przodu i z boku", "Malowania przedmiotów na kolorowo", "Obliczania ceny materiałów", "Mierzenia temperatury"], a: "Przedstawienia przedmiotu w widokach z góry, z przodu i z boku", explanation: "Rzuty pozwalają precyzyjnie odwzorować kształt trójwymiarowy na płaszczyźnie." },
+          { q: "Co oznacza czerwony trójkątny znak drogowy z czarnym wykrzyknikiem?", options: ["Uwaga, inne niebezpieczeństwo", "Koniec drogi z pierwszeństwem", "Nakaz skrętu", "Przejście dla pieszych"], a: "Uwaga, inne niebezpieczeństwo", explanation: "Znak ostrzegawczy A-30 (inne niebezpieczeństwo)." },
+          { q: "Minimalny wiek wymagany do uzyskania karty rowerowej w Polsce to:", options: ["10 lat", "12 lat", "14 lat", "18 lat"], a: "10 lat", explanation: "Karta rowerowa może być wydana osobie, która ukończyła 10 lat." }
+        ];
+      } else if (subjKey === 'historia') {
+        return [
+          { q: "W którym roku Krzysztof Kolumb dotarł do wybrzeży Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok", "1025 rok"], a: "1492 rok", explanation: "Wyprawa Kolumba w 1492 r. zapoczątkowała epokę nowożytną." },
+          { q: "Kiedy uchwalono pierwszą w Europie Konstytucję 3 maja?", options: ["1791 rok", "1772 rok", "1795 rok", "1918 rok"], a: "1791 rok", explanation: "Konstytucję 3 maja uchwalono w 1791 roku." },
+          { q: "Wielka wojna z zakonem krzyżackim rozegrała się w roku:", options: ["1410", "1492", "1525", "1795"], a: "1410", explanation: "Bitwa pod Grunwaldem miała miejsce w 1410 roku." },
+          { q: "Epoka historyczna następująca po średniowieczu to:", options: ["Nowożytność", "Starożytność", "Prehistoria", "Współczesność"], a: "Nowożytność", explanation: "Po średniowieczu nastąpiła epoka nowożytna (od końca XV wieku)." },
+          { q: "Twórcą renesansowego dzieła 'O obrotach sfer niebieskich' był:", options: ["Mikołaj Kopernik", "Jan Kochanowski", "Adam Mickiewicz", "Ignacy Krasicki"], a: "Mikołaj Kopernik", explanation: "Kopernik udowodnił heliocentryczną budowę układu słonecznego." }
+        ];
+      } else {
+        return [
+          { q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika nieregularnego 'GO':", options: ["went", "gone", "goed", "going"], a: "went", explanation: "Formy: go -> went -> gone." },
+          { q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog", explanation: "Pies to po angielsku 'dog'." },
+          { q: "Jak powiemy po angielsku 'szkoła'?", isOpen: true, a: "school", explanation: "Szkoła to 'school'." },
+          { q: "Który czas w języku angielskim stosujemy do czynności wykonywanych regularnie i nawykowo?", options: ["Present Simple", "Present Continuous", "Past Simple", "Future Simple"], a: "Present Simple", explanation: "Present Simple służy do opisywania rutyny i stałych sytuacji." },
+          { q: "Stopień wyższy od przymiotnika 'good' (dobry) to:", options: ["better", "gooder", "best", "more good"], a: "better", explanation: "Good jest przymiotnikiem nieregularnym: good - better - best." }
+        ];
       }
-      return pool;
-    }
-
-    function generateGeoPool(chapterName) {
-      let pool = [];
-      for (let i = 0; i < 100; i++) {
-        let h = 200 + (i % 150) * 5;
-        pool.push({
-          q: `Zadanie geograficzne (Wariant ${i+1}): Wzniesienie opisane jest wysokością bezwzględną równą ${h} m n.p.m. Co oznacza skrót n.p.m.?`,
-          options: ["nad poziomem morza", "na poziomie miast", "niższy punkt mapy", "najwyższy pomiar"],
-          a: "nad poziomem morza",
-          explanation: `Skrót n.p.m. oznacza wysokość nad poziomem morza.`
-        });
-        pool.push({
-          q: `Geografia regionalna (Wariant ${i+1}): W jakim regionie Europy leży Polska oraz jej bezpośredni sąsiedzi?`,
-          options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej", "W Europie Zachodniej"],
-          a: "W Europie Środkowej",
-          explanation: "Polska znajduje się w Europie Środkowej."
-        });
-        pool.push({
-          q: `Ruchy Ziemi (Wariant ${i+1}): Jak długo trwa pełny obieg Ziemi wokół Słońca (ruch obiegowy)?`,
-          options: ["Około 365 dni i 6 godzin", "Dokładnie 24 godziny", "Około 30 dni", "7 dni"],
-          a: "Około 365 dni i 6 godzin",
-          explanation: "Ruch obiegowy Ziemi wokół Słońca trwa rok kalendarzowy (365 dni i 6 godzin)."
-        });
-      }
-      return pool;
-    }
-
-    function generateBioPool(chapterName) {
-      let pool = [];
-      for (let i = 0; i < 100; i++) {
-        pool.push({
-          q: `Biologia (Wariant ${i+1}): Na jakie trzy główne części (tagmy) dzielić można budowę zewnętrzną ciała owadów?`,
-          options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa i głowa", "Tylko odwłok"],
-          a: "Głowa, tułów i odwłok",
-          explanation: "Ciało owada składa się z głowy, tułowia oraz odwłoka."
-        });
-        pool.push({
-          q: `Zoologia (Wariant ${i+1}): Które gromady kręgowców zaliczamy do zwierząt stałocieplnych?`,
-          options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy", "Wszystkie kręgowce są zmiennocieplne"],
-          a: "Ptaki i ssaki",
-          explanation: "Ptaki i ssaki potrafią utrzymać stałą temperaturę ciała niezależnie od otoczenia."
-        });
-      }
-      return pool;
-    }
-
-    function generateTechPool(chapterName) {
-      let pool = [];
-      for (let i = 0; i < 100; i++) {
-        pool.push({
-          q: `BRD (Wariant ${i+1}): Co oznacza niebieski okrągły znak drogowy nakazujący ruch rowerów (znak C-13)?`,
-          options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Przejście dla pieszych", "Strefa zamieszkania"],
-          a: "Droga dla rowerów (nakaz)",
-          explanation: "Znak C-13 wyznacza obowiązkową drogę dla kierujących rowerami."
-        });
-        pool.push({
-          q: `Technologia (Wariant ${i+1}): Który z wymienionych materiałów charakteryzuje się najlepszym przewodnictwem elektrycznym?`,
-          options: ["Miedź", "Suche drewno", "Guma", "Szkło"],
-          a: "Miedź",
-          explanation: "Miedź jest powszechnie stosowanym i doskonałym przewodnikiem prądu."
-        });
-      }
-      return pool;
-    }
-
-    function generateHistPool(chapterName) {
-      let pool = [];
-      for (let i = 0; i < 100; i++) {
-        pool.push({
-          q: `Historia (Wariant ${i+1}): W którym roku Krzysztof Kolumb dotarł do wybrzeży Ameryki, co zapoczątkowało epokę nowożytną?`,
-          options: ["1492 rok", "1410 rok", "1791 rok", "1025 rok"],
-          a: "1492 rok",
-          explanation: "Rok 1492 to przełomowa data wielkich odkryć geograficznych."
-        });
-        pool.push({
-          q: `Historia Polski (Wariant ${i+1}): W którym roku uchwalono pierwszą w Europie nowoczesną ustawę zasadniczą – Konstytucję 3 maja?`,
-          options: ["1791", "1772", "1795", "1918"],
-          a: "1791",
-          explanation: "Konstytucję 3 maja uchwalono w 1791 roku."
-        });
-      }
-      return pool;
-    }
-
-    function generateEngPool(chapterName) {
-      let pool = [];
-      for (let i = 0; i < 100; i++) {
-        pool.push({
-          q: `Angielski gramatyka (Wariant ${i+1}): Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika nieregularnego 'GO':`,
-          options: ["went", "gone", "goed", "going"],
-          a: "went",
-          explanation: "Formy czasownika: go -> went -> gone."
-        });
-        pool.push({
-          q: `Angielski słownictwo (Wariant ${i+1}): Przetłumacz na język angielski wyraz 'Pies':`,
-          isOpen: true,
-          a: "dog",
-          explanation: "Pies to po angielsku 'dog'."
-        });
-      }
-      return pool;
     }
 
     function generateQuestionsForChapter(chapterName, subjKey) {
-      let pool = [];
-
-      if (subjKey === 'matematyka') {
-        pool = generateMathPool(chapterName);
-      } else if (subjKey === 'geografia') {
-        pool = generateGeoPool(chapterName);
-      } else if (subjKey === 'biologia') {
-        pool = generateBioPool(chapterName);
-      } else if (subjKey === 'technika') {
-        pool = generateTechPool(chapterName);
-      } else if (subjKey === 'historia') {
-        pool = generateHistPool(chapterName);
-      } else {
-        pool = generateEngPool(chapterName);
-      }
-
-      // Losowanie 10 unikalnych pytań z puli
+      let pool = getUniqueQuestionPool(subjKey, chapterName);
       pool.sort(() => Math.random() - 0.5);
+      // Pobieramy do 10 unikalnych pytań (lub tyle ile jest w puli)
       return pool.slice(0, 10);
     }
 
@@ -943,7 +859,6 @@
           <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600 mt-2">
         `;
       } else {
-        // Klonujemy i mieszamy opcje odpowiedzi
         let shuffledOpts = [...q.options];
         shuffledOpts.sort(() => Math.random() - 0.5);
         shuffledOpts.forEach(opt => {
@@ -1014,7 +929,7 @@
           alert("Trening problematycznych zadań zakończony!");
           isMistakesMode = false;
         } else {
-          alert("Gratulacje! Ukończyłeś test składający się z 10 zadań!");
+          alert("Gratulacje! Ukończyłeś test z wiedzy!");
         }
         showDashboard();
       }
