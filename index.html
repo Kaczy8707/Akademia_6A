@@ -12,10 +12,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Akademia 6A">
-  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/616/616490.png">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/616/616490.png">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS z CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -26,9 +24,11 @@
   <!-- REJESTRACJA SERVICE WORKERA SW.JS -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('Service Worker zarejestrowany pomyślnie!'))
-        .catch(err => console.log('Błąd SW:', err));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW OK:', reg))
+          .catch(err => console.log('SW Błąd:', err));
+      });
     }
 
     let deferredPrompt;
@@ -42,7 +42,14 @@
     function installPWA() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Użytkownik zainstalował PWA');
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        alert("Jeśli przycisk nie reaguje, kliknij 3 kropki w Chrome i wybierz 'Dodaj do ekranu głównego'.");
       }
     }
   </script>
@@ -74,15 +81,15 @@
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć do rywalizacji!</p>
 
-      <!-- PRZYCISK BEZPOŚREDNIEJ INSTALACJI -->
-      <button id="pwaInstallBtn" onclick="installPWA()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl mb-4 text-xs shadow-md transition active:scale-95">
+      <!-- PRZYCISK INSTALACJI -->
+      <button id="pwaInstallBtn" onclick="installPWA()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl mb-4 text-xs shadow-md transition active:scale-95">
         📲 ZAINSTALUJ APLIKACJĘ NA TELEFONIE
       </button>
 
       <div id="loginForm" class="space-y-4 text-left">
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
-          <input type="text" id="userNick" placeholder="Np. Karol_SP7" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia (np. Karol_SP7):</label>
+          <input type="text" id="userNick" placeholder="Twój Nick" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">PIN (4 cyfry):</label>
@@ -525,36 +532,4 @@
       fb.classList.remove('hidden');
 
       if (userAns.toLowerCase() === q.a.toLowerCase()) {
-        fb.className = "p-4 rounded-2xl mb-4 font-bold text-sm text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
-        fb.innerText = "🎉 Świetnie! Poprawna odpowiedź!";
-        addXP(10);
-      } else {
-        fb.className = "p-4 rounded-2xl mb-4 font-bold text-sm text-center bg-rose-100 text-rose-800 border border-rose-300";
-        fb.innerText = `❌ Pomyłka! Prawidłowa odpowiedź to: ${q.a}`;
-      }
-
-      document.getElementById('nextBtn').innerText = "NASTĘPNE ZADANIE ▶";
-      document.getElementById('nextBtn').onclick = nextQuestion;
-    }
-
-    function nextQuestion() {
-      currentQIdx++;
-      if (currentQIdx < currentQuiz.length) {
-        renderQuestion();
-      } else {
-        if (isChallengeMode) {
-          addXP(50);
-          if (db && activeChallengeId) {
-            db.collection("challenges_6a").doc(activeChallengeId).update({ status: 'completed' });
-          }
-          alert("🏆 Wyzwanie 1 vs 1 zakończone sukcesem! Zdobycz: +50 BONUSOWYCH XP!");
-          isChallengeMode = false;
-        } else {
-          alert("Gratulacje! Ukończyłeś test z tego działu!");
-        }
-        showDashboard();
-      }
-    }
-  </script>
-</body>
-</html>
+        fb.className =
