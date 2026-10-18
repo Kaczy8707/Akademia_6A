@@ -18,23 +18,17 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
 
-  <!-- SKRYPT CZYSZCZĄCY STARY SERVICE WORKER Z TELEFONU -->
+  <!-- CZYSZCZENIE STAREGO CACHE -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-        }
-      });
+      navigator.serviceWorker.getRegistrations().then(regs => { for(let r of regs) r.unregister(); });
     }
     if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (let name of names) caches.delete(name);
-      });
+      caches.keys().then(names => { for(let n of names) caches.delete(n); });
     }
   </script>
 
-  <!-- KONFIGURACJA FIREBASE -->
+  <!-- FIREBASE -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDpe9cwQywFTFzNoC6ovSPAzLjS8_pjsRQ",
@@ -61,7 +55,6 @@
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć!</p>
 
-      <!-- SEKCJA LOGOWANIA -->
       <div id="loginForm" class="space-y-4 text-left">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
@@ -90,7 +83,6 @@
         </div>
       </div>
 
-      <!-- SEKCJA ODZYSKIWANIA PIN-U -->
       <div id="recoveryForm" class="space-y-4 text-left hidden">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Wpisz swój Nick:</label>
@@ -115,7 +107,7 @@
     </div>
   </div>
 
-  <!-- NAGŁÓWEK GŁÓWNY -->
+  <!-- NAGŁÓWEK -->
   <header class="bg-indigo-950 text-white p-4 shadow-md sticky top-0 z-40">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-2 cursor-pointer" onclick="showDashboard()">
@@ -137,7 +129,7 @@
     </div>
   </header>
 
-  <!-- KONTENER GŁÓWNY -->
+  <!-- MAIN -->
   <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
 
     <div id="dashboardView">
@@ -170,7 +162,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8" id="subjectGrid"></div>
     </div>
 
-    <!-- MODAL TWORZENIA WYZWANIA -->
+    <!-- MODAL WYZWANIA -->
     <div id="challengeModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
       <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
         <div class="flex justify-between items-center mb-4">
@@ -186,8 +178,8 @@
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Przedmiot pojedynku:</label>
             <select id="challengeSubject" class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-slate-800 focus:outline-none">
-              <option value="angielski">🇬🇧 Język Angielski</option>
               <option value="matematyka">📐 Matematyka</option>
+              <option value="angielski">🇬🇧 Język Angielski</option>
               <option value="historia">⚔️ Historia</option>
               <option value="geografia">🌍 Geografia</option>
               <option value="biologia">🌿 Biologia</option>
@@ -201,7 +193,7 @@
       </div>
     </div>
 
-    <!-- WIDOK WYBORU DZIAŁU -->
+    <!-- WIDOK DZIAŁU -->
     <div id="chapterView" class="hidden">
       <button onclick="showDashboard()" class="mb-4 bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2">
         ← Powrót do przedmiotów
@@ -239,12 +231,69 @@
     let activeChallengeId = null;
 
     const program = {
-      angielski: { title: 'Język Angielski', icon: '🇬🇧', chapters: ['Podstawowe Słownictwo', 'Present Simple', 'Past Simple', 'Present Perfect'] },
-      matematyka: { title: 'Matematyka', icon: '📐', chapters: ['Liczby naturalne i ułamki', 'Prędkość, droga, czas', 'Pola wielokątów'] },
-      historia: { title: 'Historia', icon: '⚔️', chapters: ['Narodziny nowożytnego świata', 'W Rzeczypospolitej szlacheckiej', 'Rewolucja francuska'] },
-      geografia: { title: 'Geografia', icon: '🌍', chapters: ['Współrzędne geograficzne', 'Ruchy Ziemi', 'Sąsiedzi Polski'] },
-      biologia: { title: 'Biologia', icon: '🌿', chapters: ['Świat zwierząt', 'Stawonogi i mięczaki', 'Kręgowce stałocieplne'] },
-      technika: { title: 'Technika', icon: '🛠️', chapters: ['Technika w otoczeniu', 'Rysunek techniczny'] }
+      matematyka: { 
+        title: 'Matematyka', icon: '📐', 
+        chapters: [
+          'Liczby naturalne i ułamki dziesiętne', 
+          'Ułamki zwykłe i ich działania', 
+          'Prędkość, droga, czas', 
+          'Pola wielokątów (kwadrat, trójkąt, trapez)', 
+          'Liczby dodatnie i ujemne',
+          'Równania z jedną niewiadomą',
+          'Bryły – pola powierzchni i objętość'
+        ] 
+      },
+      angielski: { 
+        title: 'Język Angielski', icon: '🇬🇧', 
+        chapters: [
+          'Podstawowe Słownictwo i Opis Osobisty', 
+          'Present Simple vs Present Continuous', 
+          'Past Simple (Czasowniki nieregularne)', 
+          'Present Perfect',
+          'Stopniowanie przymiotników',
+          'Shopping & Food (Zakupy i Jedzenie)'
+        ] 
+      },
+      historia: { 
+        title: 'Historia', icon: '⚔️', 
+        chapters: [
+          'Narodziny nowożytnego świata (Wielkie odkrycia)', 
+          'W Rzeczypospolitej szlacheckiej', 
+          'Rzeczpospolita w XVII wieku (Potop szwedzki)',
+          'Europa w XVIII wieku i Oświecenie',
+          'Upadek Rzeczypospolitej (Rozbiory Polski)',
+          'Rewolucja francuska i epoka napoleońska'
+        ] 
+      },
+      geografia: { 
+        title: 'Geografia', icon: '🌍', 
+        chapters: [
+          'Współrzędne geograficzne i czytanie mapy', 
+          'Ruchy Ziemi (obrotowy i obiegowy)', 
+          'Środowisko przyrodnicze Polski',
+          'Sąsiedzi Polski – charakterystyka krajów',
+          'Geografia Europy – kraje i krajobrazy'
+        ] 
+      },
+      biologia: { 
+        title: 'Biologia', icon: '🌿', 
+        chapters: [
+          'Świat zwierząt i klasyfikacja', 
+          'Stawonogi i mięczaki', 
+          'Ryby, płazy i gady',
+          'Ptaki i ssaki – stałocieplność',
+          'Ekologia i ochrona środowiska'
+        ] 
+      },
+      technika: { 
+        title: 'Technika', icon: '🛠️', 
+        chapters: [
+          'Rysunek techniczny i wymiarowanie', 
+          'Materiały i tworzywa sztuczne', 
+          'Elektronika i obwody elektryczne',
+          'Karta rowerowa i znaki drogowe'
+        ] 
+      }
     };
 
     window.onload = function() {
@@ -281,17 +330,12 @@
         localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
       } catch(e) {}
 
-      // UKRYCIE EKRANU BEZPOŚREDNIO W CSS
       document.getElementById('authScreen').style.display = 'none';
       initDashboard();
 
       if (db) {
         db.collection("users_6a").doc(n).set({
-          nick: n,
-          pin: p,
-          secAnswer: a,
-          xp: 0,
-          updatedAt: new Date()
+          nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
         }, { merge: true }).catch(err => {});
       }
     }
@@ -302,27 +346,22 @@
       const newPin = document.getElementById('recNewPin').value.trim();
 
       if (!nick || !ans || newPin.length < 4) {
-        alert("Wpisz swój Nick, odpowiedź na pytanie oraz nowy 4-cyfrowy PIN!");
+        alert("Wpisz Nick, odpowiedź i nowy 4-cyfrowy PIN!");
         return;
       }
 
       if (db) {
         db.collection("users_6a").doc(nick).get().then((doc) => {
-          if (!doc.exists) {
-            alert("Nie znaleziono takiego Nicku!");
-            return;
-          }
+          if (!doc.exists) { alert("Nie znaleziono takiego Nicku!"); return; }
           const data = doc.data();
           if (data.secAnswer === ans) {
             db.collection("users_6a").doc(nick).update({ pin: newPin });
-            alert("PIN został zmieniony! Zaloguj się nowym PIN-em.");
+            alert("PIN zmieniony! Zaloguj się nowym PIN-em.");
             toggleRecovery(false);
           } else {
             alert("Błędna odpowiedź na pytanie bezpieczeństwa!");
           }
-        }).catch(e => alert("Błąd połączenia. Spróbuj ponownie."));
-      } else {
-        alert("Tryb offline - odzyskiwanie wymaga połączenia z siecią.");
+        }).catch(e => alert("Błąd połączenia."));
       }
     }
 
@@ -364,8 +403,7 @@
 
       if (db && currentUser) {
         db.collection("users_6a").doc(currentUser.nick).update({
-          xp: userStats.xp,
-          updatedAt: new Date()
+          xp: userStats.xp, updatedAt: new Date()
         }).catch(e => {});
       }
     }
@@ -404,30 +442,18 @@
       });
     }
 
-    function openChallengeModal() {
-      document.getElementById('challengeModal').classList.remove('hidden');
-    }
-
-    function closeChallengeModal() {
-      document.getElementById('challengeModal').classList.add('hidden');
-    }
+    function openChallengeModal() { document.getElementById('challengeModal').classList.remove('hidden'); }
+    function closeChallengeModal() { document.getElementById('challengeModal').classList.add('hidden'); }
 
     function createChallenge() {
       const target = document.getElementById('opponentSelect').value;
       const subj = document.getElementById('challengeSubject').value;
 
-      if (!target) {
-        alert("Brak dostępnych przeciwników!");
-        return;
-      }
+      if (!target) { alert("Brak dostępnych przeciwników!"); return; }
 
       if (db) {
         db.collection("challenges_6a").add({
-          from: currentUser.nick,
-          to: target,
-          subject: subj,
-          status: 'pending',
-          createdAt: new Date()
+          from: currentUser.nick, to: target, subject: subj, status: 'pending', createdAt: new Date()
         }).then(() => {
           alert(`Wyzwanie 1 vs 1 dla ${target} wysłane!`);
           closeChallengeModal();
@@ -441,10 +467,7 @@
         .onSnapshot((snapshot) => {
           const container = document.getElementById('activeChallengesContainer');
           const list = document.getElementById('challengesList');
-          if (snapshot.empty) {
-            container.classList.add('hidden');
-            return;
-          }
+          if (snapshot.empty) { container.classList.add('hidden'); return; }
 
           container.classList.remove('hidden');
           list.innerHTML = "";
@@ -465,7 +488,7 @@
     function acceptChallenge(id, subjKey) {
       activeChallengeId = id;
       isChallengeMode = true;
-      startQuiz(`Pojedynek 1 vs 1: ${program[subjKey].title}`);
+      startQuiz(`Pojedynek 1 vs 1: ${program[subjKey].title}`, subjKey);
     }
 
     function renderSubjects() {
@@ -488,7 +511,9 @@
       document.getElementById('quizView').classList.add('hidden');
     }
 
+    let activeSubjectKey = '';
     function openSubject(key) {
+      activeSubjectKey = key;
       const subj = program[key];
       document.getElementById('chapterTitle').innerText = subj.title;
       const list = document.getElementById('chapterList');
@@ -496,7 +521,7 @@
 
       subj.chapters.forEach(chap => {
         list.innerHTML += `
-          <div onclick="startQuiz('${chap}')" class="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 shadow-sm cursor-pointer flex justify-between items-center font-bold">
+          <div onclick="startQuiz('${chap}', '${key}')" class="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 shadow-sm cursor-pointer flex justify-between items-center font-bold">
             <span>${chap}</span>
             <span class="text-indigo-600">Rozpocznij ▶</span>
           </div>
@@ -507,12 +532,154 @@
       document.getElementById('chapterView').classList.remove('hidden');
     }
 
-    function startQuiz(chapterName) {
-      currentQuiz = [
-        { q: "Pojazd jedzie ze stałą prędkością 60 km/h przez 2 godziny. Jaką drogę pokona?", options: ["120 km", "100 km", "62 km"], a: "120 km" },
-        { q: "Która odpowiedź jest prawidłowa dla wybranego zagadnienia?", options: ["Prawidłowa definicja z podręcznika", "Błędne pojęcie", "Inna odpowiedź"], a: "Prawidłowa definicja z podręcznika" },
-        { q: "Wpisz po angielsku słowo 'Pies':", isOpen: true, a: "dog" }
-      ];
+    // ==========================================
+    // GENERATOR ZADAŃ DLA DOWOLNEGO DZIAŁU
+    // ==========================================
+    function generateQuestionsForChapter(chapterName, subjKey) {
+      let qList = [];
+
+      // MATEMATYKA
+      if (subjKey === 'matematyka') {
+        if (chapterName.includes('Prędkość')) {
+          let v = (Math.floor(Math.random() * 6) + 4) * 10; // 40..90 km/h
+          let t = Math.floor(Math.random() * 3) + 2; // 2..4 h
+          let s = v * t;
+          qList.push({ q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km` });
+          qList.push({ q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h" });
+          qList.push({ q: `Rowerzysta jedzie z prędkością 15 km/h. Ile kilometrów przejedzie w ciągu 4 godzin?`, options: ["60 km", "45 km", "50 km"], a: "60 km" });
+        } else if (chapterName.includes('Pola wielokątów')) {
+          let a = Math.floor(Math.random() * 6) + 4;
+          let b = Math.floor(Math.random() * 5) + 3;
+          let p = a * b;
+          qList.push({ q: `Oblicz pole prostokąta o bokach długości a = ${a} cm oraz b = ${b} cm:`, options: [`${p} cm²`, `${(a+b)*2} cm²`, `${p + 6} cm²`], a: `${p} cm²` });
+          qList.push({ q: `Kwadrat ma bok o długości 8 cm. Ile wynosi jego pole powierzchni?`, options: ["64 cm²", "32 cm²", "16 cm²"], a: "64 cm²" });
+          qList.push({ q: `Trójkąt ma podstawę a = 10 cm i wysokość h = 6 cm. Oblicz jego pole (P = a·h / 2):`, options: ["30 cm²", "60 cm²", "16 cm²"], a: "30 cm²" });
+        } else if (chapterName.includes('Równania')) {
+          let x = Math.floor(Math.random() * 8) + 2;
+          let add = Math.floor(Math.random() * 10) + 5;
+          let res = x + add;
+          qList.push({ q: `Rozwiąż równanie z jedną niewiadomą: x + ${add} = ${res}`, options: [`x = ${x}`, `x = ${x + 2}`, `x = ${res}`], a: `x = ${x}` });
+          qList.push({ q: `Rozwiąż równanie: 3x = 21`, options: ["x = 7", "x = 6", "x = 8"], a: "x = 7" });
+          qList.push({ q: `Jaka wartość x spełnia równanie: 2x + 4 = 14?`, options: ["x = 5", "x = 4", "x = 6"], a: "x = 5" });
+        } else {
+          qList.push({ q: `Oblicz wartość wyrażenia: 3/4 + 2/4`, options: ["5/4 (1 i 1/4)", "5/8", "1"], a: "5/4 (1 i 1/4)" });
+          qList.push({ q: `Zaokrąglij ułamek dziesiętny 4,378 do części setnych:`, options: ["4,38", "4,37", "4,40"], a: "4,38" });
+          qList.push({ q: `Ile wynosi wynik mnożenia: 0,5 · 0,4?`, options: ["0,2", "0,02", "2,0"], a: "0,2" });
+        }
+      } 
+      
+      // GEOGRAFIA (Z MAPAMI)
+      else if (subjKey === 'geografia') {
+        if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
+          qList.push({ 
+            q: "Na poniższej konturowej mapie Europy wskaż położenie Polski (Europa Środkowa):", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/BlankMap-Europe-v2.svg/640px-BlankMap-Europe-v2.svg.png",
+            options: ["Obszar w centrum (Europy Środkowej)", "Obszar na południu (Półwysep Apeniński)", "Półwysep Iberyjski na zachodzie"], 
+            a: "Obszar w centrum (Europy Środkowej)" 
+          });
+          qList.push({ q: "Które linie na globusie zbiegają się na biegunach?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
+          qList.push({ q: "Równoleżnik o szerokości geograficznej 0° to:", options: ["Równik", "Zwrotnik Raka", "Południk zerowy"], a: "Równik" });
+        } else if (chapterName.includes('Ruchy Ziemi')) {
+          qList.push({ 
+            q: "Przeanalizuj schemat oświetlenia Ziemi. Ruch obiegowy Ziemi wokół Słońca (365 dni) odpowiada za:", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/North_season.jpg/640px-North_season.jpg",
+            options: ["Pory roku", "Dzień i noc", "Spłaszczenie Ziemi na biegunach"], 
+            a: "Pory roku" 
+          });
+          qList.push({ q: "Ile czasu trwa pełny obrót Ziemi wokół własnej osi (ruch obrotowy)?", options: ["24 godziny (1 doba)", "365 dni", "30 dni"], a: "24 godziny (1 doba)" });
+        } else {
+          qList.push({ 
+            q: "Spójrz na fizyczną mapę Polski. Najważniejsza i najdłuższa rzeka w Polsce to:", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Relief_Map_of_Poland.svg/640px-Relief_Map_of_Poland.svg.png",
+            options: ["Wisła", "Odra", "Warta"], 
+            a: "Wisła" 
+          });
+          qList.push({ q: "Najwyższy szczyt w polskich Tatrach to:", options: ["Rysy (2499 m n.p.m.)", "Giewont", "Śnieżka"], a: "Rysy (2499 m n.p.m.)" });
+        }
+      }
+
+      // BIOLOGIA (ZE SCHEMATAMI)
+      else if (subjKey === 'biologia') {
+        if (chapterName.includes('Stawonogi')) {
+          qList.push({ 
+            q: "Rozpoznaj przedstawiciela stawonogów ze zdjęcia. Do której grupy bezkręgowców należy pająk?", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Araneus_diadematus_2007-08-11.jpg/640px-Araneus_diadematus_2007-08-11.jpg",
+            options: ["Pajęczaki (4 pary odnóży)", "Owady (3 pary odnóży)", "Skorupiaki"], 
+            a: "Pajęczaki (4 pary odnóży)" 
+          });
+          qList.push({ q: "Ile par odnóży krocznych posiadają owady (np. pszczoła, mrówka)?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)" });
+        } else if (chapterName.includes('Ptaki')) {
+          qList.push({ 
+            q: "Przeanalizuj budowę ciała ptaka. Co umożliwia ptakom lot w powietrzu?", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Eurasian_blue_tit_kipt.jpg/640px-Eurasian_blue_tit_kipt.jpg",
+            options: ["Aromatyczne kości pneumatyczne i pióra", "Ciężki szkielet i gruba skóra", "Płetwy i skrzela"], 
+            a: "Aromatyczne kości pneumatyczne i pióra" 
+          });
+          qList.push({ q: "Zwierzęta stałocieplne to:", options: ["Ptaki i ssaki", "Ryby i płazy", "Gady i owady"], a: "Ptaki i ssaki" });
+        } else {
+          qList.push({ q: "Które z wymienionych zwierząt jest płazem?", options: ["Żaba trawna", "Jaszczurka zwinka", "Zaskroniec"], a: "Żaba trawna" });
+          qList.push({ q: "Pokrycie ciała gadów stanowią:", options: ["Suche łuski i tarczki", "Wilgotna skóra z śluzem", "Pióra i puch"], a: "Suche łuski i tarczki" });
+        }
+      }
+
+      // HISTORIA (Z GRAFIKAMI)
+      else if (subjKey === 'historia') {
+        if (chapterName.includes('Wielkie odkrycia')) {
+          qList.push({ 
+            q: "Na obrazie przedstawiono Krzysztofa Kolumba. W którym roku odkrył on Amerykę?", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Christopher_Columbus.JPG/640px-Christopher_Columbus.JPG",
+            options: ["1492 rok", "1410 rok", "1569 rok"], 
+            a: "1492 rok" 
+          });
+          qList.push({ q: "Kto dowodził pierwszą wyprawą, która opłynęła Ziemię wokół?", options: ["Ferdynand Magellan", "Vasco da Gama", "Krzysztof Kolumb"], a: "Ferdynand Magellan" });
+        } else if (chapterName.includes('Potop') || chapterName.includes('XVII')) {
+          qList.push({ 
+            q: "Obraz przedstawia obronę Jasnej Góry podczas potopu. Z jakim państwem walczyła Rzeczpospolita?", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Jasna_G%C3%B3ra_1655.jpg/640px-Jasna_G%C3%B3ra_1655.jpg",
+            options: ["Szwecja", "Rosja", "Turcja"], 
+            a: "Szwecja" 
+          });
+          qList.push({ q: "Słynny polski król, który odniósł zwycięstwo pod Wiedniem w 1683 r. to:", options: ["Jan III Sobieski", "Zygmunt III Waza", "Kazimierz Wielki"], a: "Jan III Sobieski" });
+        } else {
+          qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
+          qList.push({ q: "Polski bohater narodowy, przywódca powstania z 1794 roku to:", options: ["Tadeusz Kościuszko", "Józef Poniatowski", "Jan Henryk Dąbrowski"], a: "Tadeusz Kościuszko" });
+        }
+      }
+
+      // TECHNIKA (ZE SCHEMATAMI)
+      else if (subjKey === 'technika') {
+        if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
+          qList.push({ 
+            q: "Spójrz na poniższy znak drogowy. Co oznacza niebieski okrągły znak z rowerem?", 
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Znak_C-13.svg/480px-Znak_C-13.svg.png",
+            options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Ostrzeżenie o rowerzystach"], 
+            a: "Droga dla rowerów (nakaz)" 
+          });
+          qList.push({ q: "Kto ma pierwszeństwo na skrzyżowaniu równorzędnym?", options: ["Pojazd nadjeżdżający z prawej strony", "Pojazd jadący szybciej", "Pojazd nadjeżdżający z lewej strony"], a: "Pojazd nadjeżdżający z prawej strony" });
+        } else {
+          qList.push({ q: "Rysunek techniczny w liniach przerywanych przedstawia:", options: ["Krawędzie niewidoczne", "Główne krawędzie obiektu", "Oś symetrii"], a: "Krawędzie niewidoczne" });
+          qList.push({ q: "Jaki materiał jest dobrym przewodnikiem elektryczności?", options: ["Miedź i glin (metale)", "Drewno i plastik", "Szkło i guma"], a: "Miedź i glin (metale)" });
+        }
+      }
+
+      // ANGIELSKI
+      else {
+        if (chapterName.includes('Past Simple')) {
+          qList.push({ q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went" });
+          qList.push({ q: "Wpisz po angielsku formę przeszłą od 'SEE' (widzieć):", isOpen: true, a: "saw" });
+          qList.push({ q: "Forma przeszła od czasownika 'BUY' to:", options: ["bought", "buyed", "bring"], a: "bought" });
+        } else {
+          qList.push({ q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog" });
+          qList.push({ q: "Wybierz poprawne dokończenie zdania: She ___ reading a book right now.", options: ["is", "are", "am"], a: "is" });
+          qList.push({ q: "Przeciwieństwem słowa 'BIG' (duży) jest:", options: ["small", "tall", "fast"], a: "small" });
+        }
+      }
+
+      return qList;
+    }
+
+    function startQuiz(chapterName, subjKey) {
+      currentQuiz = generateQuestionsForChapter(chapterName, subjKey || activeSubjectKey);
       currentQIdx = 0;
       
       document.getElementById('chapterView').classList.add('hidden');
@@ -529,7 +696,12 @@
       document.getElementById('progressBar').style.width = pct + "%";
 
       const container = document.getElementById('questionContainer');
-      container.innerHTML = `<h3 class="text-lg font-black text-slate-800 mb-4">${q.q}</h3>`;
+      let imgHtml = q.image ? `<img src="${q.image}" class="w-full max-h-52 object-contain rounded-2xl mb-4 border border-slate-200 shadow-sm bg-slate-50 p-2">` : '';
+
+      container.innerHTML = `
+        <h3 class="text-lg font-black text-slate-800 mb-3">${q.q}</h3>
+        ${imgHtml}
+      `;
 
       if (q.isOpen) {
         container.innerHTML += `
