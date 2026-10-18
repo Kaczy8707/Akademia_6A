@@ -41,43 +41,17 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   List<Question> _currentQuiz = [];
 
   final Map<String, SubjectData> _program = {
-    'biologia': SubjectData('Biologia (Puls Życia 6)', '🌿', [
-      'Dział I: Świat zwierząt',
-      'Dział II: Od parzydełkowców do pierścienic',
-      'Dział III: Stawonogi i mięczaki',
-      'Dział IV: Kręgowce zmiennocieplne',
-      'Dział V: Kręgowce stałocieplne',
-    ]),
     'historia': SubjectData('Historia (Wczoraj i dziś 6)', '⚔️', [
       'Rozdział I: Narodziny nowożytnego świata',
       'Rozdział II: W Rzeczypospolitej szlacheckiej',
-      'Rozdział III: W obronie granic Rzeczypospolitej',
-      'Rozdział IV: Od absolutyzmu do republiki',
-      'Rozdział V: Upadek Rzeczypospolitej',
       'Rozdział VI: Rewolucja francuska i okres napoleoński',
     ]),
     'geografia': SubjectData('Geografia (Planeta Nowa 6)', '🌍', [
       'Rozdział 1: Współrzędne geograficzne',
-      'Rozdział 2: Ruchy Ziemi',
       'Rozdział 3: Środowisko przyrodnicze i ludność Europy',
-      'Rozdział 4: Gospodarka Europy',
-      'Rozdział 5: Sąsiedzi Polski',
     ]),
-    'matematyka': SubjectData('Matematyka (M+ 6)', '📐', [
-      'Dział 1: Liczby naturalne i ułamki',
-      'Dział 2: Figury na płaszczyźnie',
-      'Dział 3: Liczby na co dzień',
-      'Dział 4: Prędkość, droga, czas',
-      'Dział 5: Pola wielokątów',
-      'Dział 6: Procenty',
-      'Dział 7: Liczby dodatnie i ujemne',
-      'Dział 8: Wyrażenia algebraiczne i równania',
-      'Dział 9: Figury przestrzenne',
-    ]),
-    'technika': SubjectData('Technika (Jak to działa? 6)', '🛠️', [
-      'Dział I: Technika w najbliższym otoczeniu',
-      'Dział II: Rysunek techniczny',
-      'Dział III: ABC współczesnej techniki',
+    'biologia': SubjectData('Biologia (Puls Życia 6)', '🌿', [
+      'Dział I: Świat zwierząt',
     ]),
   };
 
@@ -102,34 +76,51 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     await prefs.setInt('user_xp', _userXP);
   }
 
-  // DYNAMICZNY GENERATOR NOWYCH WARIANTÓW TESTU
   void _generateQuiz(String chapter) {
     List<Question> q = [];
-    final rand = Random();
 
-    if (_selectedSubject == 'matematyka') {
-      for (int i = 1; i <= 10; i++) {
-        int a = rand.nextInt(15) + 2;
-        int b = rand.nextInt(10) + 1;
-        int ans = a * b;
-        q.add(Question(
-          text: 'Zadanie $i/10 (Nowy wariant): Oblicz iloczyn $a * $b:',
-          options: ['$ans', '${ans + 2}', '${ans - 3}', '${ans + 5}'],
-          correctAnswer: '$ans',
-          hint: 'Pomnóż obie liczby przez siebie.',
-        ));
-      }
+    if (chapter.contains('Rzeczypospolitej szlacheckiej')) {
+      q = [
+        Question(
+          text: 'Przeanalizuj poniższą autentyczną mapę Rzeczypospolitej po Unii Lubelskiej (1569 r.). Który obszar stanowił Koronę Królestwa Polskiego?',
+          imageAsset: 'assets/mapy/unia_lubelska.png',
+          options: [
+            'Obszar zachodni ze stolicą w Krakowie i Warszawą',
+            'Wielkie Księstwo Litewskie na wschodzie',
+            'Inflanty'
+          ],
+          correctAnswer: 'Obszar zachodni ze stolicą w Krakowie i Warszawą',
+          hint: 'Korona Polska to zachodnia część państwa.',
+        ),
+      ];
+    } else if (chapter.contains('Środowisko przyrodnicze')) {
+      q = [
+        Question(
+          text: 'Przeanalizuj poniższą mapę fizyczną Europy. Który łańcuch górski stanowi wschodnią granicę Europy z Azją?',
+          imageAsset: 'assets/mapy/europa_fizyczna.png',
+          options: ['Góry Ural', 'Alpy', 'Karpaty'],
+          correctAnswer: 'Góry Ural',
+          hint: 'Góry Ural rozdzielają Europę i Azję.',
+        ),
+      ];
+    } else if (chapter.contains('Świat zwierząt')) {
+      q = [
+        Question(
+          text: 'Przeanalizuj poniższą ilustrację tkanki nerwowej. Które wypustki odbierają sygnały i przewodzą je do ciała komórki?',
+          imageAsset: 'assets/mapy/neuron.png',
+          options: ['Dendryty', 'Akson', 'Osłonka mielinowa'],
+          correctAnswer: 'Dendryty',
+          hint: 'Dendryty to krótkie, rozgałęzione wypustki.',
+        ),
+      ];
     } else {
       q = [
         Question(
-          text: 'Przeanalizuj pojęcie z działu "$chapter". Które stwierdzenie jest prawdziwe?',
-          options: [
-            'Systematyczna analiza materiału gwarantuje bezbłędny wynik',
-            'Brak analizy danych',
-            'Dowolny wybór bez uzasadnienia'
-          ],
-          correctAnswer: 'Systematyczna analiza materiału gwarantuje bezbłędny wynik',
-          hint: 'Skorzystaj z wiedzy z podręcznika.',
+          text: 'Przeanalizuj poniższą mapę z okresu wojen napoleońskich (1812 r.). Jak nazywało się państwo polskie utworzone przez Napoleona w 1807 r.?',
+          imageAsset: 'assets/mapy/napoleon.png',
+          options: ['Księstwo Warszawskie', 'Królestwo Polskie', 'Rzeczpospolita Obojga Narodów'],
+          correctAnswer: 'Księstwo Warszawskie',
+          hint: 'Napoleon utworzył Księstwo Warszawskie w 1807 r.',
         ),
       ];
     }
@@ -144,7 +135,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('⚡ AKADEMIA SP7 - KLASA 6', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('⚡ AKADEMIA SP7 - REALNE MAPY', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -272,10 +263,18 @@ class SubjectData {
 
 class Question {
   final String text;
+  final String? imageAsset;
   final List<String> options;
   final String correctAnswer;
   final String hint;
-  Question({required this.text, required this.options, required this.correctAnswer, required this.hint});
+
+  Question({
+    required this.text,
+    this.imageAsset,
+    required this.options,
+    required this.correctAnswer,
+    required this.hint,
+  });
 }
 
 class QuizScreen extends StatefulWidget {
@@ -333,6 +332,21 @@ class _QuizScreenState extends State<QuizScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Zadanie ${qIdx + 1}: ${q.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        if (q.imageAsset != null) ...[
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              q.imageAsset!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                padding: const EdgeInsets.all(16),
+                                color: Colors.black26,
+                                child: const Text('Błąd ładowania mapy lokalnej', style: TextStyle(color: Colors.redAccent)),
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         ...q.options.map((opt) {
                           final isSelected = _userAnswers[qIdx] == opt;
@@ -378,7 +392,7 @@ class _QuizScreenState extends State<QuizScreen> {
               }
               widget.onComplete(score);
             },
-            child: const Text('Sprawdź odpowiedzi i odbierz XP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            child: const Text('Sprawdź odpowiedzi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ),
         ],
       ),
