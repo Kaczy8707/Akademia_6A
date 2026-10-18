@@ -21,12 +21,12 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
 
-  <!-- REJESTRACJA SERVICE WORKERA SW.JS -->
+  <!-- REJESTRACJA SERVICE WORKERA -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW OK:', reg))
+          .then(reg => console.log('SW OK'))
           .catch(err => console.log('SW Błąd:', err));
       });
     }
@@ -42,14 +42,7 @@
     function installPWA() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('Użytkownik zainstalował PWA');
-          }
-          deferredPrompt = null;
-        });
-      } else {
-        alert("Jeśli przycisk nie reaguje, kliknij 3 kropki w Chrome i wybierz 'Dodaj do ekranu głównego'.");
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
       }
     }
   </script>
@@ -70,7 +63,7 @@
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
     } catch(e) {
-      console.log("Firebase w trybie offline/demo.");
+      console.log("Firebase w trybie offline.");
     }
   </script>
 
@@ -79,39 +72,38 @@
     <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
       <div class="text-5xl mb-3">⚡</div>
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
-      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć do rywalizacji!</p>
+      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć!</p>
 
-      <!-- PRZYCISK INSTALACJI -->
-      <button id="pwaInstallBtn" onclick="installPWA()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl mb-4 text-xs shadow-md transition active:scale-95">
+      <button id="pwaInstallBtn" onclick="installPWA()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 rounded-xl mb-4 text-xs shadow-md">
         📲 ZAINSTALUJ APLIKACJĘ NA TELEFONIE
       </button>
 
-      <div id="loginForm" class="space-y-4 text-left">
+      <form onsubmit="event.preventDefault(); loginUser();" class="space-y-4 text-left">
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia (np. Karol_SP7):</label>
-          <input type="text" id="userNick" placeholder="Twój Nick" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
+          <input type="text" id="userNick" required placeholder="Np. Karol_SP7" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">PIN (4 cyfry):</label>
-          <input type="password" id="userPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
+          <input type="password" id="userPin" required maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Pytanie bezpieczeństwa (do odzyskania PIN):</label>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Pytanie bezpieczeństwa (odzyskiwanie):</label>
           <select id="secQuestion" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-xs text-slate-700 focus:outline-none mb-2">
             <option value="pet">Imię pierwszego zwierzaka?</option>
             <option value="color">Twój ulubiony kolor?</option>
             <option value="hero">Twój ulubiony superbohater?</option>
           </select>
-          <input type="text" id="secAnswer" placeholder="Odpowiedź na pytanie..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
+          <input type="text" id="secAnswer" placeholder="Odpowiedź..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
         </div>
         <div class="flex items-center gap-2 pt-1">
           <input type="checkbox" id="rememberMe" checked class="w-5 h-5 accent-indigo-600 rounded cursor-pointer">
-          <label for="rememberMe" class="text-xs font-bold text-slate-600 cursor-pointer">Zapamiętaj mnie na tym urządzeniu</label>
+          <label for="rememberMe" class="text-xs font-bold text-slate-600 cursor-pointer">Zapamiętaj mnie</label>
         </div>
-        <button type="button" onclick="loginUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
           ROZPOCZNIJ NAUKĘ 🚀
         </button>
-      </div>
+      </form>
     </div>
   </div>
 
@@ -255,281 +247,4 @@
           document.getElementById('authScreen').classList.add('hidden');
           initDashboard();
         } catch(e) {
-          localStorage.removeItem('akademia6a_saved_user');
-        }
-      }
-      renderSubjects();
-    };
-
-    function loginUser() {
-      const nick = document.getElementById('userNick').value.trim();
-      const pin = document.getElementById('userPin').value.trim();
-      const answer = document.getElementById('secAnswer').value.trim().toLowerCase();
-      const remember = document.getElementById('rememberMe').checked;
-
-      if (!nick || pin.length < 4) {
-        alert("Wpisz Nick i 4-cyfrowy PIN!");
-        return;
-      }
-
-      currentUser = { nick, pin };
-
-      if (remember) {
-        localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
-      }
-
-      document.getElementById('authScreen').classList.add('hidden');
-      initDashboard();
-
-      if (db) {
-        db.collection("users_6a").doc(nick).set({
-          nick: nick,
-          pin: pin,
-          secAnswer: answer,
-          xp: 0,
-          streak: 1,
-          updatedAt: new Date()
-        }, { merge: true });
-      }
-    }
-
-    function logout() {
-      if (confirm("Czy chcesz się wylogować?")) {
-        localStorage.removeItem('akademia6a_saved_user');
-        location.reload();
-      }
-    }
-
-    function initDashboard() {
-      if (!currentUser) return;
-      document.getElementById('profileNick').innerText = currentUser.nick;
-      loadUserCloudData();
-      renderLeaderboard();
-      listenChallenges();
-    }
-
-    function loadUserCloudData() {
-      const localXP = parseInt(localStorage.getItem(`xp_${currentUser.nick}`)) || 0;
-      userStats.xp = localXP;
-      document.getElementById('xpDisplay').innerText = userStats.xp;
-
-      if (db) {
-        db.collection("users_6a").doc(currentUser.nick).get().then((doc) => {
-          if (doc.exists) {
-            userStats.xp = Math.max(userStats.xp, doc.data().xp || 0);
-            document.getElementById('xpDisplay').innerText = userStats.xp;
-          }
-        });
-      }
-    }
-
-    function addXP(points) {
-      userStats.xp += points;
-      document.getElementById('xpDisplay').innerText = userStats.xp;
-      localStorage.setItem(`xp_${currentUser.nick}`, userStats.xp);
-
-      if (db && currentUser) {
-        db.collection("users_6a").doc(currentUser.nick).update({
-          xp: userStats.xp,
-          updatedAt: new Date()
-        });
-      }
-    }
-
-    function renderLeaderboard() {
-      const lb = document.getElementById('leaderboard');
-      const oppSel = document.getElementById('opponentSelect');
-      if (!db) {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Lokalny tryb.</div>`;
-        return;
-      }
-
-      db.collection("users_6a").orderBy("xp", "desc").onSnapshot((snapshot) => {
-        lb.innerHTML = "";
-        oppSel.innerHTML = "";
-        let rank = 1;
-
-        snapshot.forEach((doc) => {
-          const u = doc.data();
-          if (rank <= 3) {
-            const medals = ["🥇", "🥈", "🥉"];
-            lb.innerHTML += `
-              <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm">
-                <span class="font-black text-slate-800">${medals[rank-1] || rank + "."} ${u.nick}</span>
-                <span class="font-extrabold text-indigo-600">${u.xp} XP</span>
-              </div>
-            `;
-          }
-          if (u.nick !== currentUser.nick) {
-            oppSel.innerHTML += `<option value="${u.nick}">${u.nick}</option>`;
-          }
-          rank++;
-        });
-      });
-    }
-
-    function openChallengeModal() {
-      document.getElementById('challengeModal').classList.remove('hidden');
-    }
-
-    function closeChallengeModal() {
-      document.getElementById('challengeModal').classList.add('hidden');
-    }
-
-    function createChallenge() {
-      const target = document.getElementById('opponentSelect').value;
-      const subj = document.getElementById('challengeSubject').value;
-
-      if (!target) {
-        alert("Brak dostępnych przeciwników w klasie!");
-        return;
-      }
-
-      if (db) {
-        db.collection("challenges_6a").add({
-          from: currentUser.nick,
-          to: target,
-          subject: subj,
-          status: 'pending',
-          createdAt: new Date()
-        }).then(() => {
-          alert(`Wyzwanie 1 vs 1 dla ${target} zostało wysłane!`);
-          closeChallengeModal();
-        });
-      }
-    }
-
-    function listenChallenges() {
-      if (!db) return;
-      db.collection("challenges_6a").where("to", "==", currentUser.nick).where("status", "==", "pending")
-        .onSnapshot((snapshot) => {
-          const container = document.getElementById('activeChallengesContainer');
-          const list = document.getElementById('challengesList');
-          if (snapshot.empty) {
-            container.classList.add('hidden');
-            return;
-          }
-
-          container.classList.remove('hidden');
-          list.innerHTML = "";
-          snapshot.forEach((doc) => {
-            const ch = doc.data();
-            list.innerHTML += `
-              <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200">
-                <span class="font-bold text-sm text-red-900">⚔️ ${ch.from} wyzwał Cię z: ${program[ch.subject].title}!</span>
-                <button onclick="acceptChallenge('${doc.id}', '${ch.subject}')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow">
-                  Graj pojedynczo (+50 XP)
-                </button>
-              </div>
-            `;
-          });
-        });
-    }
-
-    function acceptChallenge(id, subjKey) {
-      activeChallengeId = id;
-      isChallengeMode = true;
-      startQuiz(`Pojedynek 1 vs 1: ${program[subjKey].title}`);
-    }
-
-    function renderSubjects() {
-      const grid = document.getElementById('subjectGrid');
-      grid.innerHTML = "";
-      for (let key in program) {
-        const s = program[key];
-        grid.innerHTML += `
-          <button onclick="openSubject('${key}')" class="bg-white border border-slate-200 hover:border-indigo-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition active:scale-95 text-center flex flex-col items-center">
-            <span class="text-5xl mb-2">${s.icon}</span>
-            <span class="font-bold text-slate-800 text-sm">${s.title}</span>
-          </button>
-        `;
-      }
-    }
-
-    function showDashboard() {
-      document.getElementById('dashboardView').classList.remove('hidden');
-      document.getElementById('chapterView').classList.add('hidden');
-      document.getElementById('quizView').classList.add('hidden');
-    }
-
-    function openSubject(key) {
-      const subj = program[key];
-      document.getElementById('chapterTitle').innerText = subj.title;
-      const list = document.getElementById('chapterList');
-      list.innerHTML = "";
-
-      subj.chapters.forEach(chap => {
-        list.innerHTML += `
-          <div onclick="startQuiz('${chap}')" class="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 shadow-sm cursor-pointer flex justify-between items-center font-bold">
-            <span>${chap}</span>
-            <span class="text-indigo-600">Rozpocznij ▶</span>
-          </div>
-        `;
-      });
-
-      document.getElementById('dashboardView').classList.add('hidden');
-      document.getElementById('chapterView').classList.remove('hidden');
-    }
-
-    function startQuiz(chapterName) {
-      currentQuiz = [
-        { q: "Pojazd jedzie ze stałą prędkością 60 km/h przez 2 godziny. Jaką drogę pokona?", options: ["120 km", "100 km", "62 km"], a: "120 km" },
-        { q: "Która odpowiedź jest prawidłowa dla wybranego zagadnienia?", options: ["Prawidłowa definicja z podręcznika", "Błędne pojęcie", "Inna odpowiedź"], a: "Prawidłowa definicja z podręcznika" },
-        { q: "Wpisz po angielsku słowo 'Pies':", isOpen: true, a: "dog" }
-      ];
-      currentQIdx = 0;
-      
-      document.getElementById('chapterView').classList.add('hidden');
-      document.getElementById('quizView').classList.remove('hidden');
-      renderQuestion();
-    }
-
-    function renderQuestion() {
-      selectedOption = null;
-      document.getElementById('feedbackBox').classList.add('hidden');
-      const q = currentQuiz[currentQIdx];
-      
-      const pct = ((currentQIdx) / currentQuiz.length) * 100;
-      document.getElementById('progressBar').style.width = pct + "%";
-
-      const container = document.getElementById('questionContainer');
-      container.innerHTML = `<h3 class="text-lg font-black text-slate-800 mb-4">${q.q}</h3>`;
-
-      if (q.isOpen) {
-        container.innerHTML += `
-          <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600">
-        `;
-      } else {
-        q.options.forEach(opt => {
-          container.innerHTML += `
-            <button onclick="selectOpt(this, '${opt}')" class="opt-btn w-full text-left p-4 rounded-xl border border-slate-200 font-bold mb-2 hover:bg-indigo-50 transition">
-              ${opt}
-            </button>
-          `;
-        });
-      }
-
-      document.getElementById('nextBtn').innerText = "SPRAWDŹ ODPOWIEDŹ";
-      document.getElementById('nextBtn').onclick = submitAnswer;
-    }
-
-    function selectOpt(btn, opt) {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('border-indigo-600', 'bg-indigo-50'));
-      btn.classList.add('border-indigo-600', 'bg-indigo-50');
-      selectedOption = opt;
-    }
-
-    function submitAnswer() {
-      const q = currentQuiz[currentQIdx];
-      let userAns = q.isOpen ? document.getElementById('openAns').value.trim().toLowerCase() : selectedOption;
-
-      if (!userAns) {
-        alert("Wybierz lub wpisz odpowiedź!");
-        return;
-      }
-
-      const fb = document.getElementById('feedbackBox');
-      fb.classList.remove('hidden');
-
-      if (userAns.toLowerCase() === q.a.toLowerCase()) {
-        fb.className =
+          localStorage.removeItem('akademia6a
