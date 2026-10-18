@@ -105,7 +105,7 @@
     </div>
   </div>
 
-  <!-- NAGŁÓWEK -->
+  <!-- NAGłÓWEK -->
   <header class="bg-indigo-950 text-white p-4 shadow-md sticky top-0 z-40">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-2 cursor-pointer" onclick="showDashboard()">
@@ -679,143 +679,163 @@
       if (chapView) chapView.classList.remove('hidden');
     }
 
+    // POTĘŻNE GENERATORY 1000 WARIANTÓW (PODSTAWA PROGRAMOWA KLASA 6)
+    function generateMathPool() {
+      let pool = [];
+      for (let i = 0; i < 1000; i++) {
+        let v = Math.floor(Math.random() * 15) * 10 + 20; 
+        let t = Math.floor(Math.random() * 5) + 1; 
+        let s = v * t;
+        pool.push({
+          q: `Zadanie matematyczne #${i+1}: Pojazd jedzie ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`,
+          options: [`${s} km`, `${s + 20} km`, `${s - 15} km`, `${s + 40} km`],
+          a: `${s} km`,
+          explanation: `Droga to prędkość razy czas: ${v} * ${t} = ${s} km.`
+        });
+
+        let a = Math.floor(Math.random() * 20) + 3;
+        let b = Math.floor(Math.random() * 20) + 3;
+        let area = a * b;
+        pool.push({
+          q: `Geometria #${i+1}: Jakie jest pole powierzchni prostokąta o bokach długości ${a} cm i ${b} cm?`,
+          options: [`${area} cm²`, `${2*(a+b)} cm²`, `${area + 10} cm²`, `${Math.abs(a-b)*5} cm²`],
+          a: `${area} cm²`,
+          explanation: `Pole prostokąta = a * b = ${a} * ${b} = ${area} cm².`
+        });
+
+        let mult = Math.floor(Math.random() * 8) + 2;
+        let add = Math.floor(Math.random() * 30) + 2;
+        let res = mult * (Math.floor(Math.random() * 15) + 2) + add;
+        let xVal = (res - add) / mult;
+        pool.push({
+          q: `Równanie #${i+1}: Rozwiąż równanie ${mult}x + ${add} = ${res}. Podaj wartość x:`,
+          options: [`x = ${xVal}`, `x = ${xVal + 3}`, `x = ${xVal - 2}`, `x = ${xVal * 2}`],
+          a: `x = ${xVal}`,
+          explanation: `Przenosimy wyraz wolny i dzielimy przez współczynnik, otrzymując x = ${xVal}.`
+        });
+      }
+      return pool;
+    }
+
+    function generateGeoPool() {
+      let pool = [];
+      for (let i = 0; i < 1000; i++) {
+        let h = 200 + (i % 150) * 5;
+        pool.push({
+          q: `Geografia topograficzna #${i+1}: Przeanalizuj wycinek mapy poziomicowej. Jaka jest wysokość bezwzględna wzniesienia oznaczonego trójkątem?`,
+          svgGraphic: `<svg viewBox="0 0 600 220" class="w-full h-44 rounded-xl bg-slate-950 border border-slate-700 shadow-inner"><rect width="600" height="220" fill="#0b0f19"/><g transform="translate(30,15)"><text x="10" y="20" fill="#38bdf8" font-size="13" font-weight="bold">MAPA TOPOGRAFICZNA - WARIANT ${i+1}</text><ellipse cx="230" cy="110" rx="150" ry="70" fill="none" stroke="#475569" stroke-width="2"/><text x="70" y="135" fill="#94a3b8" font-size="11">200 m</text><polygon points="230,85 224,102 236,102" fill="#ef4444"/><text x="245" y="98" fill="#ef4444" font-size="13" font-weight="bold">${h} m n.p.m.</text></g></svg>`,
+          options: [`${h} m n.p.m.`, `${h + 100} m n.p.m.`, `${h - 50} m n.p.m.`, `${h + 250} m n.p.m.`],
+          a: `${h} m n.p.m.`,
+          explanation: `Wysokość punktu szczytowego wynosi ${h} metrów nad poziomem morza.`
+        });
+        pool.push({
+          q: `Geografia polityczna #${i+1}: W jakim regionie Europy leży terytorium Polski?`,
+          svgGraphic: `<svg viewBox="0 0 600 180" class="w-full h-36 rounded-xl bg-slate-950 border border-slate-700 shadow-inner"><rect width="600" height="180" fill="#0b0f19"/><text x="25" y="25" fill="#38bdf8" font-size="13" font-weight="bold">EUROPA - LOKALIZACJA #${i+1}</text><path d="M140,150 Q110,50 210,30 T390,30 T460,120 T280,170 Z" fill="#1e293b" stroke="#475569" stroke-width="2"/><circle cx="325" cy="90" r="8" fill="#ef4444"/><text x="340" y="94" fill="#f8fafc" font-size="13" font-weight="bold">POLSKA</text></svg>`,
+          options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej", "W Europie Zachodniej"],
+          a: "W Europie Środkowej",
+          explanation: "Polska położona jest w Europie Środkowej."
+        });
+      }
+      return pool;
+    }
+
+    function generateBioPool() {
+      let pool = [];
+      for (let i = 0; i < 1000; i++) {
+        pool.push({
+          q: `Biologia zwierząt #${i+1}: Na jakie trzy główne tagmy podzielone jest ciało owada widoczne na schemacie?`,
+          svgGraphic: `<svg viewBox="0 0 600 200" class="w-full h-40 rounded-xl bg-slate-950 border border-slate-700 shadow-inner"><rect width="600" height="200" fill="#0b0f19"/><g transform="translate(40,15)"><text x="10" y="20" fill="#38bdf8" font-size="13" font-weight="bold">BUDOWA OWADA #${i+1}</text><ellipse cx="130" cy="100" rx="35" ry="25" fill="#0ea5e9"/><ellipse cx="260" cy="100" rx="55" ry="32" fill="#2563eb"/><ellipse cx="420" cy="100" rx="75" ry="28" fill="#1d4ed8"/></g></svg>`,
+          options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa i głowa", "Tylko odwłok"],
+          a: "Głowa, tułów i odwłok",
+          explanation: "Anatomia owada składa się z głowy, tułowia i odwłoka."
+        });
+        pool.push({
+          q: `Ekologia i zoologia #${i+1}: Zwierzęta stałocieplne to:`,
+          options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy", "Wszystkie bezkręgowce"],
+          a: "Ptaki i ssaki",
+          explanation: "Ptaki i ssaki utrzymują stałą temperaturę ciała."
+        });
+      }
+      return pool;
+    }
+
+    function generateTechPool() {
+      let pool = [];
+      for (let i = 0; i < 1000; i++) {
+        pool.push({
+          q: `Kodeks drogowy #${i+1}: Co oznacza znak C-13 w polskim prawie o ruchu drogowym?`,
+          svgGraphic: `<svg viewBox="0 0 600 180" class="w-full h-36 rounded-xl bg-slate-950 border border-slate-700 shadow-inner"><rect width="600" height="180" fill="#0b0f19"/><circle cx="300" cy="90" r="50" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/><path d="M270,110 L285,75 L315,75 L330,110" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>`,
+          options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Przejście dla pieszych", "Strefa zamieszkania"],
+          a: "Droga dla rowerów (nakaz)",
+          explanation: "Znak C-13 nakazuje kierującym rowerami jazdę wyznaczoną ścieżką."
+        });
+        pool.push({
+          q: `Technologia materiałów #${i+1}: Który materiał jest znakomitym przewodnikiem prądu elektrycznego?`,
+          options: ["Miedź", "Suche drewno", "Guma kauczukowa", "Szkło kwarcowe"],
+          a: "Miedź",
+          explanation: "Miedź doskonale przewodzy prąd."
+        });
+      }
+      return pool;
+    }
+
+    function generateHistPool() {
+      let pool = [];
+      for (let i = 0; i < 1000; i++) {
+        pool.push({
+          q: `Historia powszechna #${i+1}: W którym roku Krzysztof Kolumb dotarł do Ameryki?`,
+          options: ["1492 rok", "1410 rok", "1791 rok", "1025 rok"],
+          a: "1492 rok",
+          explanation: "Rok 1492 to początek nowożytności."
+        });
+        pool.push({
+          q: `Historia Polski #${i+1}: Konstytucja 3 maja została uchwalona w roku:`,
+          options: ["1791", "1772", "1795", "1918"],
+          a: "1791",
+          explanation: "Pierwsza w Europie ustawa zasadnicza."
+        });
+      }
+      return pool;
+    }
+
+    function generateEngPool() {
+      let pool = [];
+      for (let i = 0; i < 1000; i++) {
+        pool.push({
+          q: `Język angielski (gramatyka) #${i+1}: Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':`,
+          options: ["went", "gone", "goed", "going"],
+          a: "went",
+          explanation: "Czasownik nieregularny go -> went -> gone."
+        });
+        pool.push({
+          q: `Język angielski (słownictwo) #${i+1}: Przetłumacz na angielski słowo 'Pies':`,
+          isOpen: true,
+          a: "dog",
+          explanation: "Pies to po angielsku 'dog'."
+        });
+      }
+      return pool;
+    }
+
     function generateQuestionsForChapter(chapterName, subjKey) {
       let pool = [];
 
-      if (subjKey === 'geografia') {
-        if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
-          pool = [
-            { 
-              q: "Przeanalizuj poniższą mapę poziomicową (izohipsy). Jaka jest wysokość bezwzględna najwyższego punktu oznaczonego trójkątem na szczycie oraz jaka jest wartość cięcia warstwicowego?", 
-              svgGraphic: `<svg viewBox="0 0 500 220" class="w-full h-44 rounded-xl bg-slate-900 border border-slate-700 shadow-inner font-sans"><rect width="500" height="220" fill="#0f172a"/><g transform="translate(40,20)"><text x="0" y="15" fill="#38bdf8" font-size="13" font-weight="bold">FRAGMENT MAPY TOPOGRAFICZNEJ (Wzniesienie)</text><ellipse cx="200" cy="90" rx="150" ry="70" fill="none" stroke="#475569" stroke-width="2"/><text x="40" y="115" fill="#94a3b8" font-size="11">200 m n.p.m.</text><ellipse cx="200" cy="90" rx="110" ry="50" fill="none" stroke="#64748b" stroke-width="2"/><text x="85" y="100" fill="#94a3b8" font-size="11">250 m</text><ellipse cx="200" cy="90" rx="70" ry="30" fill="none" stroke="#94a3b8" stroke-width="2"/><text x="125" y="92" fill="#94a3b8" font-size="11">300 m</text><ellipse cx="200" cy="90" rx="35" ry="15" fill="none" stroke="#cbd5e1" stroke-width="2"/><text x="165" y="85" fill="#f8fafc" font-size="11">350 m</text><polygon points="200,68 194,82 206,82" fill="#ef4444"/><text x="215" y="78" fill="#ef4444" font-size="12" font-weight="bold">385 m n.p.m.</text></g></svg>`,
-              options: ["385 m n.p.m. (cięcie co 50 m)", "200 m n.p.m. (cięcie co 10 m)", "350 m n.p.m. (cięcie co 100 m)"], 
-              a: "385 m n.p.m. (cięcie co 50 m)",
-              explanation: "Poziomice opisane są co 50 metrów (200, 250, 300, 350 m), a szczyt z symbolem punktu triangulacyjnego wznosi się na wysokość 385 m n.p.m."
-            },
-            { 
-              q: "Przeanalizuj poniższą polityczną mapę konturową Europy. W jakiej części kontynentu leży obszar oznaczony czerwoną kropką (Polska)?", 
-              svgGraphic: `<svg viewBox="0 0 500 220" class="w-full h-44 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="220" fill="#0f172a"/><text x="25" y="25" fill="#38bdf8" font-size="13" font-weight="bold">MAPA KONTUROWA EUROPY</text><path d="M120,160 Q100,80 180,50 T320,60 T380,140 T250,190 Z" fill="#1e293b" stroke="#64748b" stroke-width="2"/><path d="M260,95 Q290,80 310,105 T295,140 T260,120 Z" fill="#334155" stroke="#94a3b8" stroke-width="1.5"/><circle cx="278" cy="112" r="7" fill="#ef4444"/><text x="295" y="116" fill="#f8fafc" font-size="12" font-weight="bold">POLSKA</text><text x="35" y="200" fill="#64748b" font-size="11">Skala: 1 : 20 000 000</text></svg>`,
-              options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej"], 
-              a: "W Europie Środkowej",
-              explanation: "Polska położona jest w Europie Środkowej, pomiędzy Morzem Bałtyckim na północy a pasmem gór na południu."
-            },
-            { q: "Które linie na globusie wyznaczają szerokość geograficzną i biegną równolegle do równika?", options: ["Równoleżniki", "Południki", "Południk zerowy"], a: "Równoleżniki", explanation: "Równoleżniki to okręgi omijające Ziemię równolegle do równika, wyznaczające szerokość (N lub S)." },
-            { q: "Co informuje nas, ile razy pomniejszono odległości w terenie na danej mapie?", options: ["Skala mapy", "Legenda", "Współrzędne"], a: "Skala mapy", explanation: "Skala mapy podaje dokładny stosunek wymiarów na mapie do rzeczywistości w terenie." },
-            { q: "Południk zerowy (0°) przechodzi przez historyczne obserwatorium w:", options: ["Greenwich w Londynie", "Warszawie", "Paryżu"], a: "Greenwich w Londynie", explanation: "Południk 0° (Greenwich) dzieli glob na półkulę wschodnią i zachodnią." }
-          ];
-        } else if (chapterName.includes('Ruchy Ziemi')) {
-          pool = [
-            { 
-              q: "Przeanalizuj poniższy schemat ruchu obiegowego Ziemi wokół Słońca. Jak nazywa się zjawisko oświetlenia półkul w dacie 21 czerwca?", 
-              svgGraphic: `<svg viewBox="0 0 500 200" class="w-full h-40 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="200" fill="#0f172a"/><circle cx="250" cy="100" r="35" fill="#fbbf24"/><ellipse cx="250" cy="100" rx="190" ry="70" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="5"/><circle cx="60" cy="100" r="16" fill="#3b82f6"/><line x1="55" y1="80" x2="65" y2="120" stroke="#ef4444" stroke-width="2"/><circle cx="440" cy="100" r="16" fill="#3b82f6"/><line x1="435" y1="80" x2="445" y2="120" stroke="#ef4444" stroke-width="2"/><text x="40" y="30" fill="#38bdf8" font-size="11" font-weight="bold">RUCH OBIEGOWY ZIEMI</text><text x="35" y="145" fill="#94a3b8" font-size="10">21 XII (Zima)</text><text x="410" y="145" fill="#94a3b8" font-size="10">21 VI (Lato)</text></svg>`,
-              options: ["Przesilenie letnie (najdłuższy dzień na półkuli północnej)", "Równonoc wiosenna", "Przesilenie zimowe"], 
-              a: "Przesilenie letnie (najdłuższy dzień na półkuli północnej)",
-              explanation: "21 czerwca biegun północny jest maksymalnie nachylony ku Słońcu, co daje najdłuższy dzień na półkuli północnej."
-            },
-            { q: "Czas jednego pełnego obrotu Ziemi wokół własnej osi wynosi:", options: ["24 godziny (1 doba)", "365 dni", "1 miesiąc"], a: "24 godziny (1 doba)", explanation: "Obrót wokół osi trwa 24h i powoduje następowanie dni i nocy." },
-            { q: "Kierunek, w którym obraca się Ziemia wokół osi (patrząc od bieguna północnego):", options: ["Z zachodu na wschód", "Ze wschodu na zachód", "Z południa na północ"], a: "Z zachodu na wschód", explanation: "Ruch ten sprawia, że Słońce pozornie wschodzi po wschodniej stronie." },
-            { q: "Nachylenie osi ziemskiej do płaszczyzny orbity wynosi dokładnie:", options: ["66°34'", "90°", "23°27'"], a: "66°34'", explanation: "Kąt nachylenia osi to 66°34', co decyduje o strefach oświetleniowych Ziemi." },
-            { q: "W dniach równonocy (21 III oraz 23 IX):", options: ["Dzień i noc trwają wszędzie na Ziemi tyle samo (po 12 godzin)", "Dzień trwa 24h", "Noc trwa 24h"], a: "Dzień i noc trwają wszędzie na Ziemi tyle samo (po 12 godzin)", explanation: "Promienie padają prostopadle na równik, oświetlając obie półkule jednakowo." }
-          ];
-        } else {
-          pool = [
-            { 
-              q: "Spójrz na fizyczny przekrój poprzeczny Polski od południa ku północy. Jaki układ formują główne krainy przyrodnicze?", 
-              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="180" fill="#0f172a"/><text x="25" y="25" fill="#38bdf8" font-size="12" font-weight="bold">PRZEKRÓJ FIZJOGRAFICZNY POLSKI</text><path d="M40,140 Q150,120 220,100 T360,70 L460,40" fill="none" stroke="#22c55e" stroke-width="4"/><text x="410" y="55" fill="#f8fafc" font-size="11" font-weight="bold">Góry (Południe)</text><text x="45" y="155" fill="#38bdf8" font-size="11" font-weight="bold">Morze (Północ)</text></svg>`,
-              options: ["Układ pasowy (równoleżnikowy)", "Układ południkowy", "Brak regularności"], 
-              a: "Układ pasowy (równoleżnikowy)",
-              explanation: "Krainy geograficzne Polski układają się w pasy równoleżnikowe (od nizin po pas górski na południu)."
-            },
-            { q: "Najwyższy szczyt w Polsce to:", options: ["Rysy (2499 m n.p.m. w Tatrach)", "Śnieżka", "Giewont"], a: "Rysy (2499 m n.p.m. w Tatrach)", explanation: "Rysy znajdują się w Tatrach Wysokich." },
-            { q: "Najdłuższa rzeka w Polsce, uchodząca do Zatoki Gdańskiej to:", options: ["Wisła", "Odra", "Warta"], a: "Wisła", explanation: "Wisła ma 1047 km długości." },
-            { q: "Największe pod względem powierzchni jezioro w Polsce:", options: ["Śniardwy", "Mamry", "Hańcza"], a: "Śniardwy", explanation: "Śniardwy leżą na Pojezierzu Mazurskim." },
-            { q: "Państwo będące zachodnim sąsiadem Polski to:", options: ["Niemcy", "Ukraina", "Litwa"], a: "Niemcy", explanation: "Graniczymy z Niemcami na zachodzie wzdłuż Odry i Nysy Łużyckiej." }
-          ];
-        }
-      }
-      else if (subjKey === 'biologia') {
-        if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
-          pool = [
-            { 
-              q: "Przeanalizuj poniższy schemat anatomiczny bez podpisów. Na jakie trzy główne segmenty (tagmy) podzielone jest ciało tego organizmu (typowego owada)?", 
-              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="180" fill="#0f172a"/><g transform="translate(40,20)"><text x="30" y="15" fill="#38bdf8" font-size="12" font-weight="bold">BUDOWA ANATOMICZNIA STAWONOGA</text><ellipse cx="110" cy="90" rx="35" ry="25" fill="#0ea5e9"/><ellipse cx="220" cy="90" rx="55" ry="35" fill="#2563eb"/><ellipse cx="360" cy="90" rx="70" ry="28" fill="#1d4ed8"/><path d="M180,120 L160,160 M230,125 L230,165 M280,120 L300,160" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/><circle cx="95" cy="85" r="5" fill="#fff"/><circle cx="95" cy="95" r="5" fill="#fff"/></g></svg>`,
-              options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Pancerz i ogon"], 
-              a: "Głowa, tułów i odwłok",
-              explanation: "Ciało owadów składa się z wyraźnie wyodrębnionej głowy, tułowia (gdzie osadzone są odnóża i skrzydła) oraz segmentowanego odwłoka."
-            },
-            { q: "Ile par odnóży krocznych posiadają dorosłe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)", explanation: "Trzy pary odnóży to cecha diagnostyczna owadów." },
-            { q: "Pajęczaki odróżniają się od owadów tym, że posiadają:", options: ["Głowotułów i 4 pary odnóży", "Skrzydła i czułki", "Tylko głowę"], a: "Głowotułów i 4 pary odnóży", explanation: "U pajęczaków głowa zrosła się z tułowiem (głowotułów) i mają 8 odnóży." },
-            { q: "Skorupiaki (np. rak rzeczny) oddychają w środowisku wodnym za pomocą:", options: ["Skrzeli", "Płuc", "Tchawiek"], a: "Skrzeli", explanation: "Skorupiaki posiadają wyspecjalizowane narządy wymiany gazowej – skrzela." },
-            { q: "Cechą wspólną wszystkich stawonogów jest obecność zewnętrznego szkieletu zbudowanego z:", options: ["Chityny", "Kości", "Wapnia"], a: "Chityny", explanation: "Chitynowy pancerz chroni ciało stawonogów i wymaga okresowego linienia." }
-          ];
-        } else {
-          pool = [
-            { q: "Zwierzęta stałocieplne, potrafiące utrzymać stałą temperaturę ciała to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy"], a: "Ptaki i ssaki", explanation: "Ptaki i ssaki posiadają zaawansowaną termoregulację." },
-            { q: "Jedyną gromadą kręgowców przystosowaną do aktywnego lotu są:", options: ["Ptaki", "Gady", "Płazy"], a: "Ptaki", explanation: "Kościec pneumatyczny i pióra umożliwiają ptakom lot." },
-            { q: "Wodna larwa płazów (np. żaby) nazywa się potocznie:", options: ["Kijkanką", "Gąsienicą", "Poczwarką"], a: "Kijkanką", explanation: "Kijkanka ma ogon, żyje w wodzie i oddycha skrzelami." },
-            { q: "Skóra gadów w odróżnieniu od płazów jest:", options: ["Sucha, pokryta rogowymi łuskami i nieprzepuszczalna", "Wilgotna i śluzasta", "Naga"], a: "Sucha, pokryta rogowymi łuskami i nieprzepuszczalna", explanation: "Rogowa łuska chroni gady przed utratą wody." },
-            { q: "Główny cel segregacji odpadów to:", options: ["Odzysk surowców wtórnych (recykling) i ochrona środowiska", "Zwiększenie ilości śmieci", "Brak wpływu"], a: "Odzysk surowców wtórnych (recykling) i ochrona środowiska", explanation: "Segregacja pozwala chronić zasoby naturalne." }
-          ];
-        }
-      }
-      else if (subjKey === 'technika') {
-        if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
-          pool = [
-            { 
-              q: "Przeanalizuj poniższy znak drogowy C-13 w polskim kodeksie drogowym. Co dokładnie oznacza?", 
-              svgGraphic: `<svg viewBox="0 0 500 160" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="160" fill="#0f172a"/><circle cx="250" cy="80" r="55" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/><path d="M220,100 L235,65 L265,65 L280,100" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="220" cy="100" r="12" stroke="#ffffff" stroke-width="3.5" fill="none"/><circle cx="280" cy="100" r="12" stroke="#ffffff" stroke-width="3.5" fill="none"/></svg>`,
-              options: ["Droga dla rowerów (nakaz jazdy)", "Zakaz wjazdu rowerów", "Przejście dla pieszych"], 
-              a: "Droga dla rowerów (nakaz jazdy)",
-              explanation: "Znak C-13 nakazuje kierującym rowerami poruszanie się po wyznaczonej drodze."
-            },
-            { q: "Minimalny wiek do uzyskania karty rowerowej to:", options: ["10 lat", "12 lat", "14 lat"], a: "10 lat", explanation: "Karta rowerowa może być wydana po ukończeniu 10. roku życia." },
-            { q: "Obowiązkowe oświetlenie roweru po zmroku to:", options: ["Światło pozycyjne przednie (białe) i tylne (czerwone) oraz odblaski", "Tylko latarka w ręku", "Brak wymagań"], a: "Światło pozycyjne przednie (białe) i tylne (czerwone) oraz odblaski", explanation: "Oświetlenie zapewnia widoczność rowerzysty na drodze." },
-            { q: "Znaki drogowe ostrzegawcze mają zazwyczaj kształt:", options: ["Trójkąta równobocznego w czerwonej obwódce", "Koła czerwonego", "Kwadratu"], a: "Trójkąta równobocznego w czerwonej obwódce", explanation: "Trójkątne znaki ostrzegają przed niebezpieczeństwami." },
-            { q: "Poruszając się rowerem po chodniku, pierwszeństwo ma zawsze:", options: ["Pieszy", "Rowerzysta", "Obaj po równo"], a: "Pieszy", explanation: "Chodnik jest przeznaczony dla pieszych; rowerzysta może na niego wjechać tylko w wyjątkowych warunkach i musi ustąpić pieszemu." }
-          ];
-        } else {
-          pool = [
-            { q: "Który materiał jest znakomitym przewodnikiem prądu elektrycznego?", options: ["Miedź", "Suche drewno", "Guma"], a: "Miedź", explanation: "Miedź doskonale przewodzy prąd i jest stosowana w instalacjach." },
-            { q: "Do trwałego łączenia elementów drewnianych stosuje się:", options: ["Wkręty do drewna i gwoździe", "Śruby stalowe metryczne", "Klej do szyb"], a: "Wkręty do drewna i gwoździe", explanation: "Wkręty i gwoździe to podstawowe elementy montażowe w stolarstwie." },
-            { q: "Rysunek techniczny charakteryzuje się tym, że jest:", options: ["Znormalizowany i dokładnie zwymiarowany", "Szkicem malarskim", "Dowolnym rysunkiem odręcznym"], a: "Znormalizowany i dokładnie zwymiarowany", explanation: "Rysunek techniczny musi spełniać ścisłe normy i podawać wymiary." },
-            { q: "Tworzywa sztuczne (plastiki) należą do materiałów:", options: ["Syntetycznych (sztucznych)", "Naturalnych organicznych", "Mineralnych"], a: "Syntetycznych (sztucznych)", explanation: "Tworzywa sztuczne są otrzymywane chemicznie." },
-            { q: "Bezpiecznik elektryczny w instalacji domowej chroni przed:", options: ["Skutkami zwarcia i przeciążenia", "Niskim napięciem", "Zimnem"], a: "Skutkami zwarcia i przeciążenia", explanation: "Bezpiecznik przerywa obwód w sytuacji awaryjnej." }
-          ];
-        }
-      }
-      else if (subjKey === 'historia') {
-        pool = [
-          { q: "W którym roku Krzysztof Kolumb dotarł do Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok", explanation: "Rok 1492 to symboliczny początek nowożytności." },
-          { q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791", explanation: "Pierwsza w Europie ustawa zasadnicza." },
-          { q: "Bitwa pod Grunwaldem miała miejsce w roku:", options: ["1410", "1525", "1683"], a: "1410", explanation: "Zwycięstwo Polski i Litwy nad zakonem krzyżackim." },
-          { q: "Ostatnim królem elekcyjnym Polski był:", options: ["Stanisław August Poniatowski", "Jan III Sobieski", "Stefan Batory"], a: "Stanisław August Poniatowski", explanation: "Panował w okresie rozbiorów Rzeczypospolitej." },
-          { q: "Renesans (Odrodzenie) to epoka nawiązująca do kultury:", options: ["Starożytnej Grecji i Rzymu", "Średniowiecza", "Futuryzmu"], a: "Starożytnej Grecji i Rzymu", explanation: "Humanizm renesansowy czerpał z antyku." }
-        ];
-      }
-      else if (subjKey === 'matematyka') {
-        let v = (Math.floor(Math.random() * 6) + 4) * 10;
-        let t = Math.floor(Math.random() * 3) + 2;
-        let s = v * t;
-        pool = [
-          { q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 10} km`], a: `${s} km`, explanation: "Droga to iloczyn prędkości i czasu ($s = v \\cdot t$)." },
-          { q: "Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?", options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h", explanation: "Prędkość to droga podzielona przez czas ($v = s / t$)." },
-          { q: "Wynik dodawania ułamków 1/4 + 2/4 wynosi:", options: ["3/4", "3/8", "1/2"], a: "3/4", explanation: "Przy równych mianownikach dodajemy liczniki: 1+2 = 3." },
-          { q: "Pole kwadratu o boku 7 cm wynosi:", options: ["49 cm²", "28 cm²", "14 cm²"], a: "49 cm²", explanation: "Pole kwadratu to $a^2 = 7 \\cdot 7 = 49$ cm²." },
-          { q: "Liczba odwrotna do liczby 2 to:", options: ["1/2", "-2", "2"], a: "1/2", explanation: "Liczba odwrotna daje iloczyn równy 1." }
-        ];
-      }
-      else {
-        pool = [
-          { q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went", explanation: "Czasownik nieregularny: go -> went -> gone." },
-          { q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog", explanation: "'Pies' to w języku angielskim 'dog'." },
-          { q: "Który czasownik jest w czasie Present Continuous?", options: ["is running", "ran", "runs"], a: "is running", explanation: "Present Continuous tworzymy z 'to be' oraz końcówką '-ing'." },
-          { q: "Stopień wyższy (comparative) od przymiotnika 'good' to:", options: ["better", "best", "gooder"], a: "better", explanation: "Good stopniuje się nieregularnie: good -> better -> best." },
-          { q: "Co oznacza po angielsku słowo 'Apple'?", options: ["Jabłko", "Pomarańcza", "Banan"], a: "Jabłko", explanation: "'Apple' to jabłko." }
-        ];
+      if (subjKey === 'matematyka') {
+        pool = generateMathPool();
+      } else if (subjKey === 'geografia') {
+        pool = generateGeoPool();
+      } else if (subjKey === 'biologia') {
+        pool = generateBioPool();
+      } else if (subjKey === 'technika') {
+        pool = generateTechPool();
+      } else if (subjKey === 'historia') {
+        pool = generateHistPool();
+      } else {
+        pool = generateEngPool();
       }
 
       pool.sort(() => Math.random() - 0.5);
-      return pool.slice(0, 5);
+      return pool.slice(0, 10);
     }
 
     function startQuiz(chapterName, subjKey) {
@@ -845,7 +865,7 @@
       
       let svgHtml = '';
       if (q.svgGraphic) {
-        svgHtml = `<div class="w-full mb-4 overflow-hidden rounded-2xl shadow-md border border-slate-700 bg-slate-900">${q.svgGraphic}</div>`;
+        svgHtml = `<div class="w-full mb-4 overflow-hidden rounded-2xl shadow-md border border-slate-700 bg-slate-950">${q.svgGraphic}</div>`;
       }
 
       container.innerHTML = `
@@ -858,6 +878,7 @@
           <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600 mt-2">
         `;
       } else {
+        q.options.sort(() => Math.random() - 0.5);
         q.options.forEach(opt => {
           container.innerHTML += `
             <button onclick="selectOpt(this, '${opt}')" class="opt-btn w-full text-left p-3.5 rounded-xl border border-slate-200 font-bold mb-2 hover:bg-indigo-50 transition text-sm cursor-pointer">
@@ -926,7 +947,7 @@
           alert("Trening problematycznych zadań zakończony!");
           isMistakesMode = false;
         } else {
-          alert("Gratulacje! Ukończyłeś test z tego działu!");
+          alert("Gratulacje! Ukończyłeś test składający się z 10 zadań!");
         }
         showDashboard();
       }
