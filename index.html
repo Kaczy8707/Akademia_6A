@@ -48,20 +48,19 @@
     }
   </script>
 
-  <!-- EKRAN AUTORYZACJI (LOGOWANIE / REJESTRACJA / ODZYSKIWANIE) -->
+  <!-- EKRAN AUTORYZACJI -->
   <div id="authScreen" style="display: flex;" class="fixed inset-0 bg-indigo-950 bg-opacity-95 z-50 items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
       <div class="text-5xl mb-2">⚡</div>
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wybierz opcję, aby kontynuować naukę</p>
 
-      <!-- WYBÓR TRYBU: LOGOWANIE / REJESTRACJA -->
       <div id="authTabs" class="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
         <button type="button" onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow">LOGOWANIE</button>
         <button type="button" onclick="switchAuthTab('register')" id="tabRegBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600">REJESTRACJA</button>
       </div>
 
-      <!-- FORMULARZ LOGOWANIA -->
+      <!-- LOGOWANIE -->
       <div id="loginForm" class="space-y-4 text-left">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
@@ -82,7 +81,7 @@
         </div>
       </div>
 
-      <!-- FORMULARZ REJESTRACJI -->
+      <!-- REJESTRACJA -->
       <div id="registerForm" class="space-y-4 text-left hidden">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Nowy Nick:</label>
@@ -107,7 +106,7 @@
         </button>
       </div>
 
-      <!-- FORMULARZ ODZYSKIWANIA PIN -->
+      <!-- ODZYSKIWANIE -->
       <div id="recoveryForm" class="space-y-4 text-left hidden">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Twój Nick:</label>
@@ -144,14 +143,20 @@
         <button onclick="installPWA()" id="installBtnHeader" class="hidden text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-extrabold shadow">
           📱 Zainstaluj
         </button>
-        <div class="flex items-center gap-1 bg-amber-500/20 border border-amber-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">
-          🔥 <span id="streakDisplay">1</span> d.
-        </div>
-        <div class="flex items-center gap-1 bg-indigo-800/60 border border-indigo-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">
-          ⭐ <span id="xpDisplay">0</span> XP
-        </div>
-        <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-600 font-bold">
-          ⚙️ <span id="profileNick">Uczeń</span>
+
+        <!-- KAFELEK PROFILU I XP (KLIKALNY - OTWIERA SZCZEGÓŁOWE STATYSTYKI) -->
+        <button onclick="openProfileModal()" class="flex items-center gap-2 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-600 px-3.5 py-1.5 rounded-2xl text-white shadow transition active:scale-95 cursor-pointer">
+          <div class="text-amber-300 font-extrabold text-sm flex items-center gap-1">
+            ⭐ <span id="xpDisplay">0</span> XP
+          </div>
+          <span class="text-slate-400">|</span>
+          <div class="font-bold text-xs text-indigo-200 flex items-center gap-1">
+            👤 <span id="profileNick">Uczeń</span>
+          </div>
+        </button>
+
+        <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-600 font-bold text-slate-300">
+          ⚙️ Wyjdź
         </button>
       </div>
     </div>
@@ -161,6 +166,20 @@
   <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
 
     <div id="dashboardView">
+      <!-- MODUL TRUDNYCH / PROBLEMATYCZNYCH ZADAŃ -->
+      <div id="mistakesModuleCard" class="hidden bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 mb-6 shadow-sm">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="font-extrabold text-rose-900 flex items-center gap-2 text-sm uppercase">
+            ⚠️ Powtórka trudnych pytań (<span id="mistakesCount">0</span>)
+          </h2>
+          <span class="text-xs text-rose-700 font-bold">Automatyczny trening błędów</span>
+        </div>
+        <p class="text-xs text-rose-800 mb-3">Masz w swojej pamięci pytania, na które wcześniej odpowiedziałeś błędnie. Przećwicz je ponownie!</p>
+        <button onclick="startMistakesQuiz()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95 text-xs uppercase tracking-wide">
+          ROZPOCZNIJ TRENING PROBLEMATYCZNYCH ZADAŃ 🎯
+        </button>
+      </div>
+
       <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-extrabold text-amber-900 flex items-center gap-2">
@@ -188,6 +207,49 @@
 
       <h2 class="text-xl font-black text-slate-800 mb-4">Wybierz przedmiot do nauki:</h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8" id="subjectGrid"></div>
+    </div>
+
+    <!-- MODAL PROFILU I SZCZEGÓŁOWYCH STATYSTIK -->
+    <div id="profileModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-left">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">👤</span>
+            <div>
+              <h3 id="modalProfileNick" class="font-black text-lg text-slate-800">Uczeń</h3>
+              <p class="text-xs text-indigo-600 font-bold">Profil Ucznia Szkoły Podstawowej nr 7</p>
+            </div>
+          </div>
+          <button onclick="closeProfileModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+        </div>
+
+        <div class="space-y-3 mb-6 text-sm">
+          <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
+            <span class="text-slate-600">Zdobyte punkty XP:</span>
+            <span id="modalXpCount" class="text-amber-600">0 XP</span>
+          </div>
+          <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
+            <span class="text-slate-600">Ukończone testy:</span>
+            <span id="statTestsCount" class="text-indigo-600">0</span>
+          </div>
+          <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
+            <span class="text-slate-600">Rozwiązane pytania:</span>
+            <span id="statTotalAnswers" class="text-indigo-600">0</span>
+          </div>
+          <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
+            <span class="text-slate-600">Skuteczność poprawnych:</span>
+            <span id="statAccuracy" class="text-emerald-600">0%</span>
+          </div>
+          <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
+            <span class="text-slate-600">Zadania do powtórki (błędy):</span>
+            <span id="statMistakesCount" class="text-rose-600">0</span>
+          </div>
+        </div>
+
+        <button onclick="closeProfileModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-xl shadow transition">
+          POWRÓT DO NAUKI
+        </button>
+      </div>
     </div>
 
     <!-- MODAL WYZWANIA -->
@@ -257,9 +319,9 @@
     let selectedOption = null;
     let isChallengeMode = false;
     let activeChallengeId = null;
+    let isMistakesMode = false;
     let deferredPrompt = null;
 
-    // OBSŁUGA INSTALACJI PWA
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -278,7 +340,7 @@
           deferredPrompt = null;
         });
       } else {
-        alert("Aplikacja jest już zainstalowana lub przeglądarka nie wymaga instalacji ręcznej (możesz też dodać stronę do ekranu głównego przez menu przeglądarki).");
+        alert("Aplikacja jest już zainstalowana lub przeglądarka nie wymaga instalacji ręcznej.");
       }
     }
 
@@ -418,7 +480,6 @@
             alert("Błędny PIN!");
           }
         }).catch(err => {
-          // Awaryjne logowanie offline jeśli Firebase nie odpowiada
           currentUser = { nick: n, pin: p };
           try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
           document.getElementById('authScreen').style.display = 'none';
@@ -505,6 +566,7 @@
       loadUserCloudData();
       renderLeaderboard();
       listenChallenges();
+      checkMistakesModule();
     }
 
     function loadUserCloudData() {
@@ -533,6 +595,122 @@
           xp: userStats.xp, updatedAt: new Date()
         }).catch(e => {});
       }
+    }
+
+    function recordStat(isCorrect) {
+      if (!currentUser) return;
+      let stats = { tests: 0, total: 0, correct: 0 };
+      try {
+        stats = JSON.parse(localStorage.getItem(`stats_${currentUser.nick}`)) || { tests: 0, total: 0, correct: 0 };
+      } catch(e) {}
+      stats.total++;
+      if (isCorrect) stats.correct++;
+      try {
+        localStorage.setItem(`stats_${currentUser.nick}`, JSON.stringify(stats));
+      } catch(e) {}
+    }
+
+    function recordTestCompleted() {
+      if (!currentUser) return;
+      let stats = { tests: 0, total: 0, correct: 0 };
+      try {
+        stats = JSON.parse(localStorage.getItem(`stats_${currentUser.nick}`)) || { tests: 0, total: 0, correct: 0 };
+      } catch(e) {}
+      stats.tests++;
+      try {
+        localStorage.setItem(`stats_${currentUser.nick}`, JSON.stringify(stats));
+      } catch(e) {}
+    }
+
+    function openProfileModal() {
+      if (!currentUser) return;
+      let stats = { tests: 0, total: 0, correct: 0 };
+      let mistakes = [];
+      try {
+        stats = JSON.parse(localStorage.getItem(`stats_${currentUser.nick}`)) || { tests: 0, total: 0, correct: 0 };
+        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
+      } catch(e) {}
+
+      let accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+
+      document.getElementById('modalProfileNick').innerText = currentUser.nick;
+      document.getElementById('modalXpCount').innerText = userStats.xp + " XP";
+      document.getElementById('statTestsCount').innerText = stats.tests;
+      document.getElementById('statTotalAnswers').innerText = stats.total;
+      document.getElementById('statAccuracy').innerText = accuracy + "%";
+      document.getElementById('statMistakesCount').innerText = mistakes.length;
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function checkMistakesModule() {
+      let mistakes = [];
+      try {
+        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
+      } catch(e) {}
+
+      const card = document.getElementById('mistakesModuleCard');
+      const countEl = document.getElementById('mistakesCount');
+      if (mistakes.length > 0) {
+        countEl.innerText = mistakes.length;
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    }
+
+    function recordMistake(questionObj) {
+      if (!currentUser) return;
+      let mistakes = [];
+      try {
+        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
+      } catch(e) {}
+
+      if (!mistakes.some(m => m.q === questionObj.q)) {
+        mistakes.push(questionObj);
+        try {
+          localStorage.setItem(`mistakes_${currentUser.nick}`, JSON.stringify(mistakes));
+        } catch(e) {}
+      }
+      checkMistakesModule();
+    }
+
+    function removeMistake(questionObj) {
+      if (!currentUser) return;
+      let mistakes = [];
+      try {
+        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
+      } catch(e) {}
+
+      mistakes = mistakes.filter(m => m.q !== questionObj.q);
+      try {
+        localStorage.setItem(`mistakes_${currentUser.nick}`, JSON.stringify(mistakes));
+      } catch(e) {}
+      checkMistakesModule();
+    }
+
+    function startMistakesQuiz() {
+      let mistakes = [];
+      try {
+        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
+      } catch(e) {}
+
+      if (mistakes.length === 0) {
+        alert("Brak problematycznych zadań do powtórki!");
+        return;
+      }
+
+      isMistakesMode = true;
+      currentQuiz = [...mistakes];
+      currentQIdx = 0;
+
+      document.getElementById('dashboardView').classList.add('hidden');
+      document.getElementById('quizView').classList.remove('hidden');
+      renderQuestion();
     }
 
     function renderLeaderboard() {
@@ -633,14 +811,17 @@
     }
 
     function showDashboard() {
+      isMistakesMode = false;
       document.getElementById('dashboardView').classList.remove('hidden');
       document.getElementById('chapterView').classList.add('hidden');
       document.getElementById('quizView').classList.add('hidden');
+      checkMistakesModule();
     }
 
     let activeSubjectKey = '';
     function openSubject(key) {
       activeSubjectKey = key;
+      isMistakesMode = false;
       const subj = program[key];
       document.getElementById('chapterTitle').innerText = subj.title;
       const list = document.getElementById('chapterList');
@@ -660,181 +841,69 @@
     }
 
     function generateQuestionsForChapter(chapterName, subjKey) {
-      let qList = [];
+      let pool = [];
 
       if (subjKey === 'geografia') {
         if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
-          qList.push({ 
-            q: "Przeanalizuj poniższe dane kartograficzne i wskaż prawidłową odpowiedź:", 
-            visualCard: { icon: "🇪🇺", label: "Mapa Polityczna Europy", text: "Analiza położenia matematycznego i fizycznego Polski na kontynencie." },
-            options: ["Polska leży w Europie Środkowej", "Polska leży w Europie Południowej", "Polska leży na innym kontynencie"], 
-            a: "Polska leży w Europie Środkowej" 
-          });
-          qList.push({ q: "Które linie na globusie łączą bieguny?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
+          pool = [
+            { 
+              q: "Przeanalizuj poniższą mapę konturową Europy i wskaż prawidłową odpowiedź:", 
+              svgGraphic: `<svg viewBox="0 0 500 240" class="w-full h-40 rounded-xl bg-slate-900 shadow-inner"><rect width="500" height="240" fill="#0f172a"/><path d="M120,180 Q100,100 180,60 T350,70 T400,160 T250,210 Z" fill="#334155" stroke="#64748b" stroke-width="2"/><path d="M280,110 Q310,90 330,120 T310,160 T270,140 Z" fill="#22c55e" stroke="#4ade80" stroke-width="2"/><circle cx="300" cy="130" r="6" fill="#ef4444"/><text x="315" y="125" fill="#ffffff" font-size="12" font-weight="bold">POLSKA</text><text x="30" y="30" fill="#94a3b8" font-size="14" font-weight="bold">MAPA POLITYCZNA EUROPY</text></svg>`,
+              options: ["Polska leży w Europie Środkowej", "Polska leży w Europie Południowej", "Polska leży na innym kontynencie"], 
+              a: "Polska leży w Europie Środkowej",
+              explanation: "Polska położona jest w Europie Środkowej, granicząc z Niemcami, Czechami, Słowacją, Ukrainą, Białorusią, Litwą i Rosją."
+            },
+            { q: "Które linie na globusie łączą bieguny północny z południowym?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki", explanation: "Południki to półokręgi łączące oba bieguny i wyznaczające kierunek północ-południe." },
+            { q: "Co informuje nas, ile razy pomniejszono odległości na mapie w stosunku do terenów rzeczywistych?", options: ["Skala mapy", "Legenda mapy", "Południk zerowy"], a: "Skala mapy", explanation: "Skala mapy (np. liczbowa lub mianowana) wskazuje stopień pomniejszenia rzeczywistych odległości." },
+            { q: "Punkt przecięcia się południka i równoleżnika określamy mianem:", options: ["Współrzędnych geograficznych", "Wzniesienia terenu", "Skali mianowanej"], a: "Współrzędnych geograficznych", explanation: "Współrzędne geograficzne (szerokość i długość) pozwalają precyzyjnie określić każde miejsce na Ziemi." },
+            { q: "Linia zerowa, od której mierzymy długość geograficzną, przechodzi przez miejscowość:", options: ["Greenwich w Londynie", "Warszawę", "Paryż"], a: "Greenwich w Londynie", explanation: "Południk zerowy (0°) przebiega przez dawne obserwatorium astronomiczne w Greenwich w Londynie." }
+          ];
         } else if (chapterName.includes('Ruchy Ziemi')) {
-          qList.push({ 
-            q: "Przeanalizuj poniższy schemat astronomiczny ruchu obiegowego Ziemi:", 
-            visualCard: { icon: "🌍☀️", label: "Model Astronomiczny", text: "Ruch obiegowy Ziemi wokół Słońca a zmiana kąta padania promieni słonecznych." },
-            options: ["Ruch wokół Słońca trwa 365 dni i powoduje pory roku", "Ruch wokół osi trwa 24h", "Ruch ten nie ma znaczenia"], 
-            a: "Ruch wokół Słońca trwa 365 dni i powoduje pory roku" 
-          });
-          qList.push({ q: "Czas trwania jednego pełnego obrotu Ziemi wokół własnej osi to:", options: ["24 godziny", "365 dni", "30 dni"], a: "24 godziny" });
+          pool = [
+            { 
+              q: "Przeanalizuj poniższy schemat astronomiczny ruchu obiegowego Ziemi:", 
+              svgGraphic: `<svg viewBox="0 0 500 240" class="w-full h-40 rounded-xl bg-slate-900 shadow-inner"><rect width="500" height="240" fill="#0f172a"/><circle cx="100" cy="120" r="40" fill="#f59e0b"/><ellipse cx="280" cy="120" rx="160" ry="80" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="6"/><circle cx="420" cy="120" r="22" fill="#3b82f6"/><line x1="420" y1="90" x2="420" y2="150" stroke="#ef4444" stroke-width="3" stroke-dasharray="3"/><text x="375" y="65" fill="#38bdf8" font-size="12" font-weight="bold">OBIEG ZIEMI (365 dni)</text></svg>`,
+              options: ["Ruch wokół Słońca trwa 365 dni i powoduje pory roku", "Ruch wokół osi trwa 24h", "Ruch ten nie ma znaczenia"], 
+              a: "Ruch wokół Słońca trwa 365 dni i powoduje pory roku",
+              explanation: "Ruch obiegowy wokół Słońca trwa rok (365 dni i 6 godzin) i odpowiada za zmienność pór roku."
+            },
+            { q: "Czas trwania jednego pełnego obrotu Ziemi wokół własnej osi to:", options: ["24 godziny", "365 dni", "30 dni"], a: "24 godziny", explanation: "Obrót Ziemi wokół własnej osi trwa 24 godziny i powoduje następowanie po sobie dni i nocy." },
+            { q: "Głównym następstwem ruchu obrotowego Ziemi jest:", options: ["Następstwo dni i nocy", "Zmienność pór roku", "Różnice w oświetleniu strefowym"], a: "Następstwo dni i nocy", explanation: "Dzięki obrotowi Ziemi wokół osi każda strona planety naprzemiennie oświetlana jest przez Słońce." },
+            { q: "Nachylenie osi ziemskiej do płaszczyzny orbity wynosi dokładnie:", options: ["66°34'", "90°", "23°27'"], a: "66°34'", explanation: "Oś ziemska jest nachylona do płaszczyzny orbity pod kątem 66°34'." },
+            { q: "Najdłuższy dzień na półkuli północnej (przesilenie letnie) wypada w okolicach:", options: ["21 czerwca", "21 grudnia", "21 marca"], a: "21 czerwca", explanation: "21 czerwca rozpoczyna się astronomiczne lato, a dzień jest wtedy najdłuższy w roku." }
+          ];
         } else {
-          qList.push({ 
-            q: "Spójrz na ukształtowanie terenu z mapy fizycznej Polski. Główna rzeka kraju to:", 
-            visualCard: { icon: "🏞️", label: "Mapa Fizyczna Polski", text: "Główne pasma górskie, wyżyny, niziny oraz dorzecze Wisły i Odry." },
-            options: ["Wisła", "Dunaj", "Sekwana"], 
-            a: "Wisła" 
-          });
-          qList.push({ q: "Najwyższy szczyt w polskich Tatrach to:", options: ["Rysy", "Śnieżka", "Giewont"], a: "Rysy" });
+          pool = [
+            { 
+              q: "Spójrz na ukształtowanie terenu z mapy fizycznej Polski. Główna rzeka kraju to:", 
+              svgGraphic: `<svg viewBox="0 0 500 240" class="w-full h-40 rounded-xl bg-slate-900 shadow-inner"><rect width="500" height="240" fill="#0f172a"/><path d="M120,60 Q380,80 400,200" fill="none" stroke="#0284c7" stroke-width="5" stroke-linecap="round"/><circle cx="400" cy="200" r="8" fill="#dc2626"/><text x="220" y="110" fill="#38bdf8" font-size="16" font-weight="bold">WISŁA</text></svg>`,
+              options: ["Wisła", "Dunaj", "Sekwana"], 
+              a: "Wisła",
+              explanation: "Wisła to najdłuższa rzeka w Polsce, płynąca od Beskidu Śląskiego aż do Zatoki Gdańskiej."
+            },
+            { q: "Najwyższy szczyt w polskich Tatrach to:", options: ["Rysy", "Śnieżka", "Giewont"], a: "Rysy", explanation: "Rysy w Tatrach Wysokich mają wysokość 2499 m n.p.m. i są najwyższym punktem Polski." },
+            { q: "Pasmo górskie położone najbardziej na południe w Polsce to:", options: ["Tatry", "Sudety", "Beskidy"], a: "Tatry", explanation: "Tatry to najwyższe góry w Polsce, położone na samej południowej granicy." },
+            { q: "Morze leżące na północnym wybrzeżu Polski to:", options: ["Morze Bałtyckie", "Morze Północne", "Morze Śródziemne"], a: "Morze Bałtyckie", explanation: "Polska leży nad południowym brzegiem morza śródkontynentalnego – Bałtyku." },
+            { q: "Największym jeziorem w Polsce pod względem powierzchni jest:", options: ["Śniardwy", "Mamry", "Hańcza"], a: "Śniardwy", explanation: "Śniardwy znajdują się na Pojezierzu Mazurskim i zajmują powierzchnię ok. 113,4 km²." }
+          ];
         }
       }
       else if (subjKey === 'biologia') {
         if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
-          qList.push({ 
-            q: "Przeanalizuj poniższy schemat biologiczny stawonogów:", 
-            visualCard: { icon: "🕷️", label: "Zoologia / Entomologia", text: "Charakterystyczne cechy budowy ciała stawonogów (odnóża członowane)." },
-            options: ["Pajęczaki", "Owady", "Ryby"], 
-            a: "Pajęczaki" 
-          });
-          qList.push({ q: "Ile par odnóży krocznych mają typowe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)" });
+          pool = [
+            { 
+              q: "Przeanalizuj poniższy schemat budowy anatomicznej stawonogów:", 
+              svgGraphic: `<svg viewBox="0 0 500 240" class="w-full h-40 rounded-xl bg-slate-900 shadow-inner"><rect width="500" height="240" fill="#0f172a"/><ellipse cx="180" cy="120" rx="35" ry="25" fill="#ea580c"/><ellipse cx="280" cy="120" rx="60" ry="40" fill="#c2410c"/><path d="M240,140 L220,190 M280,150 L280,200 M320,140 L340,190" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round"/><text x="160" y="85" fill="#fed7aa" font-size="12" font-weight="bold">Głowa</text><text x="250" y="65" fill="#fed7aa" font-size="12" font-weight="bold">Tułów / Odnóża</text></svg>`,
+              options: ["Pajęczaki", "Owady", "Ryby"], 
+              a: "Pajęczaki",
+              explanation: "Pajęczaki charakteryzują się m.in. głowotułowiem, odwłokiem i 4 parami odnóży krocznych."
+            },
+            { q: "Ile par odnóży krocznych posiadają typowe dorosłe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)", explanation: "Jedną z głównych cech owadów jest posiadanie dokładnie 3 par odnóży krocznych osadzonych na tułowiu." },
+            { q: "Ciało owadów podzielone jest na trzy wyraźne części:", options: ["Głowę, tułów i odwłok", "Głowotułów i odwłok", "Tułów i ogon"], a: "Głowę, tułów i odwłok", explanation: "Ciało owadów składa się z głowy, tułowia oraz segmentowanego odwłoka." },
+            { q: "Narządem oddychania u większości lądowych pajęczaków są:", options: ["Płucopłatki lub tchawki", "Tylko skrzela", "Cała powierzchnia skóry"], a: "Płucopłatki lub tchawki", explanation: "Pajęczaki lądowe oddychają za pomocą specyficznych płucopłatków i rurek tchawkowych." },
+            { q: "Mięczaki charakteryzują się zazwyczaj obecnością:", options: ["Miękkiego ciała chronionego muszlą", "Chitynowego pancerza", "Kończyn członowanych"], a: "Miękkiego ciała chronionego muszlą", explanation: "Mięczaki mają miękkie ciało, które u wielu gatunków (np. ślimaki, małże) jest osłonięte wapienną muszlą." }
+          ];
         } else {
-          qList.push({ q: "Zwierzęta stałocieplne to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby"], a: "Ptaki i ssaki" });
-        }
-      }
-      else if (subjKey === 'technika') {
-        if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
-          qList.push({ 
-            q: "Co oznacza ten oficjalny znak drogowy w polskim kodeksie?", 
-            visualCard: { icon: "🚲🔵", label: "Kodeks Drogowy - Znak C-13", text: "Obowiązkowy znak pionowy dla kierujących rowerami." },
-            options: ["Droga dla rowerów", "Zakaz wjazdu", "Uwaga piesi"], 
-            a: "Droga dla rowerów" 
-          });
-        } else {
-          qList.push({ q: "Dobrym przewodnikiem elektryczności jest:", options: ["Miedź", "Drewno", "Plastik"], a: "Miedź" });
-        }
-      }
-      else if (subjKey === 'historia') {
-        qList.push({ q: "W którym roku Krzysztof Kolumb odkrył Amerykę?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok" });
-        qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
-      }
-      else if (subjKey === 'matematyka') {
-        let v = (Math.floor(Math.random() * 6) + 4) * 10;
-        let t = Math.floor(Math.random() * 3) + 2;
-        let s = v * t;
-        qList.push({ q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km` });
-        qList.push({ q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h" });
-      }
-      else {
-        qList.push({ q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went" });
-        qList.push({ q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog" });
-      }
-
-      return qList;
-    }
-
-    function startQuiz(chapterName, subjKey) {
-      currentQuiz = generateQuestionsForChapter(chapterName, subjKey || activeSubjectKey);
-      currentQIdx = 0;
-      
-      document.getElementById('chapterView').classList.add('hidden');
-      document.getElementById('quizView').classList.remove('hidden');
-      renderQuestion();
-    }
-
-    function renderQuestion() {
-      selectedOption = null;
-      document.getElementById('feedbackBox').classList.add('hidden');
-      const q = currentQuiz[currentQIdx];
-      
-      const pct = ((currentQIdx) / currentQuiz.length) * 100;
-      document.getElementById('progressBar').style.width = pct + "%";
-
-      const container = document.getElementById('questionContainer');
-      
-      let graphicCardHtml = '';
-      if (q.visualCard) {
-        graphicCardHtml = `
-          <div class="w-full bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl border border-indigo-500/30 shadow-lg text-center mb-5 text-white">
-            <div class="text-4xl mb-2">${q.visualCard.icon}</div>
-            <div class="text-xs uppercase tracking-widest text-indigo-300 font-extrabold mb-1">${q.visualCard.label}</div>
-            <div class="text-base font-bold text-slate-100">${q.visualCard.text}</div>
-          </div>
-        `;
-      }
-
-      container.innerHTML = `
-        <h3 class="text-lg font-black text-slate-800 mb-3">${q.q}</h3>
-        ${graphicCardHtml}
-      `;
-
-      if (q.isOpen) {
-        container.innerHTML += `
-          <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600">
-        `;
-      } else {
-        q.options.forEach(opt => {
-          container.innerHTML += `
-            <button onclick="selectOpt(this, '${opt}')" class="opt-btn w-full text-left p-4 rounded-xl border border-slate-200 font-bold mb-2 hover:bg-indigo-50 transition">
-              ${opt}
-            </button>
-          `;
-        });
-      }
-
-      document.getElementById('nextBtn').innerText = "SPRAWDŹ ODPOWIEDŹ";
-      document.getElementById('nextBtn').onclick = submitAnswer;
-    }
-
-    function selectOpt(btn, opt) {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('border-indigo-600', 'bg-indigo-50'));
-      btn.classList.add('border-indigo-600', 'bg-indigo-50');
-      selectedOption = opt;
-    }
-
-    function submitAnswer() {
-      const q = currentQuiz[currentQIdx];
-      let userAns = q.isOpen ? document.getElementById('openAns').value.trim().toLowerCase() : selectedOption;
-
-      if (!userAns) {
-        alert("Wybierz lub wpisz odpowiedź!");
-        return;
-      }
-
-      const fb = document.getElementById('feedbackBox');
-      fb.classList.remove('hidden');
-
-      if (userAns.toLowerCase() === q.a.toLowerCase()) {
-        fb.className = "p-4 rounded-2xl mb-4 font-bold text-sm text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
-        fb.innerText = "🎉 Świetnie! Poprawna odpowiedź!";
-        addXP(10);
-      } else {
-        fb.className = "p-4 rounded-2xl mb-4 font-bold text-sm text-center bg-rose-100 text-rose-800 border border-rose-300";
-        fb.innerText = `❌ Pomyłka! Prawidłowa odpowiedź to: ${q.a}`;
-      }
-
-      document.getElementById('nextBtn').innerText = "NASTĘPNE ZADANIE ▶";
-      document.getElementById('nextBtn').onclick = nextQuestion;
-    }
-
-    function nextQuestion() {
-      currentQIdx++;
-      if (currentQIdx < currentQuiz.length) {
-        renderQuestion();
-      } else {
-        if (isChallengeMode) {
-          addXP(50);
-          if (db && activeChallengeId) {
-            db.collection("challenges_6a").doc(activeChallengeId).update({ status: 'completed' });
-          }
-          alert("🏆 Wyzwanie 1 vs 1 zakończone sukcesem! Zdobycz: +50 BONUSOWYCH XP!");
-          isChallengeMode = false;
-        } else {
-          alert("Gratulacje! Ukończyłeś test z tego działu!");
-        }
-        showDashboard();
-      }
-    }
-  </script>
-</body>
-</html>
+          pool = [
+            { q: "Zwierzęta stałocieplne (utrzymujące stałą temperaturę ciała) to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i owady"], a: "Ptaki i ssaki", explanation: "Ptaki i ssaki potrafią utrzymać stałą temperaturę ciała niezależnie od warunków zewnętrznych." },
+            { q: "Jedynymi kręgowcami potrafiącymi aktywnie latać
