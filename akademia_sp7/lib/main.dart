@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 void main() {
   runApp(const AkademiaApp());
@@ -16,11 +19,11 @@ class AkademiaApp extends StatelessWidget {
       title: 'Akademia SP7 - Klasa 1-6',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light().copyWith(
-        scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Jasne, czyste tło
+        scaffoldBackgroundColor: const Color(0xFFF1F5F9),
         cardColor: Colors.white,
         colorScheme: const ColorScheme.light(
-          primary: Color(0xFF4F46E5), // Nowoczesny fiolet Indigo
-          secondary: Color(0xFF0891B2), // Żywy turkus
+          primary: Color(0xFF4F46E5),
+          secondary: Color(0xFF0891B2),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF1E1B4B),
@@ -211,7 +214,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           int t = rand.nextInt(4) + 2;
           int s = v * t;
           q.add(Question(
-            text: 'Pojazd jedzie ze stałą prędkością $v km/h przez$t godziny. Jaką drogę pokona?',
+            text: 'Pojazd jedzie ze stałą prędkością $v km/h przez $t godziny. Jaką drogę pokona?',
             options: ['$s km', '${s + 20} km', '${s - 15} km', '${v + t} km'],
             correctAnswer: '$s km',
             hint: 'Wzór na drogę: s = v * t.',
@@ -307,6 +310,67 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     });
   }
 
+  // GENERATOR PDF I SYSTEM DRUKOWANIA
+  Future<void> _printPdfTest({bool withAnswers = false}) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            cross: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Row(
+                  main: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('AKADEMIA SP7 - KARTA PRACY', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Imię i Nazwisko: ..................................', style: const pw.TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Dział: ${_selectedChapter ?? "Test"}', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 15),
+              ..._currentQuiz.asMap().entries.map((entry) {
+                int idx = entry.key;
+                Question q = entry.value;
+                return pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 12),
+                  child: pw.Column(
+                    cross: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('Zadanie ${idx + 1}: ${q.text}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                      pw.SizedBox(height: 4),
+                      if (q.isOpen) ...[
+                        pw.Text('Odpowiedź: ........................................................................', style: const pw.TextStyle(fontSize: 11)),
+                      ] else if (q.options != null) ...[
+                        ...q.options!.map((opt) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, top: 2),
+                              child: pw.Text('[  ] $opt', style: const pw.TextStyle(fontSize: 10)),
+                            )),
+                      ],
+                      if (withAnswers) ...[
+                        pw.SizedBox(height: 4),
+                        pw.Text('--> POPRAWNA ODPOWIEDŹ: ${q.correctAnswer}', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green800)),
+                      ],
+                    ],
+                  ),
+                );
+              }),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
+
   void _showStatsDialog() {
     showDialog(
       context: context,
@@ -387,6 +451,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               chapterTitle: _selectedChapter!,
               questions: _currentQuiz,
               isReviewMode: _isReviewMode,
+              onPrintPdf: () => _printPdfTest(withAnswers: false),
+              onPrintPdfWithKey: () => _printPdfTest(withAnswers: true),
               onComplete: (correctQuestions, wrongQuestions) {
                 setState(() {
                   _userXP += correctQuestions.length * 10;
@@ -525,4 +591,316 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                     side: const BorderSide(color: Color(0xFFE2E8F0)),
                   ),
                   child: ListTile(
-                    title: Text(chap, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF1
+                    title: Text(chap, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF1E293B))),
+                    trailing: const Icon(Icons.play_circle_fill, color: Color(0xFF4F46E5), size: 24),
+                    onTap: () => _generateQuiz(chap),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SubjectData {
+  final String title;
+  final String icon;
+  final List<String> chapters;
+  SubjectData(this.title, this.icon, this.chapters);
+}
+
+class Question {
+  final String text;
+  final String? mapType;
+  final bool isOpen;
+  final List<String>? options;
+  final String correctAnswer;
+  final String hint;
+
+  Question({
+    required this.text,
+    this.mapType,
+    this.isOpen = false,
+    this.options,
+    required this.correctAnswer,
+    required this.hint,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'mapType': mapType,
+        'isOpen': isOpen,
+        'options': options,
+        'correctAnswer': correctAnswer,
+        'hint': hint,
+      };
+
+  factory Question.fromJson(Map<String, dynamic> json) => Question(
+        text: json['text'],
+        mapType: json['mapType'],
+        isOpen: json['isOpen'] ?? false,
+        options: json['options'] != null ? List<String>.from(json['options']) : null,
+        correctAnswer: json['correctAnswer'],
+        hint: json['hint'],
+      );
+}
+
+class QuizScreen extends StatefulWidget {
+  final String chapterTitle;
+  final List<Question> questions;
+  final bool isReviewMode;
+  final VoidCallback onPrintPdf;
+  final VoidCallback onPrintPdfWithKey;
+  final Function(List<Question> correct, List<Question> wrong) onComplete;
+  final VoidCallback onCancel;
+
+  const QuizScreen({
+    super.key,
+    required this.chapterTitle,
+    required this.questions,
+    this.isReviewMode = false,
+    required this.onPrintPdf,
+    required this.onPrintPdfWithKey,
+    required this.onComplete,
+    required this.onCancel,
+  });
+
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  final Map<int, String> _userAnswers = {};
+  final Map<int, TextEditingController> _controllers = {};
+
+  @override
+  void dispose() {
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF64748B),
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                ),
+                onPressed: widget.onCancel,
+                icon: const Icon(Icons.close, size: 16),
+                label: const Text('Anuluj'),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.print, color: Color(0xFF4F46E5)),
+                    onPressed: widget.onPrintPdf,
+                    tooltip: 'Drukuj kartę pracy PDF',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.fact_check, color: Color(0xFF059669)),
+                    onPressed: widget.onPrintPdfWithKey,
+                    tooltip: 'Drukuj arkusz z kluczem odpowiedzi',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            widget.chapterTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView.builder(
+              itemCount: widget.questions.length,
+              itemBuilder: (context, qIdx) {
+                final q = widget.questions[qIdx];
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Zadanie ${qIdx + 1}: ${q.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+                        if (q.mapType != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            height: 190,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFF334155)),
+                            ),
+                            child: CustomPaint(
+                              painter: MapPainter(mapType: q.mapType!),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        if (q.isOpen) ...[
+                          TextField(
+                            controller: _controllers.putIfAbsent(qIdx, () => TextEditingController()),
+                            style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
+                            onChanged: (val) {
+                              _userAnswers[qIdx] = val.trim();
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Wpisz odpowiedź...',
+                              hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFC),
+                            ),
+                          ),
+                        ] else if (q.options != null) ...[
+                          ...q.options!.map((opt) {
+                            final isSelected = _userAnswers[qIdx] == opt;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _userAnswers[qIdx] = opt;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? const Color(0xFFEEF2FF) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFCBD5E1),
+                                      width: isSelected ? 2 : 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    opt,
+                                    style: TextStyle(
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                      color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              backgroundColor: const Color(0xFF4F46E5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 2,
+            ),
+            onPressed: () {
+              List<Question> correct = [];
+              List<Question> wrong = [];
+
+              for (int i = 0; i < widget.questions.length; i++) {
+                final ans = _userAnswers[i] ?? '';
+                if (ans.toLowerCase() == widget.questions[i].correctAnswer.toLowerCase()) {
+                  correct.add(widget.questions[i]);
+                } else {
+                  wrong.add(widget.questions[i]);
+                }
+              }
+              widget.onComplete(correct, wrong);
+            },
+            child: const Text('Sprawdź odpowiedzi i odbierz XP', style: TextStyle(fontWeight: FontWeight.extrabold, fontSize: 16, color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MapPainter extends CustomPainter {
+  final String mapType;
+
+  MapPainter({required this.mapType});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (mapType == 'unia_lubelska') {
+      final fillKorona = Paint()..color = const Color(0xFFE57373);
+      final fillLitwa = Paint()..color = const Color(0xFF64B5F6);
+      final strokeBorder = Paint()..color = Colors.black87..style = PaintingStyle.stroke..strokeWidth = 2;
+
+      final pathKorona = Path()
+        ..moveTo(size.width * 0.1, size.height * 0.3)
+        ..lineTo(size.width * 0.45, size.height * 0.2)
+        ..lineTo(size.width * 0.42, size.height * 0.8)
+        ..lineTo(size.width * 0.15, size.height * 0.75)
+        ..close();
+
+      final pathLitwa = Path()
+        ..moveTo(size.width * 0.45, size.height * 0.2)
+        ..lineTo(size.width * 0.85, size.height * 0.25)
+        ..lineTo(size.width * 0.8, size.height * 0.75)
+        ..lineTo(size.width * 0.42, size.height * 0.8)
+        ..close();
+
+      canvas.drawPath(pathKorona, fillKorona);
+      canvas.drawPath(pathKorona, strokeBorder);
+      canvas.drawPath(pathLitwa, fillLitwa);
+      canvas.drawPath(pathLitwa, strokeBorder);
+
+      const textStyle = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13);
+      final painterKorona = TextPainter(text: const TextSpan(text: 'KORONA (A)', style: textStyle), textDirection: TextDirection.ltr)..layout();
+      painterKorona.paint(canvas, Offset(size.width * 0.18, size.height * 0.45));
+
+      final painterLitwa = TextPainter(text: const TextSpan(text: 'LITWA (B)', style: textStyle), textDirection: TextDirection.ltr)..layout();
+      painterLitwa.paint(canvas, Offset(size.width * 0.55, size.height * 0.45));
+    } else {
+      final globeBg = Paint()..color = const Color(0xFF0284C7);
+      final linePaint = Paint()..color = Colors.amber..style = PaintingStyle.stroke..strokeWidth = 2;
+      final greenwichPaint = Paint()..color = Colors.redAccent..style = PaintingStyle.stroke..strokeWidth = 2;
+
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), globeBg);
+      canvas.drawLine(Offset(0, size.height / 2), Offset(size.width, size.height / 2), linePaint);
+      canvas.drawLine(Offset(size.width / 2, 0), Offset(size.width / 2, size.height), greenwichPaint);
+
+      const style = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12);
+      final p1 = TextPainter(text: const TextSpan(text: 'Równik (0°)', style: style), textDirection: TextDirection.ltr)..layout();
+      p1.paint(canvas, Offset(10, size.height / 2 - 18));
+
+      final p2 = TextPainter(text: const TextSpan(text: 'Południk 0° (Greenwich)', style: style), textDirection: TextDirection.ltr)..layout();
+      p2.paint(canvas, Offset(size.width / 2 + 8, 10));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
