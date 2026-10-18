@@ -15,11 +15,20 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Przygotowanie i kompilacja APK
+      - name: Pobieranie autentycznych map i przygotowanie projektu
         run: |
           PROJECT_DIR=$(dirname $(find . -name "pubspec.yaml" -not -path "*/.*/*" | head -n 1))
-          echo "Znaleziono projekt w: $PROJECT_DIR"
           cd "$PROJECT_DIR"
+          
+          # Tworzenie folderu na zasoby graficzne
+          mkdir -p assets/mapy
+          
+          # Pobieranie konkretnych map i ilustracji naukowych z nagłówkami User-Agent
+          curl -s -A "AkademiaSP7/1.0" -L "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Polish-Lithuanian_Commonwealth_1569.svg/800px-Polish-Lithuanian_Commonwealth_1569.svg.png" -o assets/mapy/unia_lubelska.png
+          curl -s -A "AkademiaSP7/1.0" -L "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Map_Europe_1812_en.svg/800px-Map_Europe_1812_en.svg.png" -o assets/mapy/napoleon.png
+          curl -s -A "AkademiaSP7/1.0" -L "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Europe_topography_map_en.png/800px-Europe_topography_map_en.png" -o assets/mapy/europa_fizyczna.png
+          curl -s -A "AkademiaSP7/1.0" -L "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Blausen_0657_MultipolarNeuron.png/800px-Blausen_0657_MultipolarNeuron.png" -o assets/mapy/neuron.png
+
           flutter create --platforms=android .
           flutter pub get
           flutter build apk --release
@@ -38,13 +47,22 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Przygotowanie i kompilacja EXE
+      - name: Pobieranie autentycznych map i budowanie EXE
         shell: pwsh
         run: |
           $pubspec = Get-ChildItem -Recurse -Filter "pubspec.yaml" | Select-Object -First 1
           $projectDir = $pubspec.DirectoryName
-          Write-Host "Znaleziono projekt w: $projectDir"
           Set-Location $projectDir
+          
+          # Tworzenie folderu i pobieranie grafik
+          New-Item -ItemType Directory -Force -Path "assets/mapy"
+          $headers = @{ "User-Agent" = "AkademiaSP7/1.0" }
+          
+          Invoke-WebRequest -Uri "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Polish-Lithuanian_Commonwealth_1569.svg/800px-Polish-Lithuanian_Commonwealth_1569.svg.png" -OutFile "assets/mapy/unia_lubelska.png" -Headers $headers
+          Invoke-WebRequest -Uri "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Map_Europe_1812_en.svg/800px-Map_Europe_1812_en.svg.png" -OutFile "assets/mapy/napoleon.png" -Headers $headers
+          Invoke-WebRequest -Uri "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Europe_topography_map_en.png/800px-Europe_topography_map_en.png" -OutFile "assets/mapy/europa_fizyczna.png" -Headers $headers
+          Invoke-WebRequest -Uri "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Blausen_0657_MultipolarNeuron.png/800px-Blausen_0657_MultipolarNeuron.png" -OutFile "assets/mapy/neuron.png" -Headers $headers
+
           flutter config --enable-windows-desktop
           flutter create --platforms=windows .
           flutter pub get
