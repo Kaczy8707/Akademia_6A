@@ -16,46 +16,8 @@
   <meta name="apple-mobile-web-app-title" content="Akademia 6A">
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
-
-  <!-- CZYSZCZENIE CACHE -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) { registration.unregister(); }
-      });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (let name of names) { caches.delete(name); }
-      });
-    }
-  </script>
-
-  <!-- FIREBASE Z ZABEZPIECZENIEM -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDpe9cwQywFTFzNoC6ovSPAzLjS8_pjsRQ",
-      authDomain: "akademia-6a.firebaseapp.com",
-      projectId: "akademia-6a",
-      storageBucket: "akademia-6a.firebasestorage.app",
-      messagingSenderId: "547146287604",
-      appId: "1:547146287604:web:53c5efa8b29383a77dd1a1"
-    };
-
-    let db = null;
-    try {
-      if (typeof firebase !== 'undefined') {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-      }
-    } catch(e) {
-      console.log("Firebase init skipped");
-    }
-  </script>
 
   <!-- EKRAN AUTORYZACJI -->
   <div id="authScreen" style="display: flex;" class="fixed inset-0 bg-indigo-950 bg-opacity-95 z-50 items-center justify-center p-4">
@@ -195,24 +157,13 @@
           <h2 class="font-extrabold text-amber-900 flex items-center gap-2">
             🏆 LIGA KLASY 6A (TOP LIDERZY)
           </h2>
-          <span class="text-xs text-amber-700 font-bold">Chmura Firebase</span>
+          <span class="text-xs text-amber-700 font-bold">Lokalny ranking</span>
         </div>
         <div id="leaderboard" class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
           <div class="bg-white p-3 rounded-xl border border-amber-200 text-center font-bold text-slate-500 col-span-3">
-            Ładowanie wyników klasy 6A...
+            Twój profil jest aktywny w klasie 6A.
           </div>
         </div>
-
-        <button onclick="openChallengeModal()" class="w-full bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-600 hover:to-amber-600 text-white font-black py-3 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wide cursor-pointer">
-          ⚔️ Wyzwanie 1 vs 1 (Pojedynek z kolegą)
-        </button>
-      </div>
-
-      <div id="activeChallengesContainer" class="hidden mb-6 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-        <h3 class="font-black text-slate-800 mb-3 text-sm flex items-center gap-2">
-          🎯 RZUCONE WYZWANIA 1 vs 1 INNYCH GRACZY:
-        </h3>
-        <div id="challengesList" class="space-y-2"></div>
       </div>
 
       <h2 class="text-xl font-black text-slate-800 mb-4">Wybierz przedmiot do nauki:</h2>
@@ -262,37 +213,6 @@
       </div>
     </div>
 
-    <!-- MODAL WYZWANIA -->
-    <div id="challengeModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
-      <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-black text-lg text-slate-800">⚔️ Rzuć Wyzwanie 1 vs 1</h3>
-          <button onclick="closeChallengeModal()" class="text-slate-400 font-bold text-lg cursor-pointer">✕</button>
-        </div>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Kogo wyzywasz?</label>
-            <select id="opponentSelect" class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-slate-800 focus:outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Przedmiot pojedynku:</label>
-            <select id="challengeSubject" class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-slate-800 focus:outline-none">
-              <option value="matematyka">📐 Matematyka</option>
-              <option value="angielski">🇬🇧 Język Angielski</option>
-              <option value="historia">⚔️ Historia</option>
-              <option value="geografia">🌍 Geografia</option>
-              <option value="biologia">🌿 Biologia</option>
-              <option value="technika">🛠️ Technika</option>
-            </select>
-          </div>
-          <button onclick="createChallenge()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-md transition active:scale-95 text-center mt-2 cursor-pointer">
-            WYŚLIJ WYZWANIE (+50 XP DO ZDOBYCIA)
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- WIDOK DZIAŁU -->
     <div id="chapterView" class="hidden">
       <button onclick="showDashboard()" class="mb-4 bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer">
@@ -323,12 +243,10 @@
 
   <script>
     let currentUser = null;
-    let userStats = { xp: 0, streak: 1 };
+    let userStats = { xp: 0 };
     let currentQuiz = [];
     let currentQIdx = 0;
     let selectedOption = null;
-    let isChallengeMode = false;
-    let activeChallengeId = null;
     let isMistakesMode = false;
     let deferredPrompt = null;
 
@@ -469,115 +387,72 @@
     }
 
     function handleLogin() {
-      const nickEl = document.getElementById('loginNick');
-      const pinEl = document.getElementById('loginPin');
-      if (!nickEl || !pinEl) return;
-
-      const n = nickEl.value.trim();
-      const p = pinEl.value.trim();
+      const n = document.getElementById('loginNick').value.trim();
+      const p = document.getElementById('loginPin').value.trim();
 
       if (!n || !p) {
         alert("Wpisz Nick oraz PIN!");
         return;
       }
 
-      const proceedLogin = (correctPin) => {
-        if (correctPin === p) {
-          currentUser = { nick: n, pin: p };
-          try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-          document.getElementById('authScreen').style.display = 'none';
-          initDashboard();
-        } else {
-          alert("Błędny PIN!");
-        }
-      };
-
-      if (db) {
-        db.collection("users_6a").doc(n).get().then((doc) => {
-          if (doc.exists) {
-            proceedLogin(doc.data().pin);
-          } else {
-            let localPin = localStorage.getItem(`pin_${n}`);
-            if (localPin) {
-              proceedLogin(localPin);
-            } else {
-              alert("Nie znaleziono takiego konta! Zarejestruj się.");
-            }
-          }
-        }).catch(() => {
-          let localPin = localStorage.getItem(`pin_${n}`) || p;
-          proceedLogin(localPin);
-        });
-      } else {
-        let localPin = localStorage.getItem(`pin_${n}`) || p;
-        proceedLogin(localPin);
+      let savedPin = localStorage.getItem(`pin_${n}`);
+      if (savedPin && savedPin !== p) {
+        alert("Błędny PIN!");
+        return;
       }
+
+      // Zaloguj pomyślnie
+      try { localStorage.setItem(`pin_${n}`, p); } catch(e) {}
+      currentUser = { nick: n, pin: p };
+      try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+      document.getElementById('authScreen').style.display = 'none';
+      initDashboard();
     }
 
     function handleRegister() {
-      const nickEl = document.getElementById('regNick');
-      const pinEl = document.getElementById('regPin');
-      const ansEl = document.getElementById('regSecAnswer');
-      if (!nickEl || !pinEl || !ansEl) return;
-
-      const n = nickEl.value.trim();
-      const p = pinEl.value.trim();
-      const a = ansEl.value.trim().toLowerCase();
+      const n = document.getElementById('regNick').value.trim();
+      const p = document.getElementById('regPin').value.trim();
+      const a = document.getElementById('regSecAnswer').value.trim().toLowerCase();
 
       if (!n || p.length < 4 || !a) {
         alert("Wypełnij wszystkie pola! PIN musi mieć 4 cyfry.");
         return;
       }
 
-      try { localStorage.setItem(`pin_${n}`, p); } catch(e) {}
+      try {
+        localStorage.setItem(`pin_${n}`, p);
+        localStorage.setItem(`sec_${n}`, a);
+      } catch(e) {}
 
-      const finishReg = () => {
-        currentUser = { nick: n, pin: p };
-        try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-        document.getElementById('authScreen').style.display = 'none';
-        initDashboard();
-      };
-
-      if (db) {
-        db.collection("users_6a").doc(n).set({
-          nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
-        }, { merge: true }).then(finishReg).catch(finishReg);
-      } else {
-        finishReg();
-      }
+      currentUser = { nick: n, pin: p };
+      try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+      document.getElementById('authScreen').style.display = 'none';
+      initDashboard();
     }
 
     function resetPin() {
-      const nickEl = document.getElementById('recNick');
-      const ansEl = document.getElementById('recAnswer');
-      const pinEl = document.getElementById('recNewPin');
-      if (!nickEl || !ansEl || !pinEl) return;
-
-      const nick = nickEl.value.trim();
-      const ans = ansEl.value.trim().toLowerCase();
-      const newPin = pinEl.value.trim();
+      const nick = document.getElementById('recNick').value.trim();
+      const ans = document.getElementById('recAnswer').value.trim().toLowerCase();
+      const newPin = document.getElementById('recNewPin').value.trim();
 
       if (!nick || !ans || newPin.length < 4) {
         alert("Wpisz Nick, poprawną odpowiedź i nowy 4-cyfrowy PIN!");
         return;
       }
 
-      try { localStorage.setItem(`pin_${nick}`, newPin); } catch(e) {}
-
-      if (db) {
-        db.collection("users_6a").doc(nick).set({
-          pin: newPin, updatedAt: new Date()
-        }, { merge: true }).then(() => {
-          alert("PIN został pomyślnie zmieniony! Zaloguj się nowym PIN-em.");
-          switchAuthTab('login');
-        }).catch(() => {
-          alert("PIN zmieniony lokalnie!");
-          switchAuthTab('login');
-        });
-      } else {
-        alert("PIN zmieniony lokalnie!");
-        switchAuthTab('login');
+      let savedAns = localStorage.getItem(`sec_${nick}`);
+      if (savedAns && savedAns !== ans) {
+        alert("Błędna odpowiedź na pytanie pomocnicze!");
+        return;
       }
+
+      try {
+        localStorage.setItem(`pin_${nick}`, newPin);
+        if (!savedAns) localStorage.setItem(`sec_${nick}`, ans);
+      } catch(e) {}
+
+      alert("PIN został pomyślnie zmieniony! Zaloguj się nowym PIN-em.");
+      switchAuthTab('login');
     }
 
     function logout() {
@@ -591,27 +466,17 @@
       if (!currentUser) return;
       const profNick = document.getElementById('profileNick');
       if (profNick) profNick.innerText = currentUser.nick;
-      loadUserCloudData();
+      loadUserData();
       renderLeaderboard();
-      listenChallenges();
       checkMistakesModule();
     }
 
-    function loadUserCloudData() {
+    function loadUserData() {
       let localXP = 0;
       try { localXP = parseInt(localStorage.getItem(`xp_${currentUser.nick}`)) || 0; } catch(e) {}
       userStats.xp = localXP;
       const xpDisp = document.getElementById('xpDisplay');
       if (xpDisp) xpDisp.innerText = userStats.xp;
-
-      if (db) {
-        db.collection("users_6a").doc(currentUser.nick).get().then((doc) => {
-          if (doc.exists && doc.data().xp !== undefined) {
-            userStats.xp = Math.max(userStats.xp, doc.data().xp || 0);
-            if (xpDisp) xpDisp.innerText = userStats.xp;
-          }
-        }).catch(() => {});
-      }
     }
 
     function addXP(points) {
@@ -619,12 +484,6 @@
       const xpDisp = document.getElementById('xpDisplay');
       if (xpDisp) xpDisp.innerText = userStats.xp;
       try { localStorage.setItem(`xp_${currentUser.nick}`, userStats.xp); } catch(e) {}
-
-      if (db && currentUser) {
-        db.collection("users_6a").doc(currentUser.nick).set({
-          xp: userStats.xp, updatedAt: new Date()
-        }, { merge: true }).catch(() => {});
-      }
     }
 
     function recordStat(isCorrect) {
@@ -758,99 +617,13 @@
 
     function renderLeaderboard() {
       const lb = document.getElementById('leaderboard');
-      const oppSel = document.getElementById('opponentSelect');
       if (!lb) return;
-
-      if (!db) {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Tryb lokalny.</div>`;
-        return;
-      }
-
-      db.collection("users_6a").orderBy("xp", "desc").onSnapshot((snapshot) => {
-        lb.innerHTML = "";
-        if (oppSel) oppSel.innerHTML = "";
-        let rank = 1;
-
-        snapshot.forEach((doc) => {
-          const u = doc.data();
-          if (rank <= 3) {
-            const medals = ["🥇", "🥈", "🥉"];
-            lb.innerHTML += `
-              <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm">
-                <span class="font-black text-slate-800">${medals[rank-1] || rank + "."} ${u.nick || doc.id}</span>
-                <span class="font-extrabold text-indigo-600">${u.xp || 0} XP</span>
-              </div>
-            `;
-          }
-          if (oppSel && u.nick && currentUser && u.nick !== currentUser.nick) {
-            oppSel.innerHTML += `<option value="${u.nick}">${u.nick}</option>`;
-          }
-          rank++;
-        });
-      }, () => {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Ranking lokalny aktywny.</div>`;
-      });
-    }
-
-    function openChallengeModal() { 
-      const m = document.getElementById('challengeModal');
-      if (m) m.classList.remove('hidden'); 
-    }
-    function closeChallengeModal() { 
-      const m = document.getElementById('challengeModal');
-      if (m) m.classList.add('hidden'); 
-    }
-
-    function createChallenge() {
-      const oppSel = document.getElementById('opponentSelect');
-      const subjSel = document.getElementById('challengeSubject');
-      if (!oppSel || !subjSel) return;
-
-      const target = oppSel.value;
-      const subj = subjSel.value;
-
-      if (!target) { alert("Brak dostępnych przeciwników!"); return; }
-
-      if (db && currentUser) {
-        db.collection("challenges_6a").add({
-          from: currentUser.nick, to: target, subject: subj, status: 'pending', createdAt: new Date()
-        }).then(() => {
-          alert(`Wyzwanie 1 vs 1 dla ${target} wysłane!`);
-          closeChallengeModal();
-        }).catch(() => alert("Wyzwanie utworzone lokalnie."));
-      }
-    }
-
-    function listenChallenges() {
-      if (!db || !currentUser) return;
-      db.collection("challenges_6a").where("to", "==", currentUser.nick).where("status", "==", "pending")
-        .onSnapshot((snapshot) => {
-          const container = document.getElementById('activeChallengesContainer');
-          const list = document.getElementById('challengesList');
-          if (!container || !list) return;
-
-          if (snapshot.empty) { container.classList.add('hidden'); return; }
-
-          container.classList.remove('hidden');
-          list.innerHTML = "";
-          snapshot.forEach((doc) => {
-            const ch = doc.data();
-            list.innerHTML += `
-              <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200">
-                <span class="font-bold text-sm text-red-900">⚔️ ${ch.from} wyzwał Cię z: ${program[ch.subject]?.title || ch.subject}!</span>
-                <button onclick="acceptChallenge('${doc.id}', '${ch.subject}')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow cursor-pointer">
-                  Graj (+50 XP)
-                </button>
-              </div>
-            `;
-          });
-        }, () => {});
-    }
-
-    function acceptChallenge(id, subjKey) {
-      activeChallengeId = id;
-      isChallengeMode = true;
-      startQuiz(`Pojedynek 1 vs 1: ${program[subjKey]?.title || subjKey}`, subjKey);
+      lb.innerHTML = `
+        <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm col-span-3">
+          <span class="font-black text-slate-800">🥇 ${currentUser.nick} (Ty)</span>
+          <span class="font-extrabold text-indigo-600">${userStats.xp} XP</span>
+        </div>
+      `;
     }
 
     function renderSubjects() {
@@ -1150,14 +923,7 @@
         renderQuestion();
       } else {
         recordTestCompleted();
-        if (isChallengeMode) {
-          addXP(50);
-          if (db && activeChallengeId) {
-            db.collection("challenges_6a").doc(activeChallengeId).update({ status: 'completed' }).catch(() => {});
-          }
-          alert("🏆 Wyzwanie 1 vs 1 zakończone sukcesem! Zdobycz: +50 BONUSOWYCH XP!");
-          isChallengeMode = false;
-        } else if (isMistakesMode) {
+        if (isMistakesMode) {
           alert("Trening problematycznych zadań zakończony!");
           isMistakesMode = false;
         } else {
