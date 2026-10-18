@@ -679,7 +679,7 @@
       if (chapView) chapView.classList.remove('hidden');
     }
 
-    // POTĘŻNE GENERATORY 1000 WARIANTÓW (Z REALISTYCZNĄ KARTOGRAFIĄ)
+    // GENERATORY 1000 WARIANTÓW Z DOKŁADNĄ GEOMETRIĄ WEKTOROWĄ
     function generateMathPool() {
       let pool = [];
       for (let i = 0; i < 1000; i++) {
@@ -721,22 +721,23 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         let h = 200 + (i % 150) * 5;
-        // Prawdziwa mapa topograficzna z poziomicami i szczytem
+        
+        // Profesjonalna mapa topograficzna z poziomicami
         pool.push({
-          q: `Geografia topograficzna #${i+1}: Przeanalizuj profesjonalny wycinek mapy topograficznej. Jaka jest wysokość bezwzględna wzniesienia oznaczonego symbolem trójkąta?`,
-          svgGraphic: `<svg viewBox="0 0 600 240" class="w-full h-48 rounded-xl bg-slate-950 border border-slate-700 shadow-inner font-sans"><rect width="600" height="240" fill="#090d16"/><g transform="translate(30,20)"><text x="10" y="15" fill="#38bdf8" font-size="12" font-weight="bold">FRAGMENT MAPY TOPOGRAFICZNEJ (IZOHIPSY)</text><ellipse cx="250" cy="110" rx="180" ry="80" fill="none" stroke="#475569" stroke-width="1.5"/><text x="80" y="145" fill="#94a3b8" font-size="10">200 m</text><ellipse cx="250" cy="110" rx="130" ry="55" fill="none" stroke="#64748b" stroke-width="1.5"/><text x="135" y="125" fill="#94a3b8" font-size="10">250 m</text><ellipse cx="250" cy="110" rx="80" ry="32" fill="none" stroke="#94a3b8" stroke-width="1.5"/><text x="180" y="105" fill="#94a3b8" font-size="10">300 m</text><polygon points="250,82 243,98 257,98" fill="#ef4444"/><text x="268" y="93" fill="#ef4444" font-size="13" font-weight="bold">${h} m n.p.m.</text><path d="M40,50 Q160,80 250,110 T480,190" fill="none" stroke="#0ea5e9" stroke-width="2"/><text x="360" y="155" fill="#38bdf8" font-size="10">Potok Górski</text></g></svg>`,
+          q: `Geografia topograficzna #${i+1}: Przeanalizuj wycinek mapy topograficznej. Jaka jest wysokość bezwzględna wzniesienia oznaczonego trójkątem?`,
+          svgGraphic: `<svg viewBox="0 0 600 240" class="w-full h-48 rounded-xl bg-slate-950 border border-slate-700 shadow-inner"><rect width="600" height="240" fill="#090d16"/><g transform="translate(40,20)"><text x="10" y="15" fill="#38bdf8" font-size="12" font-weight="bold">MAPA TOPOGRAFICZNA - WARSTWICE TERENU</text><ellipse cx="260" cy="110" rx="170" ry="75" fill="none" stroke="#475569" stroke-width="1.5"/><text x="100" y="140" fill="#94a3b8" font-size="10">200 m</text><ellipse cx="260" cy="110" rx="120" ry="50" fill="none" stroke="#64748b" stroke-width="1.5"/><text x="150" y="120" fill="#94a3b8" font-size="10">250 m</text><ellipse cx="260" cy="110" rx="70" ry="28" fill="none" stroke="#94a3b8" stroke-width="1.5"/><text x="200" y="100" fill="#94a3b8" font-size="10">300 m</text><polygon points="260,82 254,98 266,98" fill="#ef4444"/><text x="278" y="93" fill="#ef4444" font-size="13" font-weight="bold">${h} m n.p.m.</text><path d="M40,40 Q150,90 260,110 T480,180" fill="none" stroke="#0ea5e9" stroke-width="2.5"/><text x="350" y="145" fill="#38bdf8" font-size="10">Rzeka Główna</text></g></svg>`,
           options: [`${h} m n.p.m.`, `${h + 100} m n.p.m.`, `${h - 50} m n.p.m.`, `${h + 250} m n.p.m.`],
           a: `${h} m n.p.m.`,
           explanation: `Wysokość punktu szczytowego wynosi ${h} metrów nad poziomem morza.`
         });
 
-        // Realistyczna mapa polityczna Europy z konturem Polski (bez jajkowatych plam)
+        // Wierna mapa polityczna Europy z dokładnym konturem Polski i terytoriów sąsiadujących
         pool.push({
-          q: `Geografia polityczna #${i+1}: Analiza mapy politycznej kontynentu europejskiego. W jakim regionie leży obszar oznaczony czerwoną pinezką?`,
-          svgGraphic: `<svg viewBox="0 0 600 240" class="w-full h-48 rounded-xl bg-slate-950 border border-slate-700 shadow-inner font-sans"><rect width="600" height="240" fill="#090d16"/><text x="25" y="25" fill="#38bdf8" font-size="12" font-weight="bold">MAPA POLITYCZNO-KONTUROWA EUROPY</text><g transform="translate(60,25)"><path d="M50,140 C80,120 100,70 160,50 C220,30 320,40 380,80 C420,110 440,150 400,170 C350,190 280,160 220,175 C160,190 100,180 50,140 Z" fill="#1e293b" stroke="#475569" stroke-width="2"/><path d="M260,85 C275,75 305,80 325,95 C335,110 320,135 290,140 C270,135 255,115 260,85 Z" fill="#334155" stroke="#94a3b8" stroke-width="1.5"/><circle cx="295" cy="110" r="7" fill="#ef4444"/><text x="312" y="114" fill="#f8fafc" font-size="13" font-weight="bold">POLSKA</text></g></svg>`,
+          q: `Geografia polityczna #${i+1}: Analiza mapy politycznej Europy. W jakim regionie geograficznym leży terytorium oznaczone czerwoną pinezką?`,
+          svgGraphic: `<svg viewBox="0 0 600 240" class="w-full h-48 rounded-xl bg-slate-950 border border-slate-700 shadow-inner"><rect width="600" height="240" fill="#090d16"/><text x="25" y="25" fill="#38bdf8" font-size="12" font-weight="bold">MAPA POLITYCZNO-GEOGRAFICZNA EUROPY</text><g transform="translate(30,10)"><path d="M100,160 L140,190 L210,185 L260,150 L310,170 L380,150 L430,110 L450,60 L390,40 L310,50 L250,30 L180,60 L120,90 Z" fill="#1e293b" stroke="#475569" stroke-width="1.5"/><path d="M255,85 L290,75 L315,95 L320,125 L290,140 L260,130 L250,105 Z" fill="#334155" stroke="#38bdf8" stroke-width="2"/><circle cx="285" cy="110" r="7" fill="#ef4444"/><text x="302" y="114" fill="#f8fafc" font-size="13" font-weight="bold">POLSKA</text></g></svg>`,
           options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej", "W Europie Zachodniej"],
           a: "W Europie Środkowej",
-          explanation: "Polska położona jest w Europie Środkowej, co wyraźnie widać na mapie politycznej."
+          explanation: "Polska położona jest w Europie Środkowej."
         });
       }
       return pool;
