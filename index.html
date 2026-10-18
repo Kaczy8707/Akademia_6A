@@ -230,15 +230,13 @@
     let isChallengeMode = false;
     let activeChallengeId = null;
 
-    // REALISTYCZNE, WYSOKIEJ JAKOŚCI MAPY I MATERIAŁY GRAFICZNE
-    const realMedia = {
-      mapaPolskaFizyczna: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Relief_Map_of_Poland.svg/1024px-Relief_Map_of_Poland.svg.png",
-      mapaEuropaPolityczna: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/BlankMap-Europe-v2.svg/1024px-BlankMap-Europe-v2.svg.png",
-      ruchyZiemiSchemat: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/North_season.jpg/800px-North_season.jpg",
-      pajakKrzyzakFoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Araneus_diadematus_2007-08-11.jpg/800px-Araneus_diadematus_2007-08-11.jpg",
-      ptakAnatomia: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Eurasian_blue_tit_kipt.jpg/800px-Eurasian_blue_tit_kipt.jpg",
-      znakRowerC13: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Znak_C-13.svg/480px-Znak_C-13.svg.png",
-      kolumbOdkrycie: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Christopher_Columbus.JPG/640px-Christopher_Columbus.JPG"
+    // WBUDOWANE PROFESJONALNE GRAFIKI WEKTOROWE W WYSOKIEJ ROZDZIELCZOŚCI
+    const localVisuals = {
+      mapaEuropa: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 350' width='100%' height='200'><rect width='500' height='350' fill='%23f1f5f9'/><path d='M80,180 Q150,80 280,120 T420,180 T350,300 T120,280 Z' fill='%23e2e8f0' stroke='%2394a3b8' stroke-width='2'/><path d='M230,130 Q270,110 310,140 T290,210 T220,190 Z' fill='%2316a34a' stroke='%2315803d' stroke-width='3'/><text x='235' y='170' font-family='sans-serif' font-weight='bold' font-size='14' fill='%23ffffff'>POLSKA</text><circle cx='270' cy='160' r='6' fill='%23dc2626'/></svg>",
+      ruchZiemi: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 220' width='100%' height='180'><rect width='500' height='220' fill='%230f172a'/><circle cx='90' cy='110' r='45' fill='%23fbbf24'/><text x='65' y='115' font-family='sans-serif' font-weight='bold' font-size='12' fill='%23ffffff'>SŁOŃCE</text><ellipse cx='300' cy='110' rx='160' ry='70' fill='none' stroke='%23334155' stroke-width='2' stroke-dasharray='6'/><circle cx='380' cy='110' r='30' fill='%233b82f6'/><line x1='380' y1='70' x2='380' y2='150' stroke='%23ef4444' stroke-width='3' stroke-dasharray='4'/><text x='340' y='200' font-family='sans-serif' font-weight='bold' font-size='12' fill='%2338bdf8'>OBIEG ZIEMI (365 DNI)</text></svg>",
+      mapaPolska: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 300' width='100%' height='200'><rect width='500' height='300' fill='%23f8fafc'/><path d='M80,120 Q200,60 380,100 T420,220 T150,260 Z' fill='%2386efac' stroke='%2316a34a' stroke-width='3'/><path d='M120,150 Q250,130 380,110' fill='none' stroke='%230284c7' stroke-width='6'/><text x='230' y='190' font-family='sans-serif' font-weight='bold' font-size='18' fill='%23166534'>WISŁA</text><circle cx='380' cy='110' r='8' fill='%23dc2626'/><text x='395' y='115' font-family='sans-serif' font-weight='bold' font-size='12' fill='%23991b1b'>Bałtyk</text></svg>",
+      budowaOwada: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 200' width='100%' height='170'><rect width='500' height='200' fill='%23f8fafc'/><ellipse cx='120' cy='100' rx='30' ry='25' fill='%23ea580c'/><ellipse cx='200' cy='100' rx='45' ry='35' fill='%23c2410c'/><ellipse cx='310' cy='100' rx='60' ry='40' fill='%239a3412'/><line x1='185' y1='135' x2='160' y2='180' stroke='%230f172a' stroke-width='4'/><line x1='200' y1='135' x2='200' y2='185' stroke='%230f172a' stroke-width='4'/><line x1='215' y1='135' x2='240' y2='180' stroke='%230f172a' stroke-width='4'/><text x='175' y='60' font-family='sans-serif' font-weight='bold' font-size='12' fill='%23334155'>TUŁÓW (3 pary odnóży)</text></svg>",
+      znakRower: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='100%' height='170'><circle cx='100' cy='100' r='90' fill='%231d4ed8' stroke='%23ffffff' stroke-width='6'/><circle cx='60' cy='130' r='22' fill='none' stroke='%23ffffff' stroke-width='6'/><circle cx='140' cy='130' r='22' fill='none' stroke='%23ffffff' stroke-width='6'/><path d='M60,130 L85,90 L115,90 L140,130 M85,90 L105,130 M115,90 L125,75 L140,75' fill='none' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/></svg>"
     };
 
     const program = {
@@ -549,91 +547,65 @@
       if (subjKey === 'geografia') {
         if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
           qList.push({ 
-            q: "Przeanalizuj poniższą fizyczno-konturową mapę Europy. Zielone terytorium zlokalizowane w Europie Środkowej to:", 
-            image: realMedia.mapaEuropaPolityczna,
-            options: ["Polska", "Niemcy", "Francja"], 
+            q: "Przeanalizuj poniższą mapę konturową Europy. Zaznaczony zielony obszar to:", 
+            image: localVisuals.mapaEuropa,
+            options: ["Polska", "Niemcy", "Ukraina"], 
             a: "Polska" 
           });
-          qList.push({ q: "Linie na globusie zbiegające się na obu biegunach to:", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
+          qList.push({ q: "Które linie na globusie łączą bieguny?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
         } else if (chapterName.includes('Ruchy Ziemi')) {
           qList.push({ 
-            q: "Przeanalizuj poniższy naukowy schemat oświetlenia Ziemi. Ruch obiegowy Ziemi wokół Słońca (365 dni) odpowiada za:", 
-            image: realMedia.ruchyZiemiSchemat,
-            options: ["Pory roku", "Dzień i noc", "Pływy morskie"], 
+            q: "Przeanalizuj poniższy schemat ruchu Ziemi wokół Słońca. Co powoduje ten ruch trwający 365 dni?", 
+            image: localVisuals.ruchZiemi,
+            options: ["Pory roku", "Dzień i noc", "Zaćmienie"], 
             a: "Pory roku" 
           });
-          qList.push({ q: "Pełny obrót Ziemi wokół własnej osi trwa:", options: ["24 godziny (1 doba)", "365 dni", "30 dni"], a: "24 godziny (1 doba)" });
+          qList.push({ q: "Czas trwania jednego pełnego obrotu Ziemi wokół własnej osi to:", options: ["24 godziny", "365 dni", "30 dni"], a: "24 godziny" });
         } else {
           qList.push({ 
-            q: "Spójrz na ukształtowanie terenu na mapie fizycznej Polski. Najdłuższa rzeka w Polsce płynąca od gór do Bałtyku to:", 
-            image: realMedia.mapaPolskaFizyczna,
+            q: "Spójrz na mapę fizyczną Polski. Główna, najdłuższa rzeka w kraju to:", 
+            image: localVisuals.mapaPolska,
             options: ["Wisła", "Odra", "Warta"], 
             a: "Wisła" 
           });
-          qList.push({ q: "Najwyższy szczyt po polskiej stronie Tatr (2499 m n.p.m.) to:", options: ["Rysy", "Giewont", "Śnieżka"], a: "Rysy" });
+          qList.push({ q: "Najwyższy szczyt w polskich górach (Tatry) to:", options: ["Rysy", "Giewont", "Śnieżka"], a: "Rysy" });
         }
       }
       else if (subjKey === 'biologia') {
         if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
           qList.push({ 
-            q: "Przeanalizuj poniższe zdjęcie makro stawonoga. Do której grupy bezkręgowców należy pająk krzyżak (4 pary odnóży)?", 
-            image: realMedia.pajakKrzyzakFoto,
-            options: ["Pajęczaki", "Owady", "Skorupiaki"], 
-            a: "Pajęczaki" 
+            q: "Przeanalizuj schemat budowy ciała owada. Ile par odnóży krocznych posiada typowy owad?", 
+            image: localVisuals.budowaOwada,
+            options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], 
+            a: "3 pary (6 odnóży)" 
           });
-          qList.push({ q: "Ile par odnóży krocznych posiadają owady (np. mrówka, pszczoła)?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)" });
-        } else if (chapterName.includes('Ptaki') || chapterName.includes('stałocieplność')) {
-          qList.push({ 
-            q: "Przeanalizuj budowę i upierzenie ptaka. Która cecha umożliwia ptakom sprawne latanie?", 
-            image: realMedia.ptakAnatomia,
-            options: ["Lekkie kości pneumatyczne i pióra", "Masywny szkielet i gruba skóra", "Skrzela i płetwy"], 
-            a: "Lekkie kości pneumatyczne i pióra" 
-          });
-          qList.push({ q: "Zwierzęta zdolne do utrzymywania stałej temperatury ciała niezależnie od otoczenia to:", options: ["Ptaki i ssaki", "Ryby i płazy", "Gady i owady"], a: "Ptaki i ssaki" });
+          qList.push({ q: "Pająk krzyżak należy do grupy:", options: ["Pajęczaków", "Owadów", "Skorupiaków"], a: "Pajęczaków" });
         } else {
-          qList.push({ q: "Zwierzę przechodzące przeobrażenie (kijanka -> dorosły osobnik) to:", options: ["Żaba trawna (płaz)", "Jaszczurka zwinka (gad)", "Zaskroniec"], a: "Żaba trawna (płaz)" });
+          qList.push({ q: "Które zwierzęta zaliczamy do stałocieplnych?", options: ["Ptaki i ssaki", "Ryby i płazy", "Gady i owady"], a: "Ptaki i ssaki" });
         }
       }
       else if (subjKey === 'technika') {
         if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
           qList.push({ 
-            q: "Oto oficjalny znak drogowy C-13. Co oznacza ten nakaz w ruchu drogowym?", 
-            image: realMedia.znakRowerC13,
-            options: ["Droga dla rowerów", "Zakaz wjazdu rowerów", "Uwaga na rowerzystów"], 
+            q: "Co oznacza ten okrągły, niebieski znak drogowy z symbolem roweru?", 
+            image: localVisuals.znakRower,
+            options: ["Droga dla rowerów", "Zakaz wjazdu rowerów", "Uwaga rowerzyści"], 
             a: "Droga dla rowerów" 
           });
-          qList.push({ q: "Kto ma pierwszeństwo na skrzyżowaniu równorzędnym bez znaków?", options: ["Pojazd nadjeżdżający z prawej strony", "Pojazd jadący szybciej", "Pojazd z lewej strony"], a: "Pojazd nadjeżdżający z prawej strony" });
         } else {
-          qList.push({ q: "Dobre przewodnictwo elektryczne charakteryzuje:", options: ["Miedź i aluminium (metale)", "Drewno i plastik", "Szkło"], a: "Miedź i aluminium (metale)" });
+          qList.push({ q: "Który materiał jest dobrym przewodnikiem prądu?", options: ["Miedź i aluminium", "Drewno i plastik", "Guma"], a: "Miedź i aluminium" });
         }
       }
       else if (subjKey === 'historia') {
-        if (chapterName.includes('Wielkie odkrycia')) {
-          qList.push({ 
-            q: "Poniższy portret przedstawia żeglarza, który dopłynął do Ameryki w 1492 roku. Jest to:", 
-            image: realMedia.kolumbOdkrycie,
-            options: ["Krzysztof Kolumb", "Ferdynand Magellan", "Vasco da Gama"], 
-            a: "Krzysztof Kolumb" 
-          });
-          qList.push({ q: "Kto stanął na czele pierwszej wyprawy, która opłynęła Ziemię?", options: ["Ferdynand Magellan", "Krzysztof Kolumb", "Amerigo Vespucci"], a: "Ferdynand Magellan" });
-        } else {
-          qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
-        }
+        qList.push({ q: "W którym roku Krzysztof Kolumb odkrył Amerykę?", options: ["1492 rok", "1410 rok", "1569 rok"], a: "1492 rok" });
+        qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
       }
       else if (subjKey === 'matematyka') {
-        if (chapterName.includes('Prędkość')) {
-          let v = (Math.floor(Math.random() * 6) + 4) * 10;
-          let t = Math.floor(Math.random() * 3) + 2;
-          let s = v * t;
-          qList.push({ q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km` });
-          qList.push({ q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h" });
-        } else {
-          let a = Math.floor(Math.random() * 6) + 4;
-          let b = Math.floor(Math.random() * 5) + 3;
-          let p = a * b;
-          qList.push({ q: `Oblicz pole prostokąta o bokach a = ${a} cm oraz b = ${b} cm:`, options: [`${p} cm²`, `${(a+b)*2} cm²`, `${p + 6} cm²`], a: `${p} cm²` });
-          qList.push({ q: `Kwadrat ma bok o długości 8 cm. Ile wynosi jego pole powierzchni?`, options: ["64 cm²", "32 cm²", "16 cm²"], a: "64 cm²" });
-        }
+        let v = (Math.floor(Math.random() * 6) + 4) * 10;
+        let t = Math.floor(Math.random() * 3) + 2;
+        let s = v * t;
+        qList.push({ q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km` });
+        qList.push({ q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h" });
       }
       else {
         qList.push({ q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went" });
@@ -661,7 +633,7 @@
       document.getElementById('progressBar').style.width = pct + "%";
 
       const container = document.getElementById('questionContainer');
-      let imgHtml = q.image ? `<div class="w-full flex justify-center mb-4 bg-slate-900 p-2 rounded-2xl border border-slate-300 shadow-md"><img src="${q.image}" class="max-h-60 w-auto object-contain rounded-xl"></div>` : '';
+      let imgHtml = q.image ? `<div class="w-full flex justify-center mb-4 bg-white p-3 rounded-2xl border border-slate-300 shadow-inner"><img src="${q.image}" class="max-h-56 w-auto object-contain rounded-xl"></div>` : '';
 
       container.innerHTML = `
         <h3 class="text-lg font-black text-slate-800 mb-3">${q.q}</h3>
