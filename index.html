@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Akademia 6A</title>
   
   <link rel="manifest" href="manifest.json">
@@ -18,13 +21,21 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
 
-  <!-- CZYSZCZENIE CACHE -->
+  <!-- NATYCHMIASTOWE USUWANIE STAREJ PAMIĘCI PODRĘCZNEJ -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => { for(let r of regs) r.unregister(); });
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+      });
     }
     if ('caches' in window) {
-      caches.keys().then(names => { for(let n of names) caches.delete(n); });
+      caches.keys().then(function(names) {
+        for (let name of names) {
+          caches.delete(name);
+        }
+      });
     }
   </script>
 
@@ -56,8 +67,8 @@
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wybierz opcję, aby kontynuować naukę</p>
 
       <div id="authTabs" class="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
-        <button type="button" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer">LOGOWANIE</button>
-        <button type="button" id="tabRegBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer">REJESTRACJA</button>
+        <button type="button" onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer">LOGOWANIE</button>
+        <button type="button" onclick="switchAuthTab('register')" id="tabRegBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer">REJESTRACJA</button>
       </div>
 
       <!-- LOGOWANIE -->
@@ -71,13 +82,13 @@
           <input type="password" id="loginPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
         
-        <button type="button" id="loginSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
+        <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
           ZALOGUJ SIĘ 🚀
         </button>
         
         <div class="text-center mt-3 flex justify-between items-center text-xs">
-          <button type="button" id="forgotPinBtn" class="text-indigo-600 hover:underline font-bold cursor-pointer">Zapomniałeś PIN-u?</button>
-          <button type="button" id="installBtnLogin" class="hidden text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">📱 Zainstaluj aplikację</button>
+          <button type="button" onclick="switchAuthTab('recovery')" class="text-indigo-600 hover:underline font-bold cursor-pointer">Zapomniałeś PIN-u?</button>
+          <button type="button" onclick="installPWA()" id="installBtnLogin" class="hidden text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">📱 Zainstaluj aplikację</button>
         </div>
       </div>
 
@@ -101,9 +112,12 @@
           <input type="text" id="regSecAnswer" placeholder="Odpowiedź..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
         </div>
         
-        <button type="button" id="regSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
+        <button type="button" onclick="handleRegister()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
           UTWÓRZ KONTO I STARTUJ ✨
         </button>
+        <div class="text-center mt-2">
+          <button type="button" onclick="switchAuthTab('login')" class="text-xs text-slate-500 hover:underline font-bold cursor-pointer">Powrót do logowania</button>
+        </div>
       </div>
 
       <!-- ODZYSKIWANIE -->
@@ -120,11 +134,11 @@
           <label class="block text-xs font-bold text-slate-600 mb-1">Ustal NOWY PIN (4 cyfry):</label>
           <input type="password" id="recNewPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
-        <button type="button" id="resetPinBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-center block mt-2 cursor-pointer">
+        <button type="button" onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-center block mt-2 cursor-pointer">
           ZRESETUJ PIN I ZALOGUJ 🔑
         </button>
         <div class="text-center mt-2">
-          <button type="button" id="backToLoginBtn" class="text-xs text-slate-500 hover:underline font-bold cursor-pointer">Powrót do logowania</button>
+          <button type="button" onclick="switchAuthTab('login')" class="text-xs text-slate-500 hover:underline font-bold cursor-pointer">Powrót do logowania</button>
         </div>
       </div>
 
@@ -140,7 +154,7 @@
       </div>
       
       <div class="flex items-center gap-3">
-        <button onclick="installPWA()" id="installBtnHeader" class="hidden text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-extrabold shadow">
+        <button onclick="installPWA()" id="installBtnHeader" class="hidden text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-extrabold shadow cursor-pointer">
           📱 Zainstaluj
         </button>
 
@@ -409,15 +423,6 @@
     };
 
     window.onload = function() {
-      // PODPIĘCIE NASŁUCHIWACZY ZDARZEŃ ZABEZPIECZAJĄCE PRZEŁĄCZANIE ZAKŁADEK
-      document.getElementById('tabLoginBtn').addEventListener('click', () => switchAuthTab('login'));
-      document.getElementById('tabRegBtn').addEventListener('click', () => switchAuthTab('register'));
-      document.getElementById('loginSubmitBtn').addEventListener('click', handleLogin);
-      document.getElementById('regSubmitBtn').addEventListener('click', handleRegister);
-      document.getElementById('forgotPinBtn').addEventListener('click', () => switchAuthTab('recovery'));
-      document.getElementById('resetPinBtn').addEventListener('click', resetPin);
-      document.getElementById('backToLoginBtn').addEventListener('click', () => switchAuthTab('login'));
-
       try {
         const savedUser = localStorage.getItem('akademia6a_saved_user');
         if (savedUser) {
@@ -940,158 +945,4 @@
             { q: "Do łączenia elementów drewnianych używamy najczęściej:", options: ["Wkrętów do drewna i gwoździ", "Śrub imbusowych do stali", "Kleju epoksydowego do szkła"], a: "Wkrętów do drewna i gwoździ", explanation: "Wkręty oraz gwoździe to podstawowe elementy łączące w obróbce drewna." },
             { q: "Rysunek techniczny przedstawia przedmiot w sposób:", options: ["Znormalizowany i zwymiarowany", "Artystyczny i malarski", "Dowolny i szkicowy"], a: "Znormalizowany i zwymiarowany", explanation: "Rysunek techniczny opiera się na ściśle określonych normach i podaje dokładne wymiary obiektu." },
             { q: "Materiałem pochodzenia sztucznego (tworzywem polimerowym) jest:", options: ["Plastik / Polietylen", "Drewno sosnowe", "Miedź elektrolityczna"], a: "Plastik / Polietylen", explanation: "Tworzywa sztuczne są syntetycznymi polimerami wytwarzanymi w procesach chemicznych." },
-            { q: "Bezpiecznik elektryczny w obwodzie domowym służy do:", options: ["Ochrony przed przeciążeniem i zwarciem", "Zwiększania napięcia", "Oszczędzania żarówek"], a: "Ochrony przed przeciążeniem i zwarciem", explanation: "Bezpiecznik przerywa obwód w sytuacji przepływu zbyt dużego prądu, chroniąc instalację." }
-          ];
-        }
-      }
-      else if (subjKey === 'historia') {
-        pool = [
-          { q: "W którym roku Krzysztof Kolumb dotarł do wybrzeży Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok", explanation: "Rok 1492 uznawany jest w historii za symboliczny koniec średniowiecza i początek nowożytności." },
-          { q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791", explanation: "Konstytucja 3 Maja z 1791 roku była pierwszą w Europie i drugą na świecie nowoczesną ustawą zasadniczą." },
-          { q: "Bitwa pod Grunwaldem miała miejsce w roku:", options: ["1410", "1525", "1683"], a: "1410", explanation: "W 1410 roku połączone siły polsko-litewskie odniosły wielkie zwycięstwo nad zakonem krzyżackim." },
-          { q: "Ostatnim królem elekcyjnym Polski był:", options: ["Stanisław August Poniatowski", "Jan III Sobieski", "Stefan Batory"], a: "Stanisław August Poniatowski", explanation: "Stanisław August Poniatowski panował w okresie upadku Rzeczypospolitej pod koniec XVIII wieku." },
-          { q: "Epoka historyczna charakteryzująca się powrotem do antyku i rozkwitem sztuki to:", options: ["Renesans (Odrodzenie)", "Średniowiecze", "Starożytność"], a: "Renesans (Odrodzenie)", explanation: "Renesans (XV–XVI w.) przyniósł gigantyczny rozwój nauki, sztuki i filozofii nawiązującej do antyku." }
-        ];
-      }
-      else if (subjKey === 'matematyka') {
-        let v = (Math.floor(Math.random() * 6) + 4) * 10;
-        let t = Math.floor(Math.random() * 3) + 2;
-        let s = v * t;
-        pool = [
-          { q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokonamy w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km`, explanation: "Droga to iloczyn prędkości i czasu." },
-          { q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h", explanation: "Prędkość obliczamy dzieląc drogę przez czas." },
-          { q: "Wynik dodawania ułamków 1/4 + 2/4 wynosi:", options: ["3/4", "3/8", "1/2"], a: "3/4", explanation: "Przy jednakowych mianownikach dodajemy liczniki." },
-          { q: "Pole kwadratu o boku 7 cm wynosi:", options: ["49 cm²", "28 cm²", "14 cm²"], a: "49 cm²", explanation: "Pole kwadratu to kwadrat długości jego boku." },
-          { q: "Liczba odwrotna do liczby 2 to:", options: ["1/2", "-2", "2"], a: "1/2", explanation: "Liczba odwrotna daje z daną liczbą iloczyn równy 1." }
-        ];
-      }
-      else {
-        pool = [
-          { q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went", explanation: "Czasownik 'go' jest nieregularny: go -> went -> gone." },
-          { q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog", explanation: "Słowo 'pies' w języku angielskim to 'dog'." },
-          { q: "Który wyraz jest w czasie Present Continuous?", options: ["is running", "ran", "runs"], a: "is running", explanation: "Present Continuous tworzymy za pomocą 'to be' oraz formy z końcówką '-ing'." },
-          { q: "Przymiotnik 'good' w stopniu wyższym (comparative) to:", options: ["better", "best", "gooder"], a: "better", explanation: "Przymiotnik 'good' stopniuje się nieregularnie: good -> better." },
-          { q: "Co oznacza po angielsku słowo 'Apple'?", options: ["Jabłko", "Pomarańcza", "Banan"], a: "Jabłko", explanation: "'Apple' to w języku angielskim jabłko." }
-        ];
-      }
-
-      pool.sort(() => Math.random() - 0.5);
-      return pool.slice(0, 5);
-    }
-
-    function startQuiz(chapterName, subjKey) {
-      isMistakesMode = false;
-      currentQuiz = generateQuestionsForChapter(chapterName, subjKey || activeSubjectKey);
-      currentQIdx = 0;
-      
-      document.getElementById('chapterView').classList.add('hidden');
-      document.getElementById('quizView').classList.remove('hidden');
-      renderQuestion();
-    }
-
-    function renderQuestion() {
-      selectedOption = null;
-      document.getElementById('feedbackBox').classList.add('hidden');
-      const q = currentQuiz[currentQIdx];
-      
-      const pct = ((currentQIdx) / currentQuiz.length) * 100;
-      document.getElementById('progressBar').style.width = pct + "%";
-
-      const container = document.getElementById('questionContainer');
-      
-      let svgHtml = '';
-      if (q.svgGraphic) {
-        svgHtml = `<div class="w-full mb-5 shadow-lg rounded-2xl overflow-hidden border border-slate-700">${q.svgGraphic}</div>`;
-      }
-
-      container.innerHTML = `
-        <h3 class="text-base font-black text-slate-800 mb-3">${q.q}</h3>
-        ${svgHtml}
-      `;
-
-      if (q.isOpen) {
-        container.innerHTML += `
-          <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600 mt-2">
-        `;
-      } else {
-        q.options.forEach(opt => {
-          container.innerHTML += `
-            <button onclick="selectOpt(this, '${opt}')" class="opt-btn w-full text-left p-3.5 rounded-xl border border-slate-200 font-bold mb-2 hover:bg-indigo-50 transition text-sm cursor-pointer">
-              ${opt}
-            </button>
-          `;
-        });
-      }
-
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.innerText = "SPRAWDŹ ODPOWIEDŹ";
-      nextBtn.onclick = submitAnswer;
-    }
-
-    function selectOpt(btn, opt) {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('border-indigo-600', 'bg-indigo-50'));
-      btn.classList.add('border-indigo-600', 'bg-indigo-50');
-      selectedOption = opt;
-    }
-
-    function submitAnswer() {
-      const q = currentQuiz[currentQIdx];
-      let userAns = q.isOpen ? document.getElementById('openAns').value.trim().toLowerCase() : selectedOption;
-
-      if (!userAns) {
-        alert("Wybierz lub wpisz odpowiedź!");
-        return;
-      }
-
-      const fb = document.getElementById('feedbackBox');
-      fb.classList.remove('hidden');
-
-      let explanationText = q.explanation ? `<br><span class="text-xs font-normal opacity-90">💡 Wyjaśnienie: ${q.explanation}</span>` : '';
-
-      if (userAns.toLowerCase() === q.a.toLowerCase()) {
-        fb.className = "p-3 rounded-2xl mb-4 font-bold text-sm text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
-        fb.innerHTML = `🎉 Świetnie! Poprawna odpowiedź! ${explanationText}`;
-        addXP(10);
-        recordStat(true);
-        if (isMistakesMode) {
-          removeMistake(q);
-        }
-      } else {
-        fb.className = "p-3 rounded-2xl mb-4 font-bold text-sm text-center bg-rose-100 text-rose-800 border border-rose-300";
-        fb.innerHTML = `❌ Pomyłka! Prawidłowa odpowiedź to: <b>${q.a}</b> ${explanationText}`;
-        recordStat(false);
-        if (!isMistakesMode) {
-          recordMistake(q);
-        }
-      }
-
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.innerText = "NASTĘPNE ZADANIE ▶";
-      nextBtn.onclick = nextQuestion;
-    }
-
-    function nextQuestion() {
-      currentQIdx++;
-      if (currentQIdx < currentQuiz.length) {
-        renderQuestion();
-      } else {
-        recordTestCompleted();
-        if (isChallengeMode) {
-          addXP(50);
-          if (db && activeChallengeId) {
-            db.collection("challenges_6a").doc(activeChallengeId).update({ status: 'completed' });
-          }
-          alert("🏆 Wyzwanie 1 vs 1 zakończone sukcesem! Zdobycz: +50 BONUSOWYCH XP!");
-          isChallengeMode = false;
-        } else if (isMistakesMode) {
-          alert("Trening problematycznych zadań zakończony!");
-          isMistakesMode = false;
-        } else {
-          alert("Gratulacje! Ukończyłeś test z tego działu!");
-        }
-        showDashboard();
-      }
-    }
-  </script>
-</body>
-</html>
+            { q: "Bezpiecznik elektryczny w obwodzie domowym służy do:", options: ["Ochrony przed przeciążeniem i zwarciem", "Zwiększania napięcia", "Oszczędzania żarówek"], a: "
