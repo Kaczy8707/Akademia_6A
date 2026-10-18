@@ -2,9 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 void main() {
   runApp(const AkademiaApp());
@@ -310,67 +307,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     });
   }
 
-  // GENERATOR PDF I SYSTEM DRUKOWANIA
-  Future<void> _printPdfTest({bool withAnswers = false}) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
-            cross: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Header(
-                level: 0,
-                child: pw.Row(
-                  main: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('AKADEMIA SP7 - KARTA PRACY', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Imię i Nazwisko: ..................................', style: const pw.TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text('Dział: ${_selectedChapter ?? "Test"}', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 15),
-              ..._currentQuiz.asMap().entries.map((entry) {
-                int idx = entry.key;
-                Question q = entry.value;
-                return pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 12),
-                  child: pw.Column(
-                    cross: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Zadanie ${idx + 1}: ${q.text}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                      pw.SizedBox(height: 4),
-                      if (q.isOpen) ...[
-                        pw.Text('Odpowiedź: ........................................................................', style: const pw.TextStyle(fontSize: 11)),
-                      ] else if (q.options != null) ...[
-                        ...q.options!.map((opt) => pw.Padding(
-                              padding: const pw.EdgeInsets.only(left: 10, top: 2),
-                              child: pw.Text('[  ] $opt', style: const pw.TextStyle(fontSize: 10)),
-                            )),
-                      ],
-                      if (withAnswers) ...[
-                        pw.SizedBox(height: 4),
-                        pw.Text('--> POPRAWNA ODPOWIEDŹ: ${q.correctAnswer}', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green800)),
-                      ],
-                    ],
-                  ),
-                );
-              }),
-            ],
-          );
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
-  }
-
   void _showStatsDialog() {
     showDialog(
       context: context,
@@ -451,8 +387,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               chapterTitle: _selectedChapter!,
               questions: _currentQuiz,
               isReviewMode: _isReviewMode,
-              onPrintPdf: () => _printPdfTest(withAnswers: false),
-              onPrintPdfWithKey: () => _printPdfTest(withAnswers: true),
               onComplete: (correctQuestions, wrongQuestions) {
                 setState(() {
                   _userXP += correctQuestions.length * 10;
@@ -652,8 +586,6 @@ class QuizScreen extends StatefulWidget {
   final String chapterTitle;
   final List<Question> questions;
   final bool isReviewMode;
-  final VoidCallback onPrintPdf;
-  final VoidCallback onPrintPdfWithKey;
   final Function(List<Question> correct, List<Question> wrong) onComplete;
   final VoidCallback onCancel;
 
@@ -662,8 +594,6 @@ class QuizScreen extends StatefulWidget {
     required this.chapterTitle,
     required this.questions,
     this.isReviewMode = false,
-    required this.onPrintPdf,
-    required this.onPrintPdfWithKey,
     required this.onComplete,
     required this.onCancel,
   });
@@ -702,30 +632,17 @@ class _QuizScreenState extends State<QuizScreen> {
                 icon: const Icon(Icons.close, size: 16),
                 label: const Text('Anuluj'),
               ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.print, color: Color(0xFF4F46E5)),
-                    onPressed: widget.onPrintPdf,
-                    tooltip: 'Drukuj kartę pracy PDF',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.fact_check, color: Color(0xFF059669)),
-                    onPressed: widget.onPrintPdfWithKey,
-                    tooltip: 'Drukuj arkusz z kluczem odpowiedzi',
-                  ),
-                ],
+              Expanded(
+                child: Text(
+                  widget.chapterTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            widget.chapterTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
               itemCount: widget.questions.length,
