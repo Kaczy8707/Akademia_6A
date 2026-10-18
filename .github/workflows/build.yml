@@ -15,14 +15,14 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Znajdź projekt i zbuduj APK
+      - name: Przygotowanie i kompilacja APK
         run: |
           PROJECT_DIR=$(dirname $(find . -name "pubspec.yaml" -not -path "*/.*/*" | head -n 1))
           echo "Znaleziono projekt w: $PROJECT_DIR"
           cd "$PROJECT_DIR"
+          flutter create --platforms=android .
           flutter pub get
           flutter build apk --release
-          echo "PROJECT_PATH=$PROJECT_DIR" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
         with:
@@ -38,7 +38,7 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Znajdź projekt i zbuduj EXE
+      - name: Przygotowanie i kompilacja EXE
         shell: pwsh
         run: |
           $pubspec = Get-ChildItem -Recurse -Filter "pubspec.yaml" | Select-Object -First 1
@@ -46,6 +46,7 @@ jobs:
           Write-Host "Znaleziono projekt w: $projectDir"
           Set-Location $projectDir
           flutter config --enable-windows-desktop
+          flutter create --platforms=windows .
           flutter pub get
           flutter build windows --release
 
