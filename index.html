@@ -24,7 +24,7 @@
       navigator.serviceWorker.getRegistrations().then(regs => { for(let r of regs) r.unregister(); });
     }
     if ('caches' in window) {
-      caches.keys().then(names => { for(let n of names) caches.delete(name); });
+      caches.keys().then(names => { for(let n of names) caches.delete(n); });
     }
   </script>
 
@@ -229,6 +229,15 @@
     let selectedOption = null;
     let isChallengeMode = false;
     let activeChallengeId = null;
+
+    // OFICJALNE, PROFESJONALNE GRAFIKI I MAPY Z WIKIMEDIA COMMONS
+    const proGraphics = {
+      mapaEuropa: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/BlankMap-Europe-v2.svg/1024px-BlankMap-Europe-v2.svg.png",
+      mapaPolska: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Relief_Map_of_Poland.svg/1024px-Relief_Map_of_Poland.svg.png",
+      ruchZiemi: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/North_season.jpg/800px-North_season.jpg",
+      owadBiologia: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Araneus_diadematus_2007-08-11.jpg/800px-Araneus_diadematus_2007-08-11.jpg",
+      znakDrogowy: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Znak_C-13.svg/480px-Znak_C-13.svg.png"
+    };
 
     const program = {
       matematyka: { 
@@ -538,57 +547,57 @@
       if (subjKey === 'geografia') {
         if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
           qList.push({ 
-            q: "Przeanalizuj poniższy opis mapy i wskaż prawidłową odpowiedź: Gdzie leży Polska na mapie Europy?", 
-            note: "🗺️ [MAPA KONTUROWA: Europa Środkowa - zaznaczona Polska]",
-            options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Zachodniej"], 
-            a: "W Europie Środkowej" 
+            q: "Przeanalizuj poniższą mapę polityczną Europy i wskaż prawidłową odpowiedź:", 
+            image: proGraphics.mapaEuropa,
+            options: ["Polska leży w Europie Środkowej", "Polska leży w Europie Południowej", "Polska leży na innym kontynencie"], 
+            a: "Polska leży w Europie Środkowej" 
           });
-          qList.push({ q: "Które linie na globusie łączą bieguny północny z południowym?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
+          qList.push({ q: "Które linie na globusie łączą bieguny?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
         } else if (chapterName.includes('Ruchy Ziemi')) {
           qList.push({ 
-            q: "Przeanalizuj model układu: Słońce a obiegająca je Ziemia (czas trwania: 365 dni). Zjawisko to powoduje:", 
-            note: "🌍 [SCHEMAT EDUKACYJNY: Ruch obiegowy Ziemi wokół Słońca]",
-            options: ["Następowanie pór roku", "Następowanie dnia i nocy", "Prąd morski"], 
-            a: "Następowanie pór roku" 
+            q: "Przeanalizuj poniższy schemat astronomiczny ruchu obiegowego Ziemi:", 
+            image: proGraphics.ruchZiemi,
+            options: ["Ruch wokół Słońca trwa 365 dni i powoduje pory roku", "Ruch wokół osi trwa 24h", "Ruch ten nie ma znaczenia"], 
+            a: "Ruch wokół Słońca trwa 365 dni i powoduje pory roku" 
           });
           qList.push({ q: "Czas trwania jednego pełnego obrotu Ziemi wokół własnej osi to:", options: ["24 godziny", "365 dni", "30 dni"], a: "24 godziny" });
         } else {
           qList.push({ 
-            q: "Spójrz na mapę fizyczną Polski. Główna, najdłuższa rzeka w kraju uchodząca do Morza Bałtyckiego to:", 
-            note: "🏞️ [MAPA FIZYCZNA POLSKI: Bieg rzeki Wisły od gór do morza]",
-            options: ["Wisła", "Odra", "Warta"], 
+            q: "Spójrz na profesjonalną mapę fizyczną Polski. Główna rzeka kraju to:", 
+            image: proGraphics.mapaPolska,
+            options: ["Wisła", "Dunaj", "Sekwana"], 
             a: "Wisła" 
           });
-          qList.push({ q: "Najwyższy szczyt w polskich górach (Tatry) o wysokości 2499 m n.p.m. to:", options: ["Rysy", "Giewont", "Śnieżka"], a: "Rysy" });
+          qList.push({ q: "Najwyższy szczyt w polskich Tatrach to:", options: ["Rysy", "Śnieżka", "Giewont"], a: "Rysy" });
         }
       }
       else if (subjKey === 'biologia') {
         if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
           qList.push({ 
-            q: "Przeanalizuj schemat budowy ciała bezkręgowca. Ile par odnóży krocznych posiadają owady?", 
-            note: "🔬 [SCHEMAT ANATOMICZNY: Głowa, tułów z 3 parami odnóży, odwłok]",
-            options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], 
-            a: "3 pary (6 odnóży)" 
+            q: "Przeanalizuj poniższe zdjęcie entomologiczne. Do jakiej grupy zaliczamy ten organizm?", 
+            image: proGraphics.owadBiologia,
+            options: ["Pajęczaki", "Owady", "Ryby"], 
+            a: "Pajęczaki" 
           });
-          qList.push({ q: "Pająk krzyżak będący drapieżnikiem należy do gromady:", options: ["Pajęczaków", "Owadów", "Skorupiaków"], a: "Pajęczaków" });
+          qList.push({ q: "Ile par odnóży krocznych mają typowe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)" });
         } else {
-          qList.push({ q: "Które gromady zwierząt zaliczamy do stałocieplnych?", options: ["Ptaki i ssaki", "Ryby i płazy", "Gady i owady"], a: "Ptaki i ssaki" });
+          qList.push({ q: "Zwierzęta stałocieplne to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby"], a: "Ptaki i ssaki" });
         }
       }
       else if (subjKey === 'technika') {
         if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
           qList.push({ 
-            q: "Co oznacza ten oficjalny znak drogowy (okrągły, niebieski z symbolem roweru)?", 
-            note: "🛑 [ZNAK DROGOWY C-13: Nakaz jazdy dla rowerzystów]",
-            options: ["Droga dla rowerów", "Zakaz wjazdu rowerów", "Uwaga na rowerzystów"], 
+            q: "Co oznacza ten oficjalny znak drogowy w polskim kodeksie?", 
+            image: proGraphics.znakDrogowy,
+            options: ["Droga dla rowerów", "Zakaz wjazdu", "Uwaga piesi"], 
             a: "Droga dla rowerów" 
           });
         } else {
-          qList.push({ q: "Który materiał charakteryzuje się bardzo dobrym przewodnictwem prądu elektrycznego?", options: ["Miedź i aluminium", "Drewno i plastik", "Guma i szkło"], a: "Miedź i aluminium" });
+          qList.push({ q: "Dobrym przewodnikiem elektryczności jest:", options: ["Miedź", "Drewno", "Plastik"], a: "Miedź" });
         }
       }
       else if (subjKey === 'historia') {
-        qList.push({ q: "W którym roku wyprawa Krzysztofa Kolumba dotarła do wybrzeży Ameryki?", options: ["1492 rok", "1410 rok", "1569 rok"], a: "1492 rok" });
+        qList.push({ q: "W którym roku Krzysztof Kolumb odkrył Amerykę?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok" });
         qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
       }
       else if (subjKey === 'matematyka') {
@@ -624,11 +633,11 @@
       document.getElementById('progressBar').style.width = pct + "%";
 
       const container = document.getElementById('questionContainer');
-      let noteHtml = q.note ? `<div class="w-full mb-4 bg-indigo-50 border-2 border-indigo-200 text-indigo-950 p-3 rounded-xl font-black text-sm text-center shadow-sm">${q.note}</div>` : '';
+      let imgHtml = q.image ? `<div class="w-full flex justify-center mb-4 bg-slate-900 p-3 rounded-2xl border border-slate-300 shadow-md"><img src="${q.image}" class="max-h-56 w-auto object-contain rounded-xl"></div>` : '';
 
       container.innerHTML = `
         <h3 class="text-lg font-black text-slate-800 mb-3">${q.q}</h3>
-        ${noteHtml}
+        ${imgHtml}
       `;
 
       if (q.isOpen) {
