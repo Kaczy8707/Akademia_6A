@@ -23,16 +23,12 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
 
-  <!-- REJESTRACJA SERVICE WORKERA DLA CHROME -->
+  <!-- REJESTRACJA SERVICE WORKERA SW.JS -->
   <script>
     if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', (e) => self.skipWaiting());
-        self.addEventListener('activate', (e) => self.clients.claim());
-        self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Error:', err));
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker zarejestrowany pomyślnie!'))
+        .catch(err => console.log('Błąd SW:', err));
     }
 
     let deferredPrompt;
@@ -78,8 +74,8 @@
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć do rywalizacji!</p>
 
-      <!-- PRZYCISK INSTALACJI PWA -->
-      <button id="pwaInstallBtn" onclick="installPWA()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 rounded-xl mb-4 text-xs shadow transition">
+      <!-- PRZYCISK BEZPOŚREDNIEJ INSTALACJI -->
+      <button id="pwaInstallBtn" onclick="installPWA()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl mb-4 text-xs shadow-md transition active:scale-95">
         📲 ZAINSTALUJ APLIKACJĘ NA TELEFONIE
       </button>
 
