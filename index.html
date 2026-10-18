@@ -16,6 +16,10 @@
   <meta name="apple-mobile-web-app-title" content="Akademia 6A">
 
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FIREBASE SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
 
@@ -24,7 +28,7 @@
     <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
       <div class="text-5xl mb-2">⚡</div>
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
-      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wybierz opcję, aby kontynuować naukę</p>
+      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Chmurowa platforma edukacyjna klasy 6</p>
 
       <div id="authTabs" class="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
         <button type="button" onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer">LOGOWANIE</button>
@@ -43,7 +47,7 @@
         </div>
         
         <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
-          ZALOGUJ SIĘ 🚀
+          ZALOGUJ DO CHMURY 🚀
         </button>
         
         <div class="text-center mt-3 flex justify-between items-center text-xs">
@@ -73,7 +77,7 @@
         </div>
         
         <button type="button" onclick="handleRegister()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
-          UTWÓRZ KONTO I STARTUJ ✨
+          UTWÓRZ KONTO W CHMURZE ✨
         </button>
         <div class="text-center mt-2">
           <button type="button" onclick="switchAuthTab('login')" class="text-xs text-slate-500 hover:underline font-bold cursor-pointer">Powrót do logowania</button>
@@ -105,7 +109,7 @@
     </div>
   </div>
 
-  <!-- NAGŁÓWEK -->
+  <!-- NAGłÓWEK -->
   <header class="bg-indigo-950 text-white p-4 shadow-md sticky top-0 z-40">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-2 cursor-pointer" onclick="showDashboard()">
@@ -155,13 +159,13 @@
       <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-extrabold text-amber-900 flex items-center gap-2">
-            🏆 LIGA KLASY 6A (TOP LIDERZY)
+            🏆 LIGA KLASY 6A (RANKING CHMUROWY)
           </h2>
-          <span class="text-xs text-amber-700 font-bold">Lokalny ranking</span>
+          <span class="text-xs text-amber-700 font-bold">Wyniki wszystkich uczniów na żywo</span>
         </div>
-        <div id="leaderboard" class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
-          <div class="bg-white p-3 rounded-xl border border-amber-200 text-center font-bold text-slate-500 col-span-3">
-            Twój profil jest aktywny w klasie 6A.
+        <div id="leaderboard" class="space-y-2 mb-2">
+          <div class="bg-white p-3 rounded-xl border border-amber-200 text-center font-bold text-slate-500">
+            Pobieranie wyników z chmury...
           </div>
         </div>
       </div>
@@ -178,7 +182,7 @@
             <span class="text-2xl">👤</span>
             <div>
               <h3 id="modalProfileNick" class="font-black text-lg text-slate-800">Uczeń</h3>
-              <p class="text-xs text-indigo-600 font-bold">Profil Ucznia Szkoły Podstawowej nr 7</p>
+              <p class="text-xs text-indigo-600 font-bold">Profil Chmurowy Szkoły Podstawowej nr 7</p>
             </div>
           </div>
           <button onclick="closeProfileModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
@@ -186,7 +190,7 @@
 
         <div class="space-y-3 mb-6 text-sm">
           <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
-            <span class="text-slate-600">Zdobyte punkty XP:</span>
+            <span class="text-slate-600">Zdobyte punkty XP (Chmura):</span>
             <span id="modalXpCount" class="text-amber-600">0 XP</span>
           </div>
           <div class="flex justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 font-bold">
@@ -242,6 +246,16 @@
   </main>
 
   <script>
+    // KONFIGURACJA FIREBASE
+    const firebaseConfig = {
+      databaseURL: "https://akademia-6a-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
     let currentUser = null;
     let userStats = { xp: 0 };
     let currentQuiz = [];
@@ -350,6 +364,7 @@
         }
       } catch(e) {}
       renderSubjects();
+      listenLeaderboard();
     };
 
     function switchAuthTab(tab) {
@@ -374,16 +389,20 @@
       if (tab === 'login') {
         loginForm.classList.remove('hidden');
         if (btnLog) btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer";
-        if (subtitle) subtitle.innerText = "Wpisz swój Nick i PIN, aby się zalogować";
+        if (subtitle) subtitle.innerText = "Chmurowa platforma edukacyjna klasy 6";
       } else if (tab === 'register') {
         registerForm.classList.remove('hidden');
         if (btnReg) btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-emerald-600 text-white shadow cursor-pointer";
-        if (subtitle) subtitle.innerText = "Załóż nowe konto ucznia w Akademii 6A";
+        if (subtitle) subtitle.innerText = "Załóż nowe konto w chmurze Akademii 6A";
       } else if (tab === 'recovery') {
         authTabs.classList.add('hidden');
         recoveryForm.classList.remove('hidden');
         if (subtitle) subtitle.innerText = "Odzyskiwanie dostępu do konta";
       }
+    }
+
+    function sanitizeKey(str) {
+      return str.replace(/[.#$\/\[\]]/g, "_");
     }
 
     function handleLogin() {
@@ -395,17 +414,23 @@
         return;
       }
 
-      let savedPin = localStorage.getItem(`pin_${n}`);
-      if (savedPin && savedPin !== p) {
-        alert("Błędny PIN!");
-        return;
-      }
+      const safeKey = sanitizeKey(n);
+      db.ref(`users/${safeKey}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          alert("Nie znaleziono takiego użytkownika w chmurze! Zarejestruj się.");
+          return;
+        }
+        if (data.pin !== p) {
+          alert("Błędny PIN!");
+          return;
+        }
 
-      try { localStorage.setItem(`pin_${n}`, p); } catch(e) {}
-      currentUser = { nick: n, pin: p };
-      try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-      document.getElementById('authScreen').style.display = 'none';
-      initDashboard();
+        currentUser = { nick: n, pin: p };
+        try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+        document.getElementById('authScreen').style.display = 'none';
+        initDashboard();
+      });
     }
 
     function handleRegister() {
@@ -418,15 +443,30 @@
         return;
       }
 
-      try {
-        localStorage.setItem(`pin_${n}`, p);
-        localStorage.setItem(`sec_${n}`, a);
-      } catch(e) {}
+      const safeKey = sanitizeKey(n);
+      db.ref(`users/${safeKey}`).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          alert("Taki nick już istnieje w chmurze! Wybierz inny lub zaloguj się.");
+          return;
+        }
 
-      currentUser = { nick: n, pin: p };
-      try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-      document.getElementById('authScreen').style.display = 'none';
-      initDashboard();
+        db.ref(`users/${safeKey}`).set({
+          nick: n,
+          pin: p,
+          secAnswer: a,
+          xp: 0,
+          stats: { tests: 0, total: 0, correct: 0 }
+        }, (error) => {
+          if (error) {
+            alert("Błąd zapisu w chmurze: " + error.message);
+          } else {
+            currentUser = { nick: n, pin: p };
+            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+            document.getElementById('authScreen').style.display = 'none';
+            initDashboard();
+          }
+        });
+      });
     }
 
     function resetPin() {
@@ -439,19 +479,27 @@
         return;
       }
 
-      let savedAns = localStorage.getItem(`sec_${nick}`);
-      if (savedAns && savedAns !== ans) {
-        alert("Błędna odpowiedź na pytanie pomocnicze!");
-        return;
-      }
+      const safeKey = sanitizeKey(nick);
+      db.ref(`users/${safeKey}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          alert("Nie znaleziono takiego użytkownika w chmurze!");
+          return;
+        }
+        if (data.secAnswer !== ans) {
+          alert("Błędna odpowiedź na pytanie pomocnicze!");
+          return;
+        }
 
-      try {
-        localStorage.setItem(`pin_${nick}`, newPin);
-        if (!savedAns) localStorage.setItem(`sec_${nick}`, ans);
-      } catch(e) {}
-
-      alert("PIN został pomyślnie zmieniony! Zaloguj się nowym PIN-em.");
-      switchAuthTab('login');
+        db.ref(`users/${safeKey}`).update({ pin: newPin }, (error) => {
+          if (error) {
+            alert("Błąd aktualizacji: " + error.message);
+          } else {
+            alert("PIN został pomyślnie zmieniony w chmurze! Zaloguj się nowym PIN-em.");
+            switchAuthTab('login');
+          }
+        });
+      });
     }
 
     function logout() {
@@ -466,77 +514,78 @@
       const profNick = document.getElementById('profileNick');
       if (profNick) profNick.innerText = currentUser.nick;
       loadUserData();
-      renderLeaderboard();
       checkMistakesModule();
     }
 
     function loadUserData() {
-      let localXP = 0;
-      try { localXP = parseInt(localStorage.getItem(`xp_${currentUser.nick}`)) || 0; } catch(e) {}
-      userStats.xp = localXP;
-      const xpDisp = document.getElementById('xpDisplay');
-      if (xpDisp) xpDisp.innerText = userStats.xp;
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}`).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          userStats.xp = data.xp || 0;
+          const xpDisp = document.getElementById('xpDisplay');
+          if (xpDisp) xpDisp.innerText = userStats.xp;
+        }
+      });
     }
 
     function addXP(points) {
       userStats.xp += points;
       const xpDisp = document.getElementById('xpDisplay');
       if (xpDisp) xpDisp.innerText = userStats.xp;
-      try { localStorage.setItem(`xp_${currentUser.nick}`, userStats.xp); } catch(e) {}
+
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/xp`).set(userStats.xp);
     }
 
     function recordStat(isCorrect) {
       if (!currentUser) return;
-      let stats = { tests: 0, total: 0, correct: 0 };
-      try {
-        stats = JSON.parse(localStorage.getItem(`stats_${currentUser.nick}`)) || { tests: 0, total: 0, correct: 0 };
-      } catch(e) {}
-      stats.total++;
-      if (isCorrect) stats.correct++;
-      try {
-        localStorage.setItem(`stats_${currentUser.nick}`, JSON.stringify(stats));
-      } catch(e) {}
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/stats`).transaction((stats) => {
+        if (!stats) stats = { tests: 0, total: 0, correct: 0 };
+        stats.total++;
+        if (isCorrect) stats.correct++;
+        return stats;
+      });
     }
 
     function recordTestCompleted() {
       if (!currentUser) return;
-      let stats = { tests: 0, total: 0, correct: 0 };
-      try {
-        stats = JSON.parse(localStorage.getItem(`stats_${currentUser.nick}`)) || { tests: 0, total: 0, correct: 0 };
-      } catch(e) {}
-      stats.tests++;
-      try {
-        localStorage.setItem(`stats_${currentUser.nick}`, JSON.stringify(stats));
-      } catch(e) {}
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/stats`).transaction((stats) => {
+        if (!stats) stats = { tests: 0, total: 0, correct: 0 };
+        stats.tests++;
+        return stats;
+      });
     }
 
     function openProfileModal() {
       if (!currentUser) return;
-      let stats = { tests: 0, total: 0, correct: 0 };
-      let mistakes = [];
-      try {
-        stats = JSON.parse(localStorage.getItem(`stats_${currentUser.nick}`)) || { tests: 0, total: 0, correct: 0 };
-        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
-      } catch(e) {}
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}`).once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        const stats = data.stats || { tests: 0, total: 0, correct: 0 };
+        const mistakes = data.mistakes || [];
 
-      let accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+        let accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
 
-      const modalNick = document.getElementById('modalProfileNick');
-      const modalXp = document.getElementById('modalXpCount');
-      const testsCount = document.getElementById('statTestsCount');
-      const totalAns = document.getElementById('statTotalAnswers');
-      const acc = document.getElementById('statAccuracy');
-      const mistCount = document.getElementById('statMistakesCount');
+        const modalNick = document.getElementById('modalProfileNick');
+        const modalXp = document.getElementById('modalXpCount');
+        const testsCount = document.getElementById('statTestsCount');
+        const totalAns = document.getElementById('statTotalAnswers');
+        const acc = document.getElementById('statAccuracy');
+        const mistCount = document.getElementById('statMistakesCount');
 
-      if (modalNick) modalNick.innerText = currentUser.nick;
-      if (modalXp) modalXp.innerText = userStats.xp + " XP";
-      if (testsCount) testsCount.innerText = stats.tests;
-      if (totalAns) totalAns.innerText = stats.total;
-      if (acc) acc.innerText = accuracy + "%";
-      if (mistCount) mistCount.innerText = mistakes.length;
+        if (modalNick) modalNick.innerText = currentUser.nick;
+        if (modalXp) modalXp.innerText = (data.xp || 0) + " XP";
+        if (testsCount) testsCount.innerText = stats.tests;
+        if (totalAns) totalAns.innerText = stats.total;
+        if (acc) acc.innerText = accuracy + "%";
+        if (mistCount) mistCount.innerText = mistakes.length;
 
-      const profileModal = document.getElementById('profileModal');
-      if (profileModal) profileModal.classList.remove('hidden');
+        const profileModal = document.getElementById('profileModal');
+        if (profileModal) profileModal.classList.remove('hidden');
+      });
     }
 
     function closeProfileModal() {
@@ -545,84 +594,99 @@
     }
 
     function checkMistakesModule() {
-      let mistakes = [];
-      try {
-        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
-      } catch(e) {}
+      if (!currentUser) return;
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/mistakes`).once('value', (snapshot) => {
+        const mistakes = snapshot.val() || [];
+        const card = document.getElementById('mistakesModuleCard');
+        const countEl = document.getElementById('mistakesCount');
+        if (!card || !countEl) return;
 
-      const card = document.getElementById('mistakesModuleCard');
-      const countEl = document.getElementById('mistakesCount');
-      if (!card || !countEl) return;
-
-      if (mistakes.length > 0) {
-        countEl.innerText = mistakes.length;
-        card.classList.remove('hidden');
-      } else {
-        card.classList.add('hidden');
-      }
+        if (mistakes.length > 0) {
+          countEl.innerText = mistakes.length;
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
     }
 
     function recordMistake(questionObj) {
       if (!currentUser) return;
-      let mistakes = [];
-      try {
-        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
-      } catch(e) {}
-
-      if (!mistakes.some(m => m.q === questionObj.q)) {
-        mistakes.push(questionObj);
-        try {
-          localStorage.setItem(`mistakes_${currentUser.nick}`, JSON.stringify(mistakes));
-        } catch(e) {}
-      }
-      checkMistakesModule();
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/mistakes`).once('value', (snapshot) => {
+        let mistakes = snapshot.val() || [];
+        if (!mistakes.some(m => m.q === questionObj.q)) {
+          mistakes.push(questionObj);
+          db.ref(`users/${safeKey}/mistakes`).set(mistakes, () => {
+            checkMistakesModule();
+          });
+        }
+      });
     }
 
     function removeMistake(questionObj) {
       if (!currentUser) return;
-      let mistakes = [];
-      try {
-        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
-      } catch(e) {}
-
-      mistakes = mistakes.filter(m => m.q !== questionObj.q);
-      try {
-        localStorage.setItem(`mistakes_${currentUser.nick}`, JSON.stringify(mistakes));
-      } catch(e) {}
-      checkMistakesModule();
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/mistakes`).once('value', (snapshot) => {
+        let mistakes = snapshot.val() || [];
+        mistakes = mistakes.filter(m => m.q !== questionObj.q);
+        db.ref(`users/${safeKey}/mistakes`).set(mistakes, () => {
+          checkMistakesModule();
+        });
+      });
     }
 
     function startMistakesQuiz() {
-      let mistakes = [];
-      try {
-        mistakes = JSON.parse(localStorage.getItem(`mistakes_${currentUser.nick}`)) || [];
-      } catch(e) {}
+      const safeKey = sanitizeKey(currentUser.nick);
+      db.ref(`users/${safeKey}/mistakes`).once('value', (snapshot) => {
+        const mistakes = snapshot.val() || [];
+        if (mistakes.length === 0) {
+          alert("Brak problematycznych zadań do powtórki!");
+          return;
+        }
 
-      if (mistakes.length === 0) {
-        alert("Brak problematycznych zadań do powtórki!");
-        return;
-      }
+        isMistakesMode = true;
+        currentQuiz = [...mistakes];
+        currentQIdx = 0;
 
-      isMistakesMode = true;
-      currentQuiz = [...mistakes];
-      currentQIdx = 0;
-
-      const dash = document.getElementById('dashboardView');
-      const quiz = document.getElementById('quizView');
-      if (dash) dash.classList.add('hidden');
-      if (quiz) quiz.classList.remove('hidden');
-      renderQuestion();
+        const dash = document.getElementById('dashboardView');
+        const quiz = document.getElementById('quizView');
+        if (dash) dash.classList.add('hidden');
+        if (quiz) quiz.classList.remove('hidden');
+        renderQuestion();
+      });
     }
 
-    function renderLeaderboard() {
+    function listenLeaderboard() {
       const lb = document.getElementById('leaderboard');
       if (!lb) return;
-      lb.innerHTML = `
-        <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm col-span-3">
-          <span class="font-black text-slate-800">🥇 ${currentUser.nick} (Ty)</span>
-          <span class="font-extrabold text-indigo-600">${userStats.xp} XP</span>
-        </div>
-      `;
+
+      db.ref('users').on('value', (snapshot) => {
+        const usersObj = snapshot.val() || {};
+        let usersArr = [];
+        for (let key in usersObj) {
+          usersArr.push({
+            nick: usersObj[key].nick || key,
+            xp: usersObj[key].xp || 0
+          });
+        }
+
+        usersArr.sort((a, b) => b.xp - a.xp);
+
+        lb.innerHTML = "";
+        usersArr.forEach((u, index) => {
+          let badge = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `📌 ${index + 1}.`;
+          let isMe = currentUser && u.nick === currentUser.nick ? "border-indigo-600 bg-indigo-50/50" : "border-amber-200 bg-white";
+          
+          lb.innerHTML += `
+            <div class="${isMe} p-3 rounded-xl border flex items-center justify-between shadow-sm">
+              <span class="font-black text-slate-800">${badge} ${u.nick}</span>
+              <span class="font-extrabold text-indigo-600">${u.xp} XP</span>
+            </div>
+          `;
+        });
+      });
     }
 
     function renderSubjects() {
@@ -679,7 +743,7 @@
       if (chapView) chapView.classList.remove('hidden');
     }
 
-    // GENERATORY 1000 WARIANTÓW (PROFESJONALNY STANDARD EDUKACYJNY)
+    // GENERATORY 1000 WARIANTÓW (PODSTAWA PROGRAMOWA KLASA 6)
     function generateMathPool() {
       let pool = [];
       for (let i = 0; i < 1000; i++) {
@@ -721,23 +785,17 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         let h = 200 + (i % 150) * 5;
-        
-        // Profesjonalny, czytelny diagram kartograficzny z poziomicami
         pool.push({
-          q: `Geografia topograficzna #${i+1}: Analiza profilu wysokościowego terenu. Jaka jest wysokość bezwzględna punktu szczytowego oznaczonego symbolem?`,
-          svgGraphic: `<svg viewBox="0 0 600 200" class="w-full h-40 rounded-xl bg-slate-900 border border-slate-700 shadow-inner font-sans"><rect width="600" height="200" fill="#0b0f19"/><g transform="translate(30,15)"><text x="10" y="20" fill="#38bdf8" font-size="12" font-weight="bold">KARTA ANALIZY MAPY TOPOGRAFICZNEJ</text><path d="M50,140 Q150,60 250,90 T450,140" fill="none" stroke="#38bdf8" stroke-width="3"/><circle cx="250" cy="90" r="8" fill="#ef4444"/><text x="270" y="95" fill="#f8fafc" font-size="13" font-weight="bold">Szczyt wzniesienia: ${h} m n.p.m.</text><text x="50" y="170" fill="#94a3b8" font-size="11">Cięcie warstwicowe: co 50 metrów</text></g></svg>`,
-          options: [`${h} m n.p.m.`, `${h + 100} m n.p.m.`, `${h - 50} m n.p.m.`, `${h + 250} m n.p.m.`],
+          q: `Zadanie geograficzne #${i+1}: Punkt szczytowy na mapie poziomicowej opisany jest warstwicą o wartości ${h} m n.p.m. Jaka jest wysokość bezwzględna tego wzniesienia?`,
+          options: [`${h} m n.p.m.`, `${h + 100} m n.p.m.`, `${h - 50} m n.p.m.`, `${h + 200} m n.p.m.`],
           a: `${h} m n.p.m.`,
-          explanation: `Wysokość punktu szczytowego wynosi ${h} metrów nad poziomem morza.`
+          explanation: `Wysokość bezwzględna odpowiada wartości podanej na mapie topograficznej i wynosi ${h} m n.p.m.`
         });
-
-        // Czytelny schemat geograficzny położenia państw w Europie Środkowej
         pool.push({
-          q: `Geografia polityczna #${i+1}: W jakim regionie kontynentu europejskiego leży terytorium Polski?`,
-          svgGraphic: `<svg viewBox="0 0 600 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner font-sans"><rect width="600" height="180" fill="#0b0f19"/><text x="25" y="25" fill="#38bdf8" font-size="12" font-weight="bold">ATLAS GEOGRAFICZNY - EUROPA ŚRODKOWA</text><rect x="180" y="50" width="240" height="100" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/><text x="250" y="105" fill="#f8fafc" font-size="16" font-weight="bold">POLSKA (Europa Środkowa)</text></svg>`,
+          q: `Geografia regionalna #${i+1}: W jakim regionie Europy leży Polska oraz jej bezpośredni sąsiedzi?`,
           options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej", "W Europie Zachodniej"],
           a: "W Europie Środkowej",
-          explanation: "Polska położona jest w Europie Środkowej."
+          explanation: "Polska znajduje się w Europie Środkowej."
         });
       }
       return pool;
@@ -747,17 +805,16 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         pool.push({
-          q: `Biologia zwierząt #${i+1}: Na jakie trzy główne tagmy podzielone jest ciało owada widoczne na schemacie anatomicznym?`,
-          svgGraphic: `<svg viewBox="0 0 600 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner font-sans"><rect width="600" height="180" fill="#0b0f19"/><text x="25" y="25" fill="#38bdf8" font-size="12" font-weight="bold">SCHEMAT ANATOMICZNY (KLASYFIKACJA STAWONOGÓW)</text><rect x="50" y="70" width="140" height="60" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/><text x="85" y="105" fill="#f8fafc" font-size="14" font-weight="bold">GŁOWA</text><rect x="220" y="70" width="140" height="60" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/><text x="260" y="105" fill="#f8fafc" font-size="14" font-weight="bold">TUŁÓW</text><rect x="390" y="70" width="160" height="60" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/><text x="430" y="105" fill="#f8fafc" font-size="14" font-weight="bold">ODWŁOK</text></svg>`,
+          q: `Biologia #${i+1}: Na jakie trzy główne części (tagmy) dzielić można budowę zewnętrzną ciała owadów?`,
           options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa i głowa", "Tylko odwłok"],
           a: "Głowa, tułów i odwłok",
-          explanation: "Ciało owadów składa się z głowy, tułowia i odwłoka."
+          explanation: "Ciało owada składa się z głowy, tułowia oraz odwłoka."
         });
         pool.push({
-          q: `Ekologia i zoologia #${i+1}: Zwierzęta stałocieplne to:`,
-          options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy", "Wszystkie bezkręgowce"],
+          q: `Zoologia #${i+1}: Które gromady kręgowców zaliczamy do zwierząt stałocieplnych?`,
+          options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy", "Wszystkie kręgowce są zmiennocieplne"],
           a: "Ptaki i ssaki",
-          explanation: "Ptaki i ssaki utrzymują stałą temperaturę ciała."
+          explanation: "Ptaki i ssaki potrafią utrzymać stałą temperaturę ciała."
         });
       }
       return pool;
@@ -767,17 +824,16 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         pool.push({
-          q: `Kodeks drogowy #${i+1}: Co oznacza znak C-13 w polskim prawie o ruchu drogowym?`,
-          svgGraphic: `<svg viewBox="0 0 600 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner font-sans"><rect width="600" height="180" fill="#0b0f19"/><circle cx="300" cy="90" r="50" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/><path d="M270,110 L285,75 L315,75 L330,110" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>`,
+          q: `Brd #${i+1}: Co oznacza niebieski okrągły znak drogowy z białym piktogramem roweru (znak C-13)?`,
           options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Przejście dla pieszych", "Strefa zamieszkania"],
           a: "Droga dla rowerów (nakaz)",
-          explanation: "Znak C-13 nakazuje kierującym rowerami jazdę wyznaczoną ścieżką."
+          explanation: "Znak C-13 wyznacza obowiązkową drogę dla kierujących rowerami."
         });
         pool.push({
-          q: `Technologia materiałów #${i+1}: Który materiał jest znakomitym przewodnikiem prądu elektrycznego?`,
-          options: ["Miedź", "Suche drewno", "Guma kauczukowa", "Szkło kwarcowe"],
+          q: `Technologia #${i+1}: Który z wymienionych materiałów charakteryzuje się najlepszym przewodnictwem elektrycznym?`,
+          options: ["Miedź", "Suche drewno", "Guma", "Szkło"],
           a: "Miedź",
-          explanation: "Miedź doskonale przewodzy prąd."
+          explanation: "Miedź jest doskonałym przewodnikiem prądu."
         });
       }
       return pool;
@@ -787,16 +843,16 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         pool.push({
-          q: `Historia powszechna #${i+1}: W którym roku Krzysztof Kolumb dotarł do Ameryki?`,
+          q: `Historia #${i+1}: W którym roku Krzysztof Kolumb dotarł do wybrzeży Ameryki, co zapoczątkowało epokę nowożytną?`,
           options: ["1492 rok", "1410 rok", "1791 rok", "1025 rok"],
           a: "1492 rok",
-          explanation: "Rok 1492 to początek nowożytności."
+          explanation: "Rok 1492 to przełomowa data wielkich odkryć geograficznych."
         });
         pool.push({
-          q: `Historia Polski #${i+1}: Konstytucja 3 maja została uchwalona w roku:`,
+          q: `Historia Polski #${i+1}: W którym roku uchwalono pierwszą w Europie nowoczesną ustawę zasadniczą – Konstytucję 3 maja?`,
           options: ["1791", "1772", "1795", "1918"],
           a: "1791",
-          explanation: "Pierwsza w Europie ustawa zasadnicza."
+          explanation: "Konstytucję 3 maja uchwalono w 1791 roku."
         });
       }
       return pool;
@@ -806,13 +862,13 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         pool.push({
-          q: `Język angielski (gramatyka) #${i+1}: Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':`,
+          q: `Angielski (gramatyka) #${i+1}: Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika nieregularnego 'GO':`,
           options: ["went", "gone", "goed", "going"],
           a: "went",
-          explanation: "Czasownik nieregularny go -> went -> gone."
+          explanation: "Formy czasownika: go -> went -> gone."
         });
         pool.push({
-          q: `Język angielski (słownictwo) #${i+1}: Przetłumacz na angielski słowo 'Pies':`,
+          q: `Angielski (słownictwo) #${i+1}: Przetłumacz na język angielski wyraz 'Pies':`,
           isOpen: true,
           a: "dog",
           explanation: "Pies to po angielsku 'dog'."
@@ -866,15 +922,9 @@
 
       const container = document.getElementById('questionContainer');
       if (!container) return;
-      
-      let svgHtml = '';
-      if (q.svgGraphic) {
-        svgHtml = `<div class="w-full mb-4 overflow-hidden rounded-2xl shadow-md border border-slate-700 bg-slate-900">${q.svgGraphic}</div>`;
-      }
 
       container.innerHTML = `
-        <h3 class="text-base font-black text-slate-800 mb-3">${q.q}</h3>
-        ${svgHtml}
+        <h3 class="text-base font-black text-slate-800 mb-4">${q.q}</h3>
       `;
 
       if (q.isOpen) {
