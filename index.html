@@ -3,333 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Akademia 6A - Platforma Nauki i Wyzwań</title>
-  <!-- Tailwind CSS z CDN -->
+  <title>Akademia 6A</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK (wersja kompatybilna CDN) -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- KONFIGURACJA FIREBASE AKADEMIA 6A -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDpe9cwQywFTFzNoC6ovSPAzLjS8_pjsRQ",
-      authDomain: "akademia-6a.firebaseapp.com",
-      projectId: "akademia-6a",
-      storageBucket: "akademia-6a.firebasestorage.app",
-      messagingSenderId: "547146287604",
-      appId: "1:547146287604:web:53c5efa8b29383a77dd1a1"
-    };
-
-    let db = null;
-    try {
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.firestore();
-    } catch(e) {
-      console.log("Firebase nieaktywny lub uruchomiony w trybie offline.");
-    }
-  </script>
-
-  <!-- EKRAN LOGOWANIA I ODZYSKIWANIA HASŁA -->
+  <!-- EKRAN LOGOWANIA -->
   <div id="authScreen" class="fixed inset-0 bg-indigo-950 bg-opacity-95 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
       <div class="text-5xl mb-3">⚡</div>
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
-      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć do rywalizacji!</p>
+      <p class="text-slate-500 text-sm mb-6">Wpisz swój Nick i PIN, aby dołączyć!</p>
 
-      <!-- FORMULARZ LOGOWANIA / REJESTRACJI -->
-      <div id="loginForm" class="space-y-4 text-left">
+      <div class="space-y-4 text-left">
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia (np. Karol_SP7):</label>
-          <input type="text" id="userNick" placeholder="Twój Nick" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
+          <input type="text" id="userNick" placeholder="Np. Karol_SP7" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">PIN (4 cyfry):</label>
           <input type="password" id="userPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Pytanie bezpieczeństwa (do odzyskania PIN-u):</label>
-          <select id="secQuestion" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-xs text-slate-700 focus:outline-none mb-2">
-            <option value="pet">Imię pierwszego zwierzaka?</option>
-            <option value="color">Twój ulubiony kolor?</option>
-            <option value="hero">Twój ulubiony superbohater?</option>
-          </select>
-          <input type="text" id="secAnswer" placeholder="Odpowiedź na pytanie..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
-        </div>
-        <div class="flex items-center gap-2 pt-1">
-          <input type="checkbox" id="rememberMe" checked class="w-5 h-5 accent-indigo-600 rounded cursor-pointer">
-          <label for="rememberMe" class="text-xs font-bold text-slate-600 cursor-pointer">Zapamiętaj mnie na tym urządzeniu</label>
-        </div>
-        <button type="button" onclick="loginUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
+        <button type="button" onclick="startApp()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
           ROZPOCZNIJ NAUKĘ 🚀
         </button>
-        <div class="text-center mt-3">
-          <button type="button" onclick="toggleRecovery(true)" class="text-xs text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
-        </div>
       </div>
-
-      <!-- FORMULARZ ODZYSKIWANIA DOSTĘPU -->
-      <div id="recoveryForm" class="space-y-4 text-left hidden">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Wpisz swój Nick:</label>
-          <input type="text" id="recNick" placeholder="Twój Nick" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Odpowiedź na pytanie bezpieczeństwa:</label>
-          <input type="text" id="recAnswer" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Ustal NOWY PIN (4 cyfry):</label>
-          <input type="password" id="recNewPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
-        </div>
-        <button type="button" onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition active:scale-95 text-center block mt-2">
-          ZMIEŃ PIN I ZALOGUJ 🔑
-        </button>
-        <div class="text-center mt-2">
-          <button type="button" onclick="toggleRecovery(false)" class="text-xs text-slate-500 hover:underline font-bold">Powrót do logowania</button>
-        </div>
-      </div>
-
     </div>
   </div>
 
-  <!-- NAGŁÓWEK GŁÓWNY -->
-  <header class="bg-indigo-950 text-white p-4 shadow-md sticky top-0 z-40">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl">⚡</span>
-        <span id="appTitleHeader" class="font-black tracking-wider text-lg">AKADEMIA 6A</span>
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <!-- Płomyk Streaku -->
-        <div class="flex items-center gap-1 bg-amber-500/20 border border-amber-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">
-          🔥 <span id="streakDisplay">1</span> d.
-        </div>
-        <!-- XP -->
-        <div class="flex items-center gap-1 bg-indigo-800/60 border border-indigo-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">
-          ⭐ <span id="xpDisplay">0</span> XP
-        </div>
-        <!-- Profil -->
-        <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-600">
-          ⚙️ <span id="profileNick">Uczeń</span>
-        </button>
-      </div>
+  <!-- PANELS GŁÓWNY -->
+  <header class="bg-indigo-950 text-white p-4 shadow-md flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">⚡</span>
+      <span class="font-black tracking-wider text-lg">AKADEMIA 6A</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="bg-amber-500/20 border border-amber-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">🔥 1 d.</div>
+      <div class="bg-indigo-800/60 border border-indigo-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">⭐ <span id="xpVal">0</span> XP</div>
+      <span id="nickVal" class="text-xs bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-600 font-bold">Uczeń</span>
     </div>
   </header>
 
-  <!-- KONTENER GŁÓWNY -->
   <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
-
-    <!-- LIGA KLASOWA (RANKING W CZASIE RZECZYWISTYM Z FIREBASE) -->
-    <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 shadow-sm">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="font-extrabold text-amber-900 flex items-center gap-2">
-          🏆 LIGA KLASY 6A (TOP LIDERZY)
-        </h2>
-        <span class="text-xs text-amber-700 font-bold">Na żywo z chmury Firebase</span>
-      </div>
-      <div id="leaderboard" class="grid grid-cols-1 md:grid-cols-3 gap-2">
-        <div class="bg-white p-3 rounded-xl border border-amber-200 text-center font-bold text-slate-500 col-span-3">
-          Ładowanie wyników klasy 6A...
-        </div>
-      </div>
+    <h2 class="text-xl font-black text-slate-800 mb-4 mt-2">Wybierz przedmiot:</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="grid">
+      <button onclick="quiz('Angielski')" class="bg-white border p-6 rounded-2xl shadow-sm text-center flex flex-col items-center"><span class="text-5xl mb-2">🇬🇧</span><span class="font-bold">Język Angielski</span></button>
+      <button onclick="quiz('Matematyka')" class="bg-white border p-6 rounded-2xl shadow-sm text-center flex flex-col items-center"><span class="text-5xl mb-2">📐</span><span class="font-bold">Matematyka</span></button>
+      <button onclick="quiz('Historia')" class="bg-white border p-6 rounded-2xl shadow-sm text-center flex flex-col items-center"><span class="text-5xl mb-2">⚔️</span><span class="font-bold">Historia</span></button>
+      <button onclick="quiz('Geografia')" class="bg-white border p-6 rounded-2xl shadow-sm text-center flex flex-col items-center"><span class="text-5xl mb-2">🌍</span><span class="font-bold">Geografia</span></button>
+      <button onclick="quiz('Biologia')" class="bg-white border p-6 rounded-2xl shadow-sm text-center flex flex-col items-center"><span class="text-5xl mb-2">🌿</span><span class="font-bold">Biologia</span></button>
+      <button onclick="quiz('Technika')" class="bg-white border p-6 rounded-2xl shadow-sm text-center flex flex-col items-center"><span class="text-5xl mb-2">🛠️</span><span class="font-bold">Technika</span></button>
     </div>
-
-    <!-- SEKCJA PRZEDMIOTÓW -->
-    <h2 class="text-xl font-black text-slate-800 mb-4">Wybierz przedmiot:</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8" id="subjectGrid">
-      <!-- Wyświetlane w JS -->
-    </div>
-
   </main>
 
   <script>
-    let currentUser = null;
-    let userStats = { xp: 0, streak: 1 };
-
-    const program = {
-      angielski: { title: 'Język Angielski', icon: '🇬🇧' },
-      matematyka: { title: 'Matematyka', icon: '📐' },
-      historia: { title: 'Historia', icon: '⚔️' },
-      geografia: { title: 'Geografia', icon: '🌍' },
-      biologia: { title: 'Biologia', icon: '🌿' },
-      technika: { title: 'Technika', icon: '🛠️' }
-    };
-
-    window.onload = function() {
-      const savedUser = localStorage.getItem('akademia6a_saved_user');
-      if (savedUser) {
-        try {
-          currentUser = JSON.parse(savedUser);
-          document.getElementById('authScreen').classList.add('hidden');
-          initDashboard();
-        } catch(e) {
-          localStorage.removeItem('akademia6a_saved_user');
-        }
-      }
-      renderSubjects();
-    };
-
-    function toggleRecovery(show) {
-      document.getElementById('loginForm').classList.toggle('hidden', show);
-      document.getElementById('recoveryForm').classList.toggle('hidden', !show);
-      document.getElementById('authSubtitle').innerText = show ? "Resetowanie PIN-u konta" : "Wpisz swój Nick i PIN, aby dołączyć do rywalizacji!";
-    }
-
-    function enterApp(nick) {
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('profileNick').innerText = nick;
-      initDashboard();
-    }
-
-    function loginUser() {
+    function startApp() {
       const nick = document.getElementById('userNick').value.trim();
       const pin = document.getElementById('userPin').value.trim();
-      const answer = document.getElementById('secAnswer').value.trim().toLowerCase();
-      const remember = document.getElementById('rememberMe').checked;
-
-      if (!nick || pin.length < 4) {
-        alert("Wpisz swój Nick oraz 4-cyfrowy PIN!");
+      if (!nick || !pin) {
+        alert('Wpisz Nick i PIN!');
         return;
       }
-
-      currentUser = { nick, pin };
-
-      if (remember) {
-        localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
-      }
-
-      // Wejście do aplikacji bez blokowania przez obietnicę
-      enterApp(nick);
-
-      // Cicha zapis/synchronizacja w tle z Firebase
-      if (db) {
-        db.collection("users_6a").doc(nick).get().then((doc) => {
-          if (!doc.exists) {
-            db.collection("users_6a").doc(nick).set({
-              nick: nick,
-              pin: pin,
-              secAnswer: answer,
-              xp: 0,
-              streak: 1,
-              updatedAt: new Date()
-            }).catch(e => console.log("Błąd zapisu w Firebase:", e));
-          }
-        }).catch(e => console.log("Błąd odczytu z Firebase:", e));
-      }
+      document.getElementById('nickVal').innerText = nick;
+      document.getElementById('authScreen').classList.add('hidden');
     }
 
-    function resetPin() {
-      const nick = document.getElementById('recNick').value.trim();
-      const ans = document.getElementById('recAnswer').value.trim().toLowerCase();
-      const newPin = document.getElementById('recNewPin').value.trim();
-
-      if (!nick || !ans || newPin.length < 4) {
-        alert("Wpisz swój Nick, odpowiedź na pytanie oraz nowy 4-cyfrowy PIN!");
-        return;
-      }
-
-      if (db) {
-        db.collection("users_6a").doc(nick).get().then((doc) => {
-          if (!doc.exists) {
-            alert("Nie znaleziono takiego Nicku!");
-            return;
-          }
-          const data = doc.data();
-          if (data.secAnswer === ans) {
-            db.collection("users_6a").doc(nick).update({ pin: newPin });
-            alert("PIN został pomyślnie zmieniony! Zaloguj się nowym PIN-em.");
-            toggleRecovery(false);
-          } else {
-            alert("Błędna odpowiedź na pytanie bezpieczeństwa!");
-          }
-        }).catch(e => {
-          alert("Problem z połączeniem. Spróbuj ponowne.");
-        });
-      } else {
-        alert("Tryb offline - odzyskiwanie wymaga połączenia z bazą.");
-      }
-    }
-
-    function logout() {
-      if (confirm("Czy chcesz się wylogować?")) {
-        localStorage.removeItem('akademia6a_saved_user');
-        location.reload();
-      }
-    }
-
-    function initDashboard() {
-      if (!currentUser) return;
-      document.getElementById('profileNick').innerText = currentUser.nick;
-      loadUserCloudData();
-      renderLeaderboard();
-    }
-
-    function loadUserCloudData() {
-      const localXP = parseInt(localStorage.getItem(`xp_${currentUser.nick}`)) || 0;
-      userStats.xp = localXP;
-      document.getElementById('xpDisplay').innerText = userStats.xp;
-
-      if (db) {
-        db.collection("users_6a").doc(currentUser.nick).get().then((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            userStats.xp = Math.max(userStats.xp, data.xp || 0);
-            document.getElementById('xpDisplay').innerText = userStats.xp;
-          }
-        }).catch(e => console.log(e));
-      }
-    }
-
-    function renderLeaderboard() {
-      const lb = document.getElementById('leaderboard');
-      if (!db) {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Brak połączenia z chmurą. Wyniki lokalne są aktywne.</div>`;
-        return;
-      }
-
-      db.collection("users_6a").orderBy("xp", "desc").limit(3).onSnapshot((snapshot) => {
-        lb.innerHTML = "";
-        let rank = 1;
-        if (snapshot.empty) {
-          lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Bądź pierwszy w klasie! Rozwiąż test i zdobądź XP!</div>`;
-          return;
-        }
-        snapshot.forEach((doc) => {
-          const u = doc.data();
-          const medals = ["🥇", "🥈", "🥉"];
-          lb.innerHTML += `
-            <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm">
-              <span class="font-black text-slate-800">${medals[rank-1] || rank + "."} ${u.nick}</span>
-              <span class="font-extrabold text-indigo-600">${u.xp} XP</span>
-            </div>
-          `;
-          rank++;
-        });
-      }, (error) => {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Trwa przygotowywanie rankingu klasy...</div>`;
-      });
-    }
-
-    function renderSubjects() {
-      const grid = document.getElementById('subjectGrid');
-      grid.innerHTML = "";
-      for (let key in program) {
-        const s = program[key];
-        grid.innerHTML += `
-          <button onclick="startSubject('${key}')" class="bg-white border border-slate-200 hover:border-indigo-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition active:scale-95 text-center flex flex-col items-center">
-            <span class="text-5xl mb-2">${s.icon}</span>
-            <span class="font-bold text-slate-800 text-sm">${s.title}</span>
-          </button>
-        `;
-      }
-    }
-
-    function startSubject(key) {
-      alert(`Rozpoczynasz wyzwanie: ${program[key].title}!`);
+    function quiz(subject) {
+      alert('Wyzwanie z przedmiotu ' + subject + ' działa pomyślnie!');
     }
   </script>
 </body>
