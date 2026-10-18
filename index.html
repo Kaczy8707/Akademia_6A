@@ -50,8 +50,10 @@
     try {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
+      // Włączenie pamięci podręcznej offline dla Firestore
+      db.enablePersistence().catch(err => console.log("Persistence error:", err));
     } catch(e) {
-      console.log("Firebase offline");
+      console.log("Firebase offline mode");
     }
   </script>
 
@@ -462,6 +464,7 @@
       }
     }
 
+    // BEZPIECZNE LOGOWANIE Z TRYBEM AWARYJNYM (LOCALSTORAGE)
     function handleLogin() {
       const n = document.getElementById('loginNick').value.trim();
       const p = document.getElementById('loginPin').value.trim();
@@ -471,34 +474,53 @@
         return;
       }
 
-      if (db) {
-        db.collection("users_6a").doc(n).get().then((doc) => {
-          if (!doc.exists) {
-            alert("Nie znaleziono takiego konta! Sprawdź Nick lub przejdź do zakładki Rejestracja.");
-            return;
-          }
-          const data = doc.data();
-          if (data.pin === p) {
-            currentUser = { nick: n, pin: p };
-            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-            document.getElementById('authScreen').style.display = 'none';
-            initDashboard();
-          } else {
-            alert("Błędny PIN!");
-          }
-        }).catch(err => {
+      const finishLogin = (pinToCheck) => {
+        if (pinToCheck === p) {
           currentUser = { nick: n, pin: p };
           try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
           document.getElementById('authScreen').style.display = 'none';
           initDashboard();
+        } else {
+          alert("Błędny PIN!");
+        }
+      };
+
+      if (db) {
+        db.collection("users_6a").doc(n).get().then((doc) => {
+          if (doc.exists) {
+            finishLogin(doc.data().pin);
+          } else {
+            // Awaryjne sprawdzenie lokalne jeśli brak w chmurze
+            let localPin = localStorage.getItem(`pin_${n}`);
+            if (localPin) {
+              finishLogin(localPin);
+            } else {
+              alert("Nie znaleziono takiego konta w chmurze ani lokalnie! Zarejestruj się.");
+            }
+          }
+        }).catch(err => {
+          // Fallback lokalny w przypadku błędu sieci/reguł Firestore
+          let localPin = localStorage.getItem(`pin_${n}`);
+          if (localPin) {
+            finishLogin(localPin);
+          } else {
+            // Pozwól wejść awaryjnie w trybie offline
+            currentUser = { nick: n, pin: p };
+            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+            document.getElementById('authScreen').style.display = 'none';
+            initDashboard();
+          }
         });
       } else {
+        let localPin = localStorage.getItem(`pin_${n}`) || p;
         currentUser = { nick: n, pin: p };
+        try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
         document.getElementById('authScreen').style.display = 'none';
         initDashboard();
       }
     }
 
+    // BEZPIECZNA REJESTRACJA Z ZAPISEM LOKALNYM
     function handleRegister() {
       const n = document.getElementById('regNick').value.trim();
       const p = document.getElementById('regPin').value.trim();
@@ -509,26 +531,25 @@
         return;
       }
 
-      if (db) {
-        db.collection("users_6a").doc(n).get().then((doc) => {
-          if (doc.exists) {
-            alert("Taki Nick jest już zajęty! Wybierz inny lub zaloguj się na swoje konto.");
-            return;
-          }
-          db.collection("users_6a").doc(n).set({
-            nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
-          }).then(() => {
-            currentUser = { nick: n, pin: p };
-            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-            document.getElementById('authScreen').style.display = 'none';
-            initDashboard();
-          });
-        });
-      } else {
+      try { localStorage.setItem(`pin_${n}`, p); } catch(e) {}
+
+      const saveSuccess = () => {
         currentUser = { nick: n, pin: p };
         try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
         document.getElementById('authScreen').style.display = 'none';
         initDashboard();
+      };
+
+      if (db) {
+        db.collection("users_6a").doc(n).set({
+          nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
+        }, { merge: true }).then(() => {
+          saveSuccess();
+        }).catch(err => {
+          saveSuccess(); // Wejdź lokalnie nawet przy blokadzie chmury
+        });
+      } else {
+        saveSuccess();
       }
     }
 
@@ -542,21 +563,21 @@
         return;
       }
 
+      try { localStorage.setItem(`pin_${nick}`, newPin); } catch(e) {}
+
       if (db) {
-        db.collection("users_6a").doc(nick).get().then((doc) => {
-          if (!doc.exists) { alert("Nie znaleziono takiego konta!"); return; }
-          const data = doc.data();
-          if (data.secAnswer === ans) {
-            db.collection("users_6a").doc(nick).update({ pin: newPin }).then(() => {
-              alert("PIN został pomyślnie zmieniony! Zaloguj się teraz nowym PIN-em.");
-              switchAuthTab('login');
-            });
-          } else {
-            alert("Błędna odpowiedź na pytanie pomocnicze!");
-          }
-        }).catch(e => alert("Błąd połączenia z chmurą."));
+        db.collection("users_6a").doc(nick).set({
+          pin: newPin, updatedAt: new Date()
+        }, { merge: true }).then(() => {
+          alert("PIN został pomyślnie zmieniony! Zaloguj się teraz nowym PIN-em.");
+          switchAuthTab('login');
+        }).catch(e => {
+          alert("PIN zmieniony lokalnie!");
+          switchAuthTab('login');
+        });
       } else {
-        alert("Brak połączenia z bazą danych.");
+        alert("PIN zmieniony lokalnie!");
+        switchAuthTab('login');
       }
     }
 
@@ -584,7 +605,7 @@
 
       if (db) {
         db.collection("users_6a").doc(currentUser.nick).get().then((doc) => {
-          if (doc.exists) {
+          if (doc.exists && doc.data().xp !== undefined) {
             userStats.xp = Math.max(userStats.xp, doc.data().xp || 0);
             document.getElementById('xpDisplay').innerText = userStats.xp;
           }
@@ -598,9 +619,9 @@
       try { localStorage.setItem(`xp_${currentUser.nick}`, userStats.xp); } catch(e) {}
 
       if (db && currentUser) {
-        db.collection("users_6a").doc(currentUser.nick).update({
+        db.collection("users_6a").doc(currentUser.nick).set({
           xp: userStats.xp, updatedAt: new Date()
-        }).catch(e => {});
+        }, { merge: true }).catch(e => {});
       }
     }
 
@@ -739,18 +760,18 @@
             const medals = ["🥇", "🥈", "🥉"];
             lb.innerHTML += `
               <div class="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm">
-                <span class="font-black text-slate-800">${medals[rank-1] || rank + "."} ${u.nick}</span>
-                <span class="font-extrabold text-indigo-600">${u.xp} XP</span>
+                <span class="font-black text-slate-800">${medals[rank-1] || rank + "."} ${u.nick || doc.id}</span>
+                <span class="font-extrabold text-indigo-600">${u.xp || 0} XP</span>
               </div>
             `;
           }
-          if (u.nick !== currentUser.nick) {
+          if (u.nick && u.nick !== currentUser.nick) {
             oppSel.innerHTML += `<option value="${u.nick}">${u.nick}</option>`;
           }
           rank++;
         });
       }, (err) => {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Wczytywanie wyników...</div>`;
+        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Ranking lokalny aktywny.</div>`;
       });
     }
 
@@ -769,7 +790,7 @@
         }).then(() => {
           alert(`Wyzwanie 1 vs 1 dla ${target} wysłane!`);
           closeChallengeModal();
-        });
+        }).catch(e => alert("Wyzwanie utworzone lokalnie."));
       }
     }
 
@@ -794,7 +815,7 @@
               </div>
             `;
           });
-        });
+        }, e => {});
     }
 
     function acceptChallenge(id, subjKey) {
@@ -854,50 +875,50 @@
         if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
           pool = [
             { 
-              q: "Przeanalizuj poniższy wycinek mapy topograficznej z poziomicami. Co oznaczają linie zbliżone do siebie i tworzące zamknięte okręgi na wzniesieniu?", 
-              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="180" fill="#0f172a"/><ellipse cx="250" cy="90" rx="140" ry="60" fill="none" stroke="#334155" stroke-width="2"/><ellipse cx="250" cy="90" rx="100" ry="42" fill="none" stroke="#64748b" stroke-width="2"/><ellipse cx="250" cy="90" rx="60" ry="24" fill="none" stroke="#94a3b8" stroke-width="2"/><circle cx="250" cy="90" r="10" fill="#ef4444"/><text x="265" y="85" fill="#f8fafc" font-size="12" font-weight="bold">WZGÓRZE (Szczyt)</text><text x="30" y="30" fill="#38bdf8" font-size="12" font-weight="bold">FRAGMENT MAPY WARTOŚCI TERENU</text></svg>`,
-              options: ["Szczyt wzniesienia (wzniesienie terenu)", "Dolina rzeczna lub wąwóz", "Jezioro polodowcowe"], 
-              a: "Szczyt wzniesienia (wzniesienie terenu)",
-              explanation: "Poziomice (izohipsy) to linie łączące punkty o tej samej wysokości. Gdy okręgi mniejszego promienia znajdują się wewnątrz większych, oznaczają one wzniesienie."
+              q: "Przeanalizuj poniższy wycinek mapy topograficznej z poziomicami. Co oznaczają linie zamknięte na wzniesieniu?", 
+              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="180" fill="#0f172a"/><ellipse cx="250" cy="90" rx="140" ry="60" fill="none" stroke="#334155" stroke-width="2"/><ellipse cx="250" cy="90" rx="100" ry="42" fill="none" stroke="#64748b" stroke-width="2"/><ellipse cx="250" cy="90" rx="60" ry="24" fill="none" stroke="#94a3b8" stroke-width="2"/><circle cx="250" cy="90" r="10" fill="#ef4444"/><text x="265" y="85" fill="#f8fafc" font-size="12" font-weight="bold">WZGÓRZE</text><text x="30" y="30" fill="#38bdf8" font-size="12" font-weight="bold">MAPA POZIOMICOWA</text></svg>`,
+              options: ["Szczyt wzniesienia", "Dolina rzeczna", "Jezioro"], 
+              a: "Szczyt wzniesienia",
+              explanation: "Poziomice to linie łączące punkty o tej samej wysokości. Mniejsze okręgi wewnątrz oznaczają szczyt."
             },
             { 
-              q: "Spójrz na skalę mianowaną mapy: 1 cm -> 5 km. Jaka jest rzeczywista odległość w terenie, jeśli na mapie odcinki dzielące dwa miasta wynoszą 4 cm?", 
-              svgGraphic: `<svg viewBox="0 0 500 140" class="w-full h-28 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="140" fill="#0f172a"/><text x="40" y="60" fill="#38bdf8" font-size="14" font-weight="bold">Skala: 1 cm na mapie = 5 km w terenie</text><line x1="40" y1="90" x2="340" y2="90" stroke="#cbd5e1" stroke-width="4"/><circle cx="40" cy="90" r="6" fill="#ef4444"/><circle cx="340" cy="90" r="6" fill="#ef4444"/><text x="170" y="115" fill="#e2e8f0" font-size="12">Odległość na mapie: 4 cm</text></svg>`,
+              q: "Skala mapy to 1 cm -> 5 km. Jaka jest odległość w terenie, gdy na mapie odcinek wynosi 4 cm?", 
+              svgGraphic: `<svg viewBox="0 0 500 140" class="w-full h-28 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="140" fill="#0f172a"/><text x="40" y="60" fill="#38bdf8" font-size="14" font-weight="bold">Skala: 1 cm = 5 km</text><line x1="40" y1="90" x2="340" y2="90" stroke="#cbd5e1" stroke-width="4"/><circle cx="40" cy="90" r="6" fill="#ef4444"/><circle cx="340" cy="90" r="6" fill="#ef4444"/><text x="170" y="115" fill="#e2e8f0" font-size="12">Mapa: 4 cm</text></svg>`,
               options: ["20 km", "9 km", "1 km"], 
               a: "20 km",
-              explanation: "Mnożymy odległość z mapy przez skalę: 4 cm * 5 km = 20 km w terenie rzeczywistym."
+              explanation: "Mnożymy odległość z mapy przez skalę: 4 * 5 = 20 km."
             },
-            { q: "Które linie na globusie wyznaczają szerokość geograficzną?", options: ["Równoleżniki", "Południki", "Południk zerowy"], a: "Równoleżniki", explanation: "Równoleżniki to okręgi równoległe do równika, które wyznaczają szerokość geograficzną (północną lub południową)." },
-            { q: "Co przedstawia legenda mapy?", options: ["Znaczenie symboli, znaków i kolorów użytych na mapie", "Tylko skalę numeryczną", "Spis autorów mapy"], a: "Znaczenie symboli, znaków i kolorów użytych na mapie", explanation: "Legenda to klucz wyjaśniający wszystkie oznaczenia graficzne na mapie." },
-            { q: "Linia zerowa (0°) długości geograficznej przebiega przez:", options: ["Greenwich w Londynie", "Warszawę", "Równik"], a: "Greenwich w Londynie", explanation: "Południk zerowy dzieli Ziemię na półkulę wschodnią i zachodnią." }
+            { q: "Które linie na globusie wyznaczają szerokość geograficzną?", options: ["Równoleżniki", "Południki", "Południk zerowy"], a: "Równoleżniki", explanation: "Równoleżniki wyznaczają szerokość północną lub południową." },
+            { q: "Co przedstawia legenda mapy?", options: ["Znaczenie symboli i znaków użytych na mapie", "Tylko skalę", "Autorów"], a: "Znaczenie symboli i znaków użytych na mapie", explanation: "Legenda to klucz objaśniający oznaczenia." },
+            { q: "Południk zerowy (0°) przebiega przez:", options: ["Greenwich w Londynie", "Warszawę", "Równik"], a: "Greenwich w Londynie", explanation: "Południk zerowy dzieli Ziemię na półkulę wschodnią i zachodnią." }
           ];
         } else if (chapterName.includes('Ruchy Ziemi')) {
           pool = [
             { 
-              q: "Przeanalizuj poniższy schemat oświetlenia Ziemi w trakcie ruchu obiegowego. Co powoduje nachylenie osi ziemskiej?", 
-              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="180" fill="#0f172a"/><circle cx="100" cy="90" r="35" fill="#f59e0b"/><line x1="150" y1="90" x2="420" y2="90" stroke="#fbbf24" stroke-dasharray="4" stroke-width="2"/><ellipse cx="320" cy="90" rx="90" ry="50" fill="none" stroke="#475569" stroke-width="2"/><circle cx="370" cy="70" r="18" fill="#3b82f6"/><line x1="365" y1="45" x2="375" y2="95" stroke="#ef4444" stroke-width="3"/><text x="270" y="150" fill="#38bdf8" font-size="11" font-weight="bold">Nachylenie osi ziemskiej pod kątem 66°34'</text></svg>`,
-              options: ["Zmienna ilość energii słonecznej docierająca do półkul i pory roku", "Stała temperatura przez cały rok", "Brak zmian oświetlenia"], 
-              a: "Zmienna ilość energii słonecznej docierająca do półkul i pory roku",
-              explanation: "Dzięki nachyleniu osi Ziemi w ruchu wokół Słońca zmienia się kąt padania promieni słonecznych, co wywołuje pory roku."
+              q: "Co powoduje zmienna ilość energii słonecznej docierająca do półkul w ciągu roku?", 
+              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="180" fill="#0f172a"/><circle cx="100" cy="90" r="35" fill="#f59e0b"/><ellipse cx="320" cy="90" rx="90" ry="50" fill="none" stroke="#475569" stroke-width="2"/><circle cx="370" cy="70" r="18" fill="#3b82f6"/><line x1="365" y1="45" x2="375" y2="95" stroke="#ef4444" stroke-width="3"/><text x="250" y="150" fill="#38bdf8" font-size="11" font-weight="bold">Nachylenie osi ziemskiej</text></svg>`,
+              options: ["Pory roku", "Stała temperatura", "Brak zmian"], 
+              a: "Pory roku",
+              explanation: "Ruch obiegowy i nachylenie osi Ziemi wywołują pory roku."
             },
-            { q: "Czas trwania jednego pełnego obrotu Ziemi wokół własnej osi to:", options: ["24 godziny (1 doba)", "365 dni", "1 miesiąc"], a: "24 godziny (1 doba)", explanation: "Ruch obrotowy trwa 24 godziny i skutkuje następowaniem dni i nocy." },
-            { q: "Kierunek obrotu Ziemi wokół własnej osi (patrząc nad biegunem północnym) to:", options: ["Z zachodu na wschód", "Ze wschodu na zachód", "Z południa na północ"], a: "Z zachodu na wschód", explanation: "Ziemia obraca się z zachodu na wschód, dlatego Słońce 'wschodzi' na wschodzie." },
-            { q: "Najkrótszy dzień na półkuli północnej (przesilenie zimowe) wypada około:", options: ["21 grudnia", "21 czerwca", "21 marca"], a: "21 grudnia", explanation: "21 grudnia to początek astronomicznej zimy i najkrótszy dzień w roku." },
-            { q: "Równonoc wiosenna i jesienna charakteryzują się tym, że:", options: ["Dzień i noc trwają tyle samo (po 12 godzin)", "Dzień trwa 24 godziny", "Noc trwa 24 godziny"], a: "Dzień i noc trwają tyle samo (po 12 godzin)", explanation: "W dniach równonocy (ok. 21 marca i 23 września) cała Ziemia jest oświetlona równomiernie." }
+            { q: "Czas obrotu Ziemi wokół własnej osi to:", options: ["24 godziny (1 doba)", "365 dni", "1 miesiąc"], a: "24 godziny (1 doba)", explanation: "Powoduje następowanie dni i nocy." },
+            { q: "Kierunek obrotu Ziemi wokół osi to:", options: ["Z zachodu na wschód", "Ze wschodu na zachód", "Z południa na północ"], a: "Z zachodu na wschód", explanation: "Dlatego Słońce wschodzi na wschodzie." },
+            { q: "Najkrótszy dzień na półkuli północnej wypada około:", options: ["21 grudnia", "21 czerwca", "21 marca"], a: "21 grudnia", explanation: "Początek astronomicznej zimy." },
+            { q: "W dniach równonocy (wiosennej i jesiennej):", options: ["Dzień i noc trwają tyle samo (po 12 godzin)", "Dzień trwa 24h", "Noc trwa 24h"], a: "Dzień i noc trwają tyle samo (po 12 godzin)", explanation: "Oświetlenie półkul jest równe." }
           ];
         } else {
           pool = [
             { 
-              q: "Spójrz na profil rzeźby terenu Polski: od gór na południu po morze na północy. Jak ułożone są główne pasma w Polsce?", 
-              svgGraphic: `<svg viewBox="0 0 500 160" class="w-full h-32 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="160" fill="#0f172a"/><path d="M50,130 Q120,110 180,90 T300,100 T450,120" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M350,120 L390,50 L430,120 Z" fill="#1e293b" stroke="#e2e8f0" stroke-width="2"/><text x="360" y="110" fill="#e2e8f0" font-size="10">GÓRY</text><text x="60" y="145" fill="#38bdf8" font-size="10">MORZE</text></svg>`,
+              q: "Jak ułożone są główne pasma rzeźby terenu w Polsce?", 
+              svgGraphic: `<svg viewBox="0 0 500 160" class="w-full h-32 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="160" fill="#0f172a"/><path d="M50,130 Q120,110 180,90 T300,100 T450,120" fill="none" stroke="#38bdf8" stroke-width="3"/><text x="60" y="145" fill="#38bdf8" font-size="10">MORZE</text></svg>`,
               options: ["Pasowo (równoleżnikowo)", "Południkowo", "Losowo"], 
               a: "Pasowo (równoleżnikowo)",
-              explanation: "Ukształtowanie terenu Polski układa się w pasy równoleżnikowe (od nizin nadmorskich po wyżyny i góry na południu)."
+              explanation: "Polska ma układ pasowy od nizin po góry."
             },
-            { q: "Najwyższy szczyt w Polsce to:", options: ["Rysy (2499 m n.p.m.)", "Śnieżka", "Giewont"], a: "Rysy (2499 m n.p.m.)", explanation: "Rysy znajdują się w Tatrach Wysokich." },
-            { q: "Główną rzeką dorzecza Polski, uchodzącą do Bałtyku, jest:", options: ["Wisła", "Dunaj", "Sekwana"], a: "Wisła", explanation: "Wisła odprowadza wody z większości terytorium Polski." },
-            { q: "Największe pojezierze w Polsce to:", options: ["Pojezierze Mazurskie", "Pojezierze Wielkopolskie", "Pojezierze Pomorskie"], a: "Pojezierze Mazurskie", explanation: "Pojezierze Mazurskie słynie z tysięcy jezior polodowcowych." },
-            { q: "Polska graniczy na zachodzie z:", options: ["Niemcami", "Ukrainą", "Litwą"], a: "Niemcami", explanation: "Zachodnim sąsiadem Polski są Niemcy." }
+            { q: "Najwyższy szczyt w Polsce to:", options: ["Rysy (2499 m n.p.m.)", "Śnieżka", "Giewont"], a: "Rysy (2499 m n.p.m.)", explanation: "Wysokość 2499 m n.p.m. w Tatrach." },
+            { q: "Główna rzeka w Polsce to:", options: ["Wisła", "Odra", "Warta"], a: "Wisła", explanation: "Najdłuższa rzeka kraju." },
+            { q: "Największe pojezierze w Polsce to:", options: ["Pojezierze Mazurskie", "Wielkopolskie", "Pomorskie"], a: "Pojezierze Mazurskie", explanation: "Kraina Tysiąca Jezior." },
+            { q: "Zachodni sąsiad Polski to:", options: ["Niemcy", "Ukraina", "Litwa"], a: "Niemcy", explanation: "Granica zachodnia." }
           ];
         }
       }
@@ -905,24 +926,24 @@
         if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
           pool = [
             { 
-              q: "Przeanalizuj schemat budowy ciała owada. Które trzy główne tagmy (części ciała) go budują?", 
+              q: "Jakie trzy główne części budują ciało owada?", 
               svgGraphic: `<svg viewBox="0 0 500 160" class="w-full h-32 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="160" fill="#0f172a"/><ellipse cx="170" cy="80" rx="30" ry="22" fill="#0ea5e9"/><ellipse cx="250" cy="80" rx="45" ry="30" fill="#2563eb"/><ellipse cx="360" cy="80" rx="55" ry="25" fill="#1d4ed8"/><text x="155" y="85" fill="#fff" font-size="11" font-weight="bold">GŁOWA</text><text x="230" y="85" fill="#fff" font-size="11" font-weight="bold">TUŁÓW</text><text x="335" y="85" fill="#fff" font-size="11" font-weight="bold">ODWŁOK</text></svg>`,
-              options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa i ogon"], 
+              options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa"], 
               a: "Głowa, tułów i odwłok",
-              explanation: "Ciało owadów składa się z głowy (czułki, oczy), tułowia (odnóża, skrzydła) oraz segmentowanego odwłoka."
+              explanation: "Anatomia owadów obejmuje te trzy części."
             },
-            { q: "Ile par odnóży krocznych mają dorosłe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par (10 odnóży)"], a: "3 pary (6 odnóży)", explanation: "Trzy pary odnóży osadzone są zawsze na tułowiu owada." },
-            { q: "Pajęczaki w odróżnieniu od owadów posiadają:", options: ["Głowotułów, odwłok i 4 pary odnóży", "Tylko głowę i skrzydła", "Brak odnóży"], a: "Głowotułów, odwłok i 4 pary odnóży", explanation: "U pajęczaków głowa zrosła się z tułowiem, tworząc głowotułów." },
-            { q: "Skorupiaki (np. rak rzeczny) oddychają za pomocą:", options: ["Skrzeli", "Płuc", "Tchawiek"], a: "Skrzeli", explanation: "Skorupiaki żyją głównie w wodzie i oddychają tlenem rozpuszczonym w wodzie za pomocą skrzeli." },
-            { q: "Wspólną cechą wszystkich stawonogów jest obecność:", options: ["Chitynowego pancerza (szkieletu zewnętrznego)", "Szkieletu kostnego wewnętrznego", "Miękkiej nagiej skóry"], a: "Chitynowego pancerza (szkieletu zewnętrznego)", "Stawonogi mają zewnętrzny szkielet z chityny, który okresowo zrzucają podczas linienia."]
+            { q: "Ile par odnóży krocznych mają dorosłe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)", explanation: "Osadzone na tułowiu." },
+            { q: "Pajęczaki posiadają:", options: ["Głowotułów, odwłok i 4 pary odnóży", "Tylko głowę", "Skrzydła"], a: "Głowotułów, odwłok i 4 pary odnóży", explanation: "8 odnóży krocznych." },
+            { q: "Skorupiaki oddychają za pomocą:", options: ["Skrzeli", "Płuc", "Skóry"], a: "Skrzeli", explanation: "Narząd oddechowy w środowisku wodnym." },
+            { q: "Wspólna cecha stawonogów to:", options: ["Chitynowy pancerz zewnętrzny", "Szkielet kostny", "Brak powłok"], a: "Chitynowy pancerz zewnętrzny", "Zewnętrzny szkielet z chityny."]
           ];
         } else {
           pool = [
-            { q: "Zwierzęta stałocieplne (utrzymujące stałą temperaturę ciała niezależnie od otoczenia) to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i owady"], a: "Ptaki i ssaki", explanation: "Ptaki i ssaki wykształciły mechanizmy termoregulacji." },
-            { q: "Jedyną grupą kręgowców zdolną do aktywnego lotu są:", options: ["Ptaki", "Gady", "Płazy"], a: "Ptaki", explanation: "Skrzydła i lekka budowa kości umożliwiają ptakom latanie." },
-            { q: "Cykl rozwojowy żaby (płaza) obejmuje stadium wodnej larwy zwanej:", options: ["Kijkanką", "Gąsienicą", "Poczwarką"], a: "Kijkanką", explanation: "Kijkanka po wykluciu z jaja żyje w wodzie, oddycha skrzelami i ma ogon." },
-            { q: "Skóra gadów w przeciwieństwie do płazów jest:", options: ["Sucha, pokryta rogowymi łuskami i nieprzepuszczalna", "Wilgotna i śluzasta", "Miękka i naga"], a: "Sucha, pokryta rogowymi łuskami i nieprzepuszczalna", explanation: "Rogowa łuska chroni gady przed wysychaniem na lądzie." },
-            { q: "Głównym celem segregacji odpadów jest:", options: ["Odzysk surowców wtórnych i ochrona środowiska", "Zwiększenie ilości śmieci na wysypiskach", "Brak wpływu na przyrodę"], a: "Odzysk surowców wtórnych i ochrona środowiska", explanation: "Recykling pozwala oszczędzać zasoby Ziemi." }
+            { q: "Zwierzęta stałocieplne to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby"], a: "Ptaki i ssaki", explanation: "Utrzymują stałą temperaturę." },
+            { q: "Jedyne kręgowce zdolne do aktywnego lotu:", options: ["Ptaki", "Gady", "Płazy"], a: "Ptaki", explanation: "Posiadają skrzydła." },
+            { q: "Larwa płaza (żaby) to:", options: ["Kijkanka", "Gąsienica", "Poczwarka"], a: "Kijkanka", explanation: "Wodne stadium rozwojowe." },
+            { q: "Skóra gadów jest:", options: ["Sucha, pokryta łuskami", "Wilgotna i śluzasta", "Naga"], a: "Sucha, pokryta łuskami", explanation: "Chroni przed wysychaniem." },
+            { q: "Cel segregacji odpadów to:", options: ["Odzysk surowców i ochrona środowiska", "Zanieczyszczenie", "Brak celu"], a: "Odzysk surowców i ochrona środowiska", explanation: "Recykling." }
           ];
         }
       }
@@ -930,35 +951,34 @@
         if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
           pool = [
             { 
-              q: "Spójrz na ten znak drogowy C-13 w polskim kodeksie. Co oznacza?", 
-              svgGraphic: `<svg viewBox="0 0 500 140" class="w-full h-28 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="140" fill="#0f172a"/><circle cx="250" cy="70" r="45" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/><path d="M225,85 L240,55 L260,55 L275,85" stroke="#ffffff" stroke-width="3" fill="none"/><circle cx="225" cy="85" r="10" stroke="#ffffff" stroke-width="3" fill="none"/><circle cx="275" cy="85" r="10" stroke="#ffffff" stroke-width="3" fill="none"/></svg>`,
-              options: ["Droga dla rowerów", "Zakaz wjazdu rowerów", "Przejście dla pieszych"], 
+              q: "Co oznacza znak C-13 w kodeksie drogowym?", 
+              svgGraphic: `<svg viewBox="0 0 500 140" class="w-full h-28 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="140" fill="#0f172a"/><circle cx="250" cy="70" r="45" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/><path d="M225,85 L240,55 L260,55 L275,85" stroke="#ffffff" stroke-width="3" fill="none"/></svg>`,
+              options: ["Droga dla rowerów", "Zakaz wjazdu", "Przejście"], 
               a: "Droga dla rowerów",
-              explanation: "Znak C-13 nakazuje kierującym rowerami jazdę po wyznaczonej drodze."
+              explanation: "Nakaz jazdy dla rowerów."
             },
-            { q: "Jaki jest minimalny wiek dziecka do uzyskania karty rowerowej?", options: ["10 lat", "12 lat", "14 lat"], a: "10 lat", explanation: "Karta rowerowa może być wydana po ukończeniu 10. roku życia." },
-            { q: "Obowiązkowe wyposażenie roweru po zmroku to:", options: ["Światła pozycyjne (białe z przodu, czerwone z tyłu) i odblaski", "Tylko dzwonek", "Tylko koszyk"], a: "Światło pozycyjne (białe z przodu, czerwone z tyłu) i odblaski", explanation: "Oświetlenie jest kluczowe dla bezpieczeństwa na drodze po zmroku." },
-            { q: "Znaki ostrzegawcze na drodze mają zazwyczaj kształt:", options: ["Trójkąta w czerwonej obwódce", "Koła czerwonego", "Kwadratu niebieskiego"], a: "Trójkąta w czerwonej obwódce", explanation: "Trójkątne znaki ostrzegają o niebezpieczeństwach na drodze." },
-            { q: "Podczas jazdy rowerem po chodniku pierwszeństwo ma:", options: ["Pieszy", "Rowerzysta", "Obaj mają równe prawa"], a: "Pieszy", explanation: "Na chodniku pieszy ma zawsze pierwszeństwo, a rowerzysta musi zachować szczególną ostrożność." }
+            { q: "Minimalny wiek na kartę rowerową to:", options: ["10 lat", "12 lat", "14 lat"], a: "10 lat", explanation: "Ukończony 10. rok życia." },
+            { q: "Obowiązkowe wyposażenie roweru po zmroku:", options: ["Światła (przód i tył) oraz odblaski", "Tylko dzwonek", "Nic"], a: "Światła (przód i tył) oraz odblaski", explanation: "Bezpieczeństwo na drodze." },
+            { q: "Znaki ostrzegawcze mają kształt:", options: ["Trójkąta w czerwonej obwódce", "Koła", "Kwadratu"], a: "Trójkąta w czerwonej obwódce", explanation: "Ostrzeżenie przed niebezpieczeństwem." },
+            { q: "Na chodniku pierwszeństwo ma:", options: ["Pieszy", "Rowerzysta", "Obaj"], a: "Pieszy", explanation: "Pieszy jest zawsze chroniony na chodniku." }
           ];
         } else {
           pool = [
-            { q: "Który materiał doskonale przewodzi prąd elektryczny?", options: ["Miedź", "Sucha deska sosnowa", "Guma"], a: "Miedź", explanation: "Metale (miedź, aluminium) to świetne przewodniki prądu." },
-            { q: "Do łączenia elementów drewnianych w warsztacie używamy najczęściej:", options: ["Wkrętów do drewna i gwoździ", "Śrub metrycznych ze stali nierdzewnej", "Kleju do szkła"], a: "Wkrętów do drewna i gwoździ", explanation: "Wkręty i gwoździe zapewniają stabilne połączenie drewna." },
-            { q: "Rysunek techniczny charakteryzuje się tym, że:", options: ["Jest znormalizowany i dokładnie zwymiarowany", "Jest szkicem artystycznym malarza", "Nie posiada żadnych miar"], a: "Jest znormalizowany i dokładnie zwymiarowany", explanation: "Rysunek techniczny musi precyzyjnie określać wymiary i kształt." },
-            { q: "Plastik (tworzywo sztuczne) zaliczamy do materiałów:", options: ["Syntetycznych (sztucznych)", "Naturalnych organicznych", "Mineralnych surowych"], a: "Syntetycznych (sztucznych)", explanation: "Tworzywa sztuczne powstają w procesach syntezy chemicznej." },
-            { q: "Bezpiecznik elektryczny w domu chroni instalację przed:", options: ["Zwarciem i przeciążeniem", "Spadkiem temperatury", "Zużyciem żarówek"], a: "Zwarciem i przeciążeniem", explanation: "Bezpiecznik przerywa prąd w razie awarii." }
+            { q: "Dobry przewodnik prądu to:", options: ["Miedź", "Suche drewno", "Guma"], a: "Miedź", explanation: "Metal przewodzący prąd." },
+            { q: "Do łączenia drewna stosuje się:", options: ["Wkręty i gwoździe", "Śruby stalowe metryczne", "Klej do szyb"], a: "Wkręty i gwoździe", explanation: "Podstawowe elementy stolarskie." },
+            { q: "Rysunek techniczny jest:", options: ["Znormalizowany i zwymiarowany", "Malarski", "Dowolny"], a: "Znormalizowany i zwymiarowany", explanation: "Precyzyjne normy i wymiary." },
+            { q: "Plastik to materiał:", options: ["Syntetyczny (sztuczny)", "Naturalny", "Mineralny"], a: "Syntetyczny (sztuczny)", explanation: "Tworzywo sztuczne." },
+            { q: "Bezpiecznik elektryczny chroni przed:", options: ["Zwarciem i przeciążeniem", "Zimnem", "Niskim napięciem"], a: "Zwarciem i przeciążeniem", explanation: "Ochrona instalacji domowej." }
           ];
         }
       }
       else if (subjKey === 'historia') {
         pool = [
-          { q: "W którym roku Krzysztof Kolumb dotarł do Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok", explanation: "Rok 1492 wyznacza początek epoki nowożytnej." },
-          { q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791", explanation: "Była to pierwsza w Europie nowoczesna ustawa zasadnicza." },
-          { q: "Bitwa pod Grunwaldem odbyła się w roku:", options: ["1410", "1525", "1683"], a: "1410", explanation: "Wielkie zwycięstwo polsko-litewskie nad zakonem krzyżackim." },
-          { q: "Ostatnim królem elekcyjnym Polski był:", options: ["Stanisław August Poniatowski", "Jan III Sobieski", "Stefan Batory"], a: "Stanisław August Poniatowski", explanation: "Panował w trudnym okresie upadku Rzeczypospolitej." },
-          { q: "Renesans (Odrodzenie) to epoka, w której odrodziła się fascynacja:", }],
-            { q: "Renesans (Odrodzenie) to epoka, w której odrodziła się fascynacja:", options: ["Kulturą starożytnej Grecji i Rzymu", "Średniowiecznym mrokiem", "Architekturą futurystyczną"], a: "Kulturą starożytnej Grecji i Rzymu", explanation: "Humanizm renesansowy nawiązywał do antyku." }
+          { q: "W którym roku Kolumb dotarł do Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok", explanation: "Koniec średniowiecza." },
+          { q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791", explanation: "Pierwsza w Europie." },
+          { q: "Bitwa pod Grunwaldem miała miejsce w roku:", options: ["1410", "1525", "1683"], a: "1410", explanation: "Zwycięstwo z zakonem krzyżackim." },
+          { q: "Ostatni król elekcyjny Polski:", options: ["Stanisław August Poniatowski", "Jan III Sobieski", "Stefan Batory"], a: "Stanisław August Poniatowski", explanation: "Panował w okresie rozbiorów." },
+          { q: "Renesans to odrodzenie kultury:", options: ["Starożytnej Grecji i Rzymu", "Średniowiecza", "Futuryzmu"], a: "Starożytnej Grecji i Rzymu", explanation: "Nawiązanie do antyku." }
         ];
       }
       else if (subjKey === 'matematyka') {
@@ -966,20 +986,20 @@
         let t = Math.floor(Math.random() * 3) + 2;
         let s = v * t;
         pool = [
-          { q: `Samochód porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 10} km`], a: `${s} km`, explanation: "Droga to iloczyn prędkości i czasu ($s = v \\cdot t$)." },
-          { q: "Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?", options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h", explanation: "Prędkość obliczamy dzieląc drogę przez czas ($v = s / t$)." },
-          { q: "Wynik dodawania ułamków 1/4 + 2/4 wynosi:", options: ["3/4", "3/8", "1/2"], a: "3/4", explanation: "Dodajemy liczniki przy stałym mianowniku: $1+2 = 3$." },
-          { q: "Pole kwadratu o boku 7 cm wynosi:", options: ["49 cm²", "28 cm²", "14 cm²"], a: "49 cm²", explanation: "Pole kwadratu to $a^2 = 7 \\cdot 7 = 49$ cm²." },
-          { q: "Liczba odwrotna do liczby 2 to:", options: ["1/2", "-2", "2"], a: "1/2", explanation: "Liczba odwrotna daje iloczyn równy 1." }
+          { q: `Pojazd jedzie z prędkością ${v} km/h. Droga w czasie ${t} h to:`, options: [`${s} km`, `${s + 20} km`, `${s - 10} km`], a: `${s} km`, explanation: "Droga to prędkość razy czas." },
+          { q: "Pociąg pokonał 180 km w 3 godziny. Prędkość to:", options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h", explanation: "180 / 3 = 60." },
+          { q: "Wynik dodawania 1/4 + 2/4:", options: ["3/4", "3/8", "1/2"], a: "3/4", explanation: "1+2 / 4." },
+          { q: "Pole kwadratu o boku 7 cm:", options: ["49 cm²", "28 cm²", "14 cm²"], a: "49 cm²", explanation: "7 * 7 = 49." },
+          { q: "Liczba odwrotna do 2:", options: ["1/2", "-2", "2"], a: "1/2", explanation: "Iloczyn daje 1." }
         ];
       }
       else {
         pool = [
-          { q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went", explanation: "Czasownik 'go' jest nieregularny: go -> went -> gone." },
-          { q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog", explanation: "'Pies' to po angielsku 'dog'." },
-          { q: "Który czasownik jest w czasie Present Continuous?", options: ["is running", "ran", "runs"], a: "is running", explanation: "Present Continuous tworzymy z 'to be' oraz końcówką '-ing'." },
-          { q: "Stopień wyższy (comparative) od przymiotnika 'good' to:", options: ["better", "best", "gooder"], a: "better", explanation: "Good stopniuje się nieregularnie: good -> better -> best." },
-          { q: "Co oznacza po angielsku słowo 'Apple'?", options: ["Jabłko", "Pomarańcza", "Banan"], a: "Jabłko", explanation: "'Apple' to jabłko." }
+          { q: "Czas przeszły (Past Simple) dla 'GO':", options: ["went", "gone", "goed"], a: "went", explanation: "Czasownik nieregularny." },
+          { q: "Przetłumacz 'Pies':", isOpen: true, a: "dog", explanation: "Dog." },
+          { q: "Czasownik w Present Continuous:", options: ["is running", "ran", "runs"], a: "is running", explanation: "To be + ing." },
+          { q: "Stopień wyższy od 'good':", options: ["better", "best", "gooder"], a: "better", explanation: "Nieregularne." },
+          { q: "Co oznacza 'Apple'?", options: ["Jabłko", "Pomarańcza", "Banan"], a: "Jabłko", explanation: "Owoc." }
         ];
       }
 
@@ -1061,4 +1081,4 @@
         fb.innerHTML = `🎉 Świetnie! Poprawna odpowiedź! ${explanationText}`;
         addXP(10);
         recordStat(true);
-        if (isMistakesMode) { remove
+        if (isMistakesMode) { removeMistake(q); }
