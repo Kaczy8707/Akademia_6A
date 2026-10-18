@@ -23,12 +23,12 @@
       appId: "1:547146287604:web:53c5efa8b29383a77dd1a1"
     };
 
-    let db;
+    let db = null;
     try {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
     } catch(e) {
-      console.log("Tryb demonstracyjny / offline");
+      console.log("Firebase nieaktywny lub uruchomiony w trybie offline.");
     }
   </script>
 
@@ -62,11 +62,11 @@
           <input type="checkbox" id="rememberMe" checked class="w-5 h-5 accent-indigo-600 rounded cursor-pointer">
           <label for="rememberMe" class="text-xs font-bold text-slate-600 cursor-pointer">Zapamiętaj mnie na tym urządzeniu</label>
         </div>
-        <button onclick="loginUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
+        <button type="button" onclick="loginUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
           ROZPOCZNIJ NAUKĘ 🚀
         </button>
         <div class="text-center mt-3">
-          <button onclick="toggleRecovery(true)" class="text-xs text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
+          <button type="button" onclick="toggleRecovery(true)" class="text-xs text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
         </div>
       </div>
 
@@ -84,11 +84,11 @@
           <label class="block text-xs font-bold text-slate-600 mb-1">Ustal NOWY PIN (4 cyfry):</label>
           <input type="password" id="recNewPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
-        <button onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition active:scale-95 text-center block mt-2">
+        <button type="button" onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition active:scale-95 text-center block mt-2">
           ZMIEŃ PIN I ZALOGUJ 🔑
         </button>
         <div class="text-center mt-2">
-          <button onclick="toggleRecovery(false)" class="text-xs text-slate-500 hover:underline font-bold">Powrót do logowania</button>
+          <button type="button" onclick="toggleRecovery(false)" class="text-xs text-slate-500 hover:underline font-bold">Powrót do logowania</button>
         </div>
       </div>
 
@@ -162,9 +162,13 @@
     window.onload = function() {
       const savedUser = localStorage.getItem('akademia6a_saved_user');
       if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        document.getElementById('authScreen').classList.add('hidden');
-        initDashboard();
+        try {
+          currentUser = JSON.parse(savedUser);
+          document.getElementById('authScreen').classList.add('hidden');
+          initDashboard();
+        } catch(e) {
+          localStorage.removeItem('akademia6a_saved_user');
+        }
       }
       renderSubjects();
     };
@@ -175,28 +179,36 @@
       document.getElementById('authSubtitle').innerText = show ? "Resetowanie PIN-u konta" : "Wpisz swój Nick i PIN, aby dołączyć do rywalizacji!";
     }
 
+    function enterApp(nick) {
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('profileNick').innerText = nick;
+      initDashboard();
+    }
+
     function loginUser() {
       const nick = document.getElementById('userNick').value.trim();
       const pin = document.getElementById('userPin').value.trim();
       const answer = document.getElementById('secAnswer').value.trim().toLowerCase();
       const remember = document.getElementById('rememberMe').checked;
 
-      if (!nick || pin.length < 4 || !answer) {
-        alert("Uzupełnij Nick, 4-cyfrowy PIN oraz odpowiedź bezpieczeństwa!");
+      if (!nick || pin.length < 4) {
+        alert("Wpisz swój Nick oraz 4-cyfrowy PIN!");
         return;
       }
 
       currentUser = { nick, pin };
 
+      if (remember) {
+        localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
+      }
+
+      // Wejście do aplikacji bez blokowania przez obietnicę
+      enterApp(nick);
+
+      // Cicha zapis/synchronizacja w tle z Firebase
       if (db) {
         db.collection("users_6a").doc(nick).get().then((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data.pin !== pin) {
-              alert("Błędny PIN! Jeśli go zapomniałeś, kliknij 'Zapomniałeś PIN-u?'");
-              return;
-            }
-          } else {
+          if (!doc.exists) {
             db.collection("users_6a").doc(nick).set({
               nick: nick,
               pin: pin,
@@ -204,19 +216,9 @@
               xp: 0,
               streak: 1,
               updatedAt: new Date()
-            });
+            }).catch(e => console.log("Błąd zapisu w Firebase:", e));
           }
-
-          if (remember) {
-            localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
-          }
-
-          document.getElementById('authScreen').classList.add('hidden');
-          initDashboard();
-        });
-      } else {
-        document.getElementById('authScreen').classList.add('hidden');
-        initDashboard();
+        }).catch(e => console.log("Błąd odczytu z Firebase:", e));
       }
     }
 
@@ -244,7 +246,11 @@
           } else {
             alert("Błędna odpowiedź na pytanie bezpieczeństwa!");
           }
+        }).catch(e => {
+          alert("Problem z połączeniem. Spróbuj ponowne.");
         });
+      } else {
+        alert("Tryb offline - odzyskiwanie wymaga połączenia z bazą.");
       }
     }
 
@@ -256,6 +262,7 @@
     }
 
     function initDashboard() {
+      if (!currentUser) return;
       document.getElementById('profileNick').innerText = currentUser.nick;
       loadUserCloudData();
       renderLeaderboard();
@@ -273,20 +280,24 @@
             userStats.xp = Math.max(userStats.xp, data.xp || 0);
             document.getElementById('xpDisplay').innerText = userStats.xp;
           }
-        });
+        }).catch(e => console.log(e));
       }
     }
 
     function renderLeaderboard() {
       const lb = document.getElementById('leaderboard');
       if (!db) {
-        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Brak połączenia z chmurą.</div>`;
+        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Brak połączenia z chmurą. Wyniki lokalne są aktywne.</div>`;
         return;
       }
 
       db.collection("users_6a").orderBy("xp", "desc").limit(3).onSnapshot((snapshot) => {
         lb.innerHTML = "";
         let rank = 1;
+        if (snapshot.empty) {
+          lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Bądź pierwszy w klasie! Rozwiąż test i zdobądź XP!</div>`;
+          return;
+        }
         snapshot.forEach((doc) => {
           const u = doc.data();
           const medals = ["🥇", "🥈", "🥉"];
@@ -298,6 +309,8 @@
           `;
           rank++;
         });
+      }, (error) => {
+        lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Trwa przygotowywanie rankingu klasy...</div>`;
       });
     }
 
