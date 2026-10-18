@@ -45,7 +45,7 @@
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
       <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć!</p>
 
-      <!-- FORMULARZ LOGOWANIA -->
+      <!-- SEKCJA LOGOWANIA -->
       <div id="loginForm" class="space-y-4 text-left">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
@@ -64,15 +64,17 @@
           </select>
           <input type="text" id="secAnswer" placeholder="Odpowiedź..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
         </div>
-        <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition active:scale-95 text-center block mt-4">
+        
+        <button type="button" id="mainLoginBtn" onclick="handleLogin()" ontouchstart="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
           ROZPOCZNIJ NAUKĘ 🚀
         </button>
+        
         <div class="text-center mt-3">
           <button type="button" onclick="toggleRecovery(true)" class="text-xs text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
         </div>
       </div>
 
-      <!-- FORMULARZ ODZYSKIWANIA PIN-U -->
+      <!-- SEKCJA ODZYSKIWANIA PIN-U -->
       <div id="recoveryForm" class="space-y-4 text-left hidden">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Wpisz swój Nick:</label>
@@ -86,7 +88,7 @@
           <label class="block text-xs font-bold text-slate-600 mb-1">Ustal NOWY PIN (4 cyfry):</label>
           <input type="password" id="recNewPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
-        <button type="button" onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition active:scale-95 text-center block mt-2">
+        <button type="button" onclick="resetPin()" ontouchstart="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-center block mt-2 cursor-pointer">
           ZMIEŃ PIN I ZALOGUJ 🔑
         </button>
         <div class="text-center mt-2">
@@ -219,6 +221,7 @@
     let selectedOption = null;
     let isChallengeMode = false;
     let activeChallengeId = null;
+    let isProcessingLogin = false;
 
     const program = {
       angielski: { title: 'Język Angielski', icon: '🇬🇧', chapters: ['Podstawowe Słownictwo', 'Present Simple', 'Past Simple', 'Present Perfect'] },
@@ -234,7 +237,7 @@
         const savedUser = localStorage.getItem('akademia6a_saved_user');
         if (savedUser) {
           currentUser = JSON.parse(savedUser);
-          document.getElementById('authScreen').style.display = 'none';
+          document.getElementById('authScreen').classList.add('hidden');
           initDashboard();
         }
       } catch(e) {}
@@ -248,16 +251,20 @@
     }
 
     function handleLogin() {
-      const nickElem = document.getElementById('userNick');
-      const pinElem = document.getElementById('userPin');
-      const ansElem = document.getElementById('secAnswer');
+      if (isProcessingLogin) return;
+      isProcessingLogin = true;
 
-      const nick = nickElem ? nickElem.value.trim() : "";
-      const pin = pinElem ? pinElem.value.trim() : "";
-      const answer = ansElem ? ansElem.value.trim().toLowerCase() : "";
+      const nickInput = document.getElementById('userNick');
+      const pinInput = document.getElementById('userPin');
+      const ansInput = document.getElementById('secAnswer');
+
+      const nick = nickInput ? nickInput.value.trim() : "";
+      const pin = pinInput ? pinInput.value.trim() : "";
+      const answer = ansInput ? ansInput.value.trim().toLowerCase() : "";
 
       if (!nick || !pin) {
         alert("Wpisz Nick i PIN!");
+        isProcessingLogin = false;
         return;
       }
 
@@ -267,11 +274,16 @@
         localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
       } catch(e) {}
 
-      // Ukrywamy ekran logowania od razu
-      document.getElementById('authScreen').style.display = 'none';
+      // UKRYWAMY EKRAN LOGOWANIA
+      const auth = document.getElementById('authScreen');
+      if (auth) {
+        auth.classList.add('hidden');
+        auth.style.display = 'none';
+      }
+      
       initDashboard();
 
-      // Bezpieczny zapis w chmurze
+      // ZAPIS W FIREBASE W TLE
       if (db) {
         try {
           db.collection("users_6a").doc(nick).set({
@@ -283,6 +295,8 @@
           }, { merge: true }).catch(err => {});
         } catch(err) {}
       }
+
+      setTimeout(() => { isProcessingLogin = false; }, 500);
     }
 
     function resetPin() {
@@ -560,3 +574,33 @@
         fb.className = "p-4 rounded-2xl mb-4 font-bold text-sm text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
         fb.innerText = "🎉 Świetnie! Poprawna odpowiedź!";
         addXP(10);
+      } else {
+        fb.className = "p-4 rounded-2xl mb-4 font-bold text-sm text-center bg-rose-100 text-rose-800 border border-rose-300";
+        fb.innerText = `❌ Pomyłka! Prawidłowa odpowiedź to: ${q.a}`;
+      }
+
+      document.getElementById('nextBtn').innerText = "NASTĘPNE ZADANIE ▶";
+      document.getElementById('nextBtn').onclick = nextQuestion;
+    }
+
+    function nextQuestion() {
+      currentQIdx++;
+      if (currentQIdx < currentQuiz.length) {
+        renderQuestion();
+      } else {
+        if (isChallengeMode) {
+          addXP(50);
+          if (db && activeChallengeId) {
+            db.collection("challenges_6a").doc(activeChallengeId).update({ status: 'completed' });
+          }
+          alert("🏆 Wyzwanie 1 vs 1 zakończone sukcesem! Zdobycz: +50 BONUSOWYCH XP!");
+          isChallengeMode = false;
+        } else {
+          alert("Gratulacje! Ukończyłeś test z tego działu!");
+        }
+        showDashboard();
+      }
+    }
+  </script>
+</body>
+</html>
