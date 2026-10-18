@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dartd:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +13,7 @@ class AkademiaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Akademia SP7 - Klasa 6',
+      title: 'Akademia SP7 - Klasa 1-6',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0F172A),
@@ -47,6 +47,13 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   bool _isReviewMode = false;
 
   final Map<String, SubjectData> _program = {
+    'angielski': SubjectData('Język Angielski (Klasy 1-6)', '🇬🇧', [
+      'Klasy 1-3: Podstawowe Słownictwo (Kolory, Zwierzęta, Rodzina)',
+      'Klasy 1-3: Liczby i Czasownik "to be"',
+      'Klasa 4: Czas Present Simple & Present Continuous',
+      'Klasa 5: Czas Past Simple & Czasowniki Nieregularne',
+      'Klasa 6: Czas Present Perfect, Stopniowanie Przymiotników i Zwroty',
+    ]),
     'biologia': SubjectData('Biologia (Puls Życia 6)', '🌿', [
       'Dział I: Świat zwierząt',
       'Dział II: Od parzydełkowców do pierścienic',
@@ -133,7 +140,66 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     List<Question> q = [];
     final rand = Random();
 
-    if (_selectedSubject == 'matematyka') {
+    if (_selectedSubject == 'angielski') {
+      if (chapter.contains('Klasy 1-3')) {
+        q = [
+          Question(
+            text: 'Wybierz poprawne tłumaczenie słowa "Pies":',
+            options: ['Dog', 'Cat', 'Bird', 'Fish'],
+            correctAnswer: 'Dog',
+            hint: 'Dog to pies.',
+          ),
+          Question(
+            text: 'Uzupełnij zdanie: I ___ a student.',
+            options: ['am', 'is', 'are', 'be'],
+            correctAnswer: 'am',
+            hint: 'Dla "I" używamy formy "am".',
+          ),
+          Question(
+            text: 'Wpisz po angielsku słowo "Jabłko":',
+            isOpen: true,
+            correctAnswer: 'apple',
+            hint: 'An apple.',
+          ),
+        ];
+      } else if (chapter.contains('Klasa 5') || chapter.contains('Past Simple')) {
+        q = [
+          Question(
+            text: 'Jaka jest II forma (Past Simple) od czasownika "go"?',
+            options: ['went', 'gone', 'goed', 'going'],
+            correctAnswer: 'went',
+            hint: 'Go - went - gone.',
+          ),
+          Question(
+            text: 'Jaka jest II forma (Past Simple) od czasownika "see"?',
+            options: ['saw', 'seen', 'seed', 'seeing'],
+            correctAnswer: 'saw',
+            hint: 'See - saw - seen.',
+          ),
+          Question(
+            text: 'Przetłumacz na angielski czasownik "kupić" w Past Simple (II forma):',
+            isOpen: true,
+            correctAnswer: 'bought',
+            hint: 'Buy -> bought.',
+          ),
+        ];
+      } else {
+        q = [
+          Question(
+            text: 'Uzupełnij zdanie w czas Present Perfect: She has ___ (finish) her homework.',
+            options: ['finished', 'finishing', 'finishes', 'finish'],
+            correctAnswer: 'finished',
+            hint: 'W Present Perfect po "have/has" dajemy III formę (-ed).',
+          ),
+          Question(
+            text: 'Stopień wyższy od przymiotnika "good" to:',
+            options: ['better', 'gooder', 'best', 'more good'],
+            correctAnswer: 'better',
+            hint: 'Good -> better -> the best.',
+          ),
+        ];
+      }
+    } else if (_selectedSubject == 'matematyka') {
       for (int i = 1; i <= 5; i++) {
         if (chapter.contains('Prędkość')) {
           int v = (rand.nextInt(6) + 4) * 10;
@@ -211,11 +277,11 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         q.add(Question(
           text: 'Zadanie $i/5 z działu "$chapter": Które stwierdzenie jest prawdziwe?',
           options: [
-            'Prawidłowa definicja zgodna z programem Klasy 6',
+            'Prawidłowa definicja zgodna z programem szkolnym',
             'Błędna interpretacja zagadnienia',
             'Pojęcie niedotyczące tego działu'
           ],
-          correctAnswer: 'Prawidłowa definicja zgodna z programem Klasy 6',
+          correctAnswer: 'Prawidłowa definicja zgodna z programem szkolnym',
           hint: 'Przeanalizuj podsumowanie działu w podręczniku.',
         ));
       }
@@ -287,7 +353,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('⚡ AKADEMIA SP7 - KLASA 6', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('⚡ AKADEMIA SP7 - KLASA 1-6', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.bar_chart, color: Colors.cyan),
@@ -379,4 +445,286 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                         _selectedSubject = e.key;
                       });
                     },
-                    borderRadius: BorderRadius
+                    borderRadius: BorderRadius.circular(16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(e.value.icon, style: const TextStyle(fontSize: 40)),
+                        const SizedBox(height: 8),
+                        Text(
+                          e.value.title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChapterList() {
+    final subj = _program[_selectedSubject]!;
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () {
+              setState(() {
+                _selectedSubject = null;
+              });
+            },
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('Powrót do przedmiotów'),
+          ),
+          const SizedBox(height: 16),
+          Text('${subj.title} - Wybierz dział:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: subj.chapters.length,
+              itemBuilder: (context, index) {
+                final chap = subj.chapters[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    title: Text(chap, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => _generateQuiz(chap),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SubjectData {
+  final String title;
+  final String icon;
+  final List<String> chapters;
+  SubjectData(this.title, this.icon, this.chapters);
+}
+
+class Question {
+  final String text;
+  final String? mapType;
+  final bool isOpen;
+  final List<String>? options;
+  final String correctAnswer;
+  final String hint;
+
+  Question({
+    required this.text,
+    this.mapType,
+    this.isOpen = false,
+    this.options,
+    required this.correctAnswer,
+    required this.hint,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'mapType': mapType,
+        'isOpen': isOpen,
+        'options': options,
+        'correctAnswer': correctAnswer,
+        'hint': hint,
+      };
+
+  factory Question.fromJson(Map<String, dynamic> json) => Question(
+        text: json['text'],
+        mapType: json['mapType'],
+        isOpen: json['isOpen'] ?? false,
+        options: json['options'] != null ? List<String>.from(json['options']) : null,
+        correctAnswer: json['correctAnswer'],
+        hint: json['hint'],
+      );
+}
+
+class QuizScreen extends StatefulWidget {
+  final String chapterTitle;
+  final List<Question> questions;
+  final bool isReviewMode;
+  final Function(List<Question> correct, List<Question> wrong) onComplete;
+  final VoidCallback onCancel;
+
+  const QuizScreen({
+    super.key,
+    required this.chapterTitle,
+    required this.questions,
+    this.isReviewMode = false,
+    required this.onComplete,
+    required this.onCancel,
+  });
+
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  final Map<int, String> _userAnswers = {};
+  final Map<int, TextEditingController> _controllers = {};
+
+  @override
+  void dispose() {
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(onPressed: widget.onCancel, child: const Text('Anuluj')),
+              Expanded(
+                child: Text(
+                  widget.chapterTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: widget.questions.length,
+              itemBuilder: (context, qIdx) {
+                final q = widget.questions[qIdx];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Zadanie ${qIdx + 1}:${q.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        if (q.mapType != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            height: 180,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: CustomPaint(
+                              painter: MapPainter(mapType: q.mapType!),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        if (q.isOpen) ...[
+                          TextField(
+                            controller: _controllers.putIfAbsent(qIdx, () => TextEditingController()),
+                            onChanged: (val) {
+                              _userAnswers[qIdx] = val.trim();
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Wpisz odpowiedź...',
+                              border: OutlineInputBorder(),
+                              filled: true,
+                              fillColor: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ] else if (q.options != null) ...[
+                          ...q.options!.map((opt) {
+                            final isSelected = _userAnswers[qIdx] == opt;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _userAnswers[qIdx] = opt;
+                                  });
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? const Color(0xFF0891B2) : const Color(0xFF0F172A),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: isSelected ? Colors.cyan : Colors.white24),
+                                  ),
+                                  child: Text(opt, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+              backgroundColor: const Color(0xFF6366F1),
+            ),
+            onPressed: () {
+              List<Question> correct = [];
+              List<Question> wrong = [];
+
+              for (int i = 0; i < widget.questions.length; i++) {
+                final ans = _userAnswers[i] ?? '';
+                if (ans.toLowerCase() == widget.questions[i].correctAnswer.toLowerCase()) {
+                  correct.add(widget.questions[i]);
+                } else {
+                  wrong.add(widget.questions[i]);
+                }
+              }
+              widget.onComplete(correct, wrong);
+            },
+            child: const Text('Sprawdź odpowiedzi i zapisz postęp', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MapPainter extends CustomPainter {
+  final String mapType;
+
+  MapPainter({required this.mapType});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (mapType == 'unia_lubelska') {
+      final fillKorona = Paint()..color = const Color(0xFFE57373);
+      final fillLitwa = Paint()..color = const Color(0xFF64B5F6);
+      final strokeBorder = Paint()..color = Colors.black87..style = PaintingStyle.stroke..strokeWidth = 2;
+
+      final pathKorona = Path()
+        ..moveTo(size.width * 0.1, size.height * 0.3)
+        ..lineTo(size.width * 0.45, size.height * 0.2)
+        ..lineTo(size.width * 0.42, size.height * 0.8)
+        ..lineTo(size.width * 0.15, size.height * 0.75)
+        ..close();
+
+      final pathLitwa = Path()
+        ..moveTo(size.width * 0.45, size.height * 0.2)
+        ..lineTo(size.width *
