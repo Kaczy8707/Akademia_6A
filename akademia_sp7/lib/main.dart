@@ -82,45 +82,34 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     if (chapter.contains('Rzeczypospolitej szlacheckiej')) {
       q = [
         Question(
-          text: 'Przeanalizuj poniższą autentyczną mapę Rzeczypospolitej po Unii Lubelskiej (1569 r.). Który obszar stanowił Koronę Królestwa Polskiego?',
-          imageAsset: 'assets/mapy/unia_lubelska.png',
+          text: 'Przeanalizuj poniższą mapę historyczną przedstawiającą Rzeczpospolitą Obojga Narodów (1569 r.). Który obszar oznaczono literą A?',
+          mapType: 'unia_lubelska',
           options: [
-            'Obszar zachodni ze stolicą w Krakowie i Warszawą',
-            'Wielkie Księstwo Litewskie na wschodzie',
-            'Inflanty'
+            'Korona Królestwa Polskiego (obszar A)',
+            'Wielkie Księstwo Litewskie (obszar B)',
+            'Prusy Książęce'
           ],
-          correctAnswer: 'Obszar zachodni ze stolicą w Krakowie i Warszawą',
-          hint: 'Korona Polska to zachodnia część państwa.',
+          correctAnswer: 'Korona Królestwa Polskiego (obszar A)',
+          hint: 'Obszar A ze stolicą w Krakowie i Warszawą to Korona Polska.',
         ),
       ];
-    } else if (chapter.contains('Środowisko przyrodnicze')) {
+    } else if (chapter.contains('Współrzędne geograficzne')) {
       q = [
         Question(
-          text: 'Przeanalizuj poniższą mapę fizyczną Europy. Który łańcuch górski stanowi wschodnią granicę Europy z Azją?',
-          imageAsset: 'assets/mapy/europa_fizyczna.png',
-          options: ['Góry Ural', 'Alpy', 'Karpaty'],
-          correctAnswer: 'Góry Ural',
-          hint: 'Góry Ural rozdzielają Europę i Azję.',
-        ),
-      ];
-    } else if (chapter.contains('Świat zwierząt')) {
-      q = [
-        Question(
-          text: 'Przeanalizuj poniższą ilustrację tkanki nerwowej. Które wypustki odbierają sygnały i przewodzą je do ciała komórki?',
-          imageAsset: 'assets/mapy/neuron.png',
-          options: ['Dendryty', 'Akson', 'Osłonka mielinowa'],
-          correctAnswer: 'Dendryty',
-          hint: 'Dendryty to krótkie, rozgałęzione wypustki.',
+          text: 'Przeanalizuj poniższy schemat siatki geograficznej. Od jakiej linii mierzymy długość geograficzną (0°)?',
+          mapType: 'siatka_geo',
+          options: ['Południk 0° (Greenwich)', 'Równik (0°)', 'Biegun Północny'],
+          correctAnswer: 'Południk 0° (Greenwich)',
+          hint: 'Południk Greenwich przechodzi pionowo przez siatkę.',
         ),
       ];
     } else {
       q = [
         Question(
-          text: 'Przeanalizuj poniższą mapę z okresu wojen napoleońskich (1812 r.). Jak nazywało się państwo polskie utworzone przez Napoleona w 1807 r.?',
-          imageAsset: 'assets/mapy/napoleon.png',
-          options: ['Księstwo Warszawskie', 'Królestwo Polskie', 'Rzeczpospolita Obojga Narodów'],
-          correctAnswer: 'Księstwo Warszawskie',
-          hint: 'Napoleon utworzył Księstwo Warszawskie w 1807 r.',
+          text: 'Przeanalizuj zagadnienie z działu "$chapter":',
+          options: ['Wiedza opanowana poprawnie', 'Wymaga powtórzenia'],
+          correctAnswer: 'Wiedza opanowana poprawnie',
+          hint: 'Skorzystaj z podsumowania w podręczniku.',
         ),
       ];
     }
@@ -135,7 +124,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('⚡ AKADEMIA SP7 - REALNE MAPY', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('⚡ AKADEMIA SP7 - KLASA 6', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -263,14 +252,14 @@ class SubjectData {
 
 class Question {
   final String text;
-  final String? imageAsset;
+  final String? mapType;
   final List<String> options;
   final String correctAnswer;
   final String hint;
 
   Question({
     required this.text,
-    this.imageAsset,
+    this.mapType,
     required this.options,
     required this.correctAnswer,
     required this.hint,
@@ -332,18 +321,18 @@ class _QuizScreenState extends State<QuizScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Zadanie ${qIdx + 1}: ${q.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        if (q.imageAsset != null) ...[
+                        if (q.mapType != null) ...[
                           const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              q.imageAsset!,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                padding: const EdgeInsets.all(16),
-                                color: Colors.black26,
-                                child: const Text('Błąd ładowania mapy lokalnej', style: TextStyle(color: Colors.redAccent)),
-                              ),
+                          Container(
+                            height: 220,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: CustomPaint(
+                              painter: MapPainter(mapType: q.mapType!),
                             ),
                           ),
                         ],
@@ -398,4 +387,63 @@ class _QuizScreenState extends State<QuizScreen> {
       ),
     );
   }
+}
+
+class MapPainter extends CustomPainter {
+  final String mapType;
+
+  MapPainter({required this.mapType});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (mapType == 'unia_lubelska') {
+      final fillKorona = Paint()..color = const Color(0xFFE57373);
+      final fillLitwa = Paint()..color = const Color(0xFF64B5F6);
+      final strokeBorder = Paint()..color = Colors.black87..style = PaintingStyle.stroke..strokeWidth = 2;
+
+      final pathKorona = Path()
+        ..moveTo(size.width * 0.1, size.height * 0.3)
+        ..lineTo(size.width * 0.45, size.height * 0.2)
+        ..lineTo(size.width * 0.42, size.height * 0.8)
+        ..lineTo(size.width * 0.15, size.height * 0.75)
+        ..close();
+
+      final pathLitwa = Path()
+        ..moveTo(size.width * 0.45, size.height * 0.2)
+        ..lineTo(size.width * 0.85, size.height * 0.25)
+        ..lineTo(size.width * 0.8, size.height * 0.75)
+        ..lineTo(size.width * 0.42, size.height * 0.8)
+        ..close();
+
+      canvas.drawPath(pathKorona, fillKorona);
+      canvas.drawPath(pathKorona, strokeBorder);
+      canvas.drawPath(pathLitwa, fillLitwa);
+      canvas.drawPath(pathLitwa, strokeBorder);
+
+      const textStyle = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14);
+      final painterKorona = TextPainter(text: const TextSpan(text: 'KORONA (A)', style: textStyle), textDirection: TextDirection.ltr)..layout();
+      painterKorona.paint(canvas, Offset(size.width * 0.2, size.height * 0.45));
+
+      final painterLitwa = TextPainter(text: const TextSpan(text: 'LITWA (B)', style: textStyle), textDirection: TextDirection.ltr)..layout();
+      painterLitwa.paint(canvas, Offset(size.width * 0.55, size.height * 0.45));
+    } else {
+      final globeBg = Paint()..color = const Color(0xFF0284C7);
+      final linePaint = Paint()..color = Colors.amber..style = PaintingStyle.stroke..strokeWidth = 2;
+      final greenwichPaint = Paint()..color = Colors.redAccent..style = PaintingStyle.stroke..strokeWidth = 2;
+
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), globeBg);
+      canvas.drawLine(Offset(0, size.height / 2), Offset(size.width, size.height / 2), linePaint);
+      canvas.drawLine(Offset(size.width / 2, 0), Offset(size.width / 2, size.height), greenwichPaint);
+
+      const style = TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12);
+      final p1 = TextPainter(text: const TextSpan(text: 'Równik (0°)', style: style), textDirection: TextDirection.ltr)..layout();
+      p1.paint(canvas, Offset(10, size.height / 2 - 18));
+
+      final p2 = TextPainter(text: const TextSpan(text: 'Południk 0° (Greenwich)', style: style), textDirection: TextDirection.ltr)..layout();
+      p2.paint(canvas, Offset(size.width / 2 + 8, 10));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
