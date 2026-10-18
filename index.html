@@ -35,7 +35,7 @@
     }
   </script>
 
-  <!-- FIREBASE -->
+  <!-- FIREBASE Z ZABEZPIECZENIEM -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDpe9cwQywFTFzNoC6ovSPAzLjS8_pjsRQ",
@@ -48,12 +48,12 @@
 
     let db = null;
     try {
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.firestore();
-      // Włączenie pamięci podręcznej offline dla Firestore
-      db.enablePersistence().catch(err => console.log("Persistence error:", err));
+      if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+      }
     } catch(e) {
-      console.log("Firebase offline mode");
+      console.log("Firebase init skipped");
     }
   </script>
 
@@ -335,8 +335,10 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('installBtnLogin').classList.remove('hidden');
-      document.getElementById('installBtnHeader').classList.remove('hidden');
+      const btnLog = document.getElementById('installBtnLogin');
+      const btnHead = document.getElementById('installBtnHeader');
+      if (btnLog) btnLog.classList.remove('hidden');
+      if (btnHead) btnHead.classList.remove('hidden');
     });
 
     function installPWA() {
@@ -439,6 +441,8 @@
       const authTabs = document.getElementById('authTabs');
       const subtitle = document.getElementById('authSubtitle');
 
+      if (!loginForm || !registerForm || !recoveryForm) return;
+
       loginForm.classList.add('hidden');
       registerForm.classList.add('hidden');
       recoveryForm.classList.add('hidden');
@@ -446,36 +450,39 @@
 
       const btnLog = document.getElementById('tabLoginBtn');
       const btnReg = document.getElementById('tabRegBtn');
-      btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer";
-      btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer";
+      if (btnLog) btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer";
+      if (btnReg) btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600 cursor-pointer";
 
       if (tab === 'login') {
         loginForm.classList.remove('hidden');
-        btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer";
-        subtitle.innerText = "Wpisz swój Nick i PIN, aby się zalogować";
+        if (btnLog) btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow cursor-pointer";
+        if (subtitle) subtitle.innerText = "Wpisz swój Nick i PIN, aby się zalogować";
       } else if (tab === 'register') {
         registerForm.classList.remove('hidden');
-        btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-emerald-600 text-white shadow cursor-pointer";
-        subtitle.innerText = "Załóż nowe konto ucznia w Akademii 6A";
+        if (btnReg) btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-emerald-600 text-white shadow cursor-pointer";
+        if (subtitle) subtitle.innerText = "Załóż nowe konto ucznia w Akademii 6A";
       } else if (tab === 'recovery') {
         authTabs.classList.add('hidden');
         recoveryForm.classList.remove('hidden');
-        subtitle.innerText = "Odzyskiwanie dostępu do konta";
+        if (subtitle) subtitle.innerText = "Odzyskiwanie dostępu do konta";
       }
     }
 
-    // BEZPIECZNE LOGOWANIE Z TRYBEM AWARYJNYM (LOCALSTORAGE)
     function handleLogin() {
-      const n = document.getElementById('loginNick').value.trim();
-      const p = document.getElementById('loginPin').value.trim();
+      const nickEl = document.getElementById('loginNick');
+      const pinEl = document.getElementById('loginPin');
+      if (!nickEl || !pinEl) return;
+
+      const n = nickEl.value.trim();
+      const p = pinEl.value.trim();
 
       if (!n || !p) {
         alert("Wpisz Nick oraz PIN!");
         return;
       }
 
-      const finishLogin = (pinToCheck) => {
-        if (pinToCheck === p) {
+      const proceedLogin = (correctPin) => {
+        if (correctPin === p) {
           currentUser = { nick: n, pin: p };
           try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
           document.getElementById('authScreen').style.display = 'none';
@@ -488,43 +495,34 @@
       if (db) {
         db.collection("users_6a").doc(n).get().then((doc) => {
           if (doc.exists) {
-            finishLogin(doc.data().pin);
+            proceedLogin(doc.data().pin);
           } else {
-            // Awaryjne sprawdzenie lokalne jeśli brak w chmurze
             let localPin = localStorage.getItem(`pin_${n}`);
             if (localPin) {
-              finishLogin(localPin);
+              proceedLogin(localPin);
             } else {
-              alert("Nie znaleziono takiego konta w chmurze ani lokalnie! Zarejestruj się.");
+              alert("Nie znaleziono takiego konta! Zarejestruj się.");
             }
           }
-        }).catch(err => {
-          // Fallback lokalny w przypadku błędu sieci/reguł Firestore
-          let localPin = localStorage.getItem(`pin_${n}`);
-          if (localPin) {
-            finishLogin(localPin);
-          } else {
-            // Pozwól wejść awaryjnie w trybie offline
-            currentUser = { nick: n, pin: p };
-            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-            document.getElementById('authScreen').style.display = 'none';
-            initDashboard();
-          }
+        }).catch(() => {
+          let localPin = localStorage.getItem(`pin_${n}`) || p;
+          proceedLogin(localPin);
         });
       } else {
         let localPin = localStorage.getItem(`pin_${n}`) || p;
-        currentUser = { nick: n, pin: p };
-        try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
-        document.getElementById('authScreen').style.display = 'none';
-        initDashboard();
+        proceedLogin(localPin);
       }
     }
 
-    // BEZPIECZNA REJESTRACJA Z ZAPISEM LOKALNYM
     function handleRegister() {
-      const n = document.getElementById('regNick').value.trim();
-      const p = document.getElementById('regPin').value.trim();
-      const a = document.getElementById('regSecAnswer').value.trim().toLowerCase();
+      const nickEl = document.getElementById('regNick');
+      const pinEl = document.getElementById('regPin');
+      const ansEl = document.getElementById('regSecAnswer');
+      if (!nickEl || !pinEl || !ansEl) return;
+
+      const n = nickEl.value.trim();
+      const p = pinEl.value.trim();
+      const a = ansEl.value.trim().toLowerCase();
 
       if (!n || p.length < 4 || !a) {
         alert("Wypełnij wszystkie pola! PIN musi mieć 4 cyfry.");
@@ -533,7 +531,7 @@
 
       try { localStorage.setItem(`pin_${n}`, p); } catch(e) {}
 
-      const saveSuccess = () => {
+      const finishReg = () => {
         currentUser = { nick: n, pin: p };
         try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
         document.getElementById('authScreen').style.display = 'none';
@@ -543,20 +541,21 @@
       if (db) {
         db.collection("users_6a").doc(n).set({
           nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
-        }, { merge: true }).then(() => {
-          saveSuccess();
-        }).catch(err => {
-          saveSuccess(); // Wejdź lokalnie nawet przy blokadzie chmury
-        });
+        }, { merge: true }).then(finishReg).catch(finishReg);
       } else {
-        saveSuccess();
+        finishReg();
       }
     }
 
     function resetPin() {
-      const nick = document.getElementById('recNick').value.trim();
-      const ans = document.getElementById('recAnswer').value.trim().toLowerCase();
-      const newPin = document.getElementById('recNewPin').value.trim();
+      const nickEl = document.getElementById('recNick');
+      const ansEl = document.getElementById('recAnswer');
+      const pinEl = document.getElementById('recNewPin');
+      if (!nickEl || !ansEl || !pinEl) return;
+
+      const nick = nickEl.value.trim();
+      const ans = ansEl.value.trim().toLowerCase();
+      const newPin = pinEl.value.trim();
 
       if (!nick || !ans || newPin.length < 4) {
         alert("Wpisz Nick, poprawną odpowiedź i nowy 4-cyfrowy PIN!");
@@ -569,9 +568,9 @@
         db.collection("users_6a").doc(nick).set({
           pin: newPin, updatedAt: new Date()
         }, { merge: true }).then(() => {
-          alert("PIN został pomyślnie zmieniony! Zaloguj się teraz nowym PIN-em.");
+          alert("PIN został pomyślnie zmieniony! Zaloguj się nowym PIN-em.");
           switchAuthTab('login');
-        }).catch(e => {
+        }).catch(() => {
           alert("PIN zmieniony lokalnie!");
           switchAuthTab('login');
         });
@@ -590,7 +589,8 @@
 
     function initDashboard() {
       if (!currentUser) return;
-      document.getElementById('profileNick').innerText = currentUser.nick;
+      const profNick = document.getElementById('profileNick');
+      if (profNick) profNick.innerText = currentUser.nick;
       loadUserCloudData();
       renderLeaderboard();
       listenChallenges();
@@ -601,27 +601,29 @@
       let localXP = 0;
       try { localXP = parseInt(localStorage.getItem(`xp_${currentUser.nick}`)) || 0; } catch(e) {}
       userStats.xp = localXP;
-      document.getElementById('xpDisplay').innerText = userStats.xp;
+      const xpDisp = document.getElementById('xpDisplay');
+      if (xpDisp) xpDisp.innerText = userStats.xp;
 
       if (db) {
         db.collection("users_6a").doc(currentUser.nick).get().then((doc) => {
           if (doc.exists && doc.data().xp !== undefined) {
             userStats.xp = Math.max(userStats.xp, doc.data().xp || 0);
-            document.getElementById('xpDisplay').innerText = userStats.xp;
+            if (xpDisp) xpDisp.innerText = userStats.xp;
           }
-        }).catch(e => {});
+        }).catch(() => {});
       }
     }
 
     function addXP(points) {
       userStats.xp += points;
-      document.getElementById('xpDisplay').innerText = userStats.xp;
+      const xpDisp = document.getElementById('xpDisplay');
+      if (xpDisp) xpDisp.innerText = userStats.xp;
       try { localStorage.setItem(`xp_${currentUser.nick}`, userStats.xp); } catch(e) {}
 
       if (db && currentUser) {
         db.collection("users_6a").doc(currentUser.nick).set({
           xp: userStats.xp, updatedAt: new Date()
-        }, { merge: true }).catch(e => {});
+        }, { merge: true }).catch(() => {});
       }
     }
 
@@ -661,18 +663,27 @@
 
       let accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
 
-      document.getElementById('modalProfileNick').innerText = currentUser.nick;
-      document.getElementById('modalXpCount').innerText = userStats.xp + " XP";
-      document.getElementById('statTestsCount').innerText = stats.tests;
-      document.getElementById('statTotalAnswers').innerText = stats.total;
-      document.getElementById('statAccuracy').innerText = accuracy + "%";
-      document.getElementById('statMistakesCount').innerText = mistakes.length;
+      const modalNick = document.getElementById('modalProfileNick');
+      const modalXp = document.getElementById('modalXpCount');
+      const testsCount = document.getElementById('statTestsCount');
+      const totalAns = document.getElementById('statTotalAnswers');
+      const acc = document.getElementById('statAccuracy');
+      const mistCount = document.getElementById('statMistakesCount');
 
-      document.getElementById('profileModal').classList.remove('hidden');
+      if (modalNick) modalNick.innerText = currentUser.nick;
+      if (modalXp) modalXp.innerText = userStats.xp + " XP";
+      if (testsCount) testsCount.innerText = stats.tests;
+      if (totalAns) totalAns.innerText = stats.total;
+      if (acc) acc.innerText = accuracy + "%";
+      if (mistCount) mistCount.innerText = mistakes.length;
+
+      const profileModal = document.getElementById('profileModal');
+      if (profileModal) profileModal.classList.remove('hidden');
     }
 
     function closeProfileModal() {
-      document.getElementById('profileModal').classList.add('hidden');
+      const profileModal = document.getElementById('profileModal');
+      if (profileModal) profileModal.classList.add('hidden');
     }
 
     function checkMistakesModule() {
@@ -683,6 +694,8 @@
 
       const card = document.getElementById('mistakesModuleCard');
       const countEl = document.getElementById('mistakesCount');
+      if (!card || !countEl) return;
+
       if (mistakes.length > 0) {
         countEl.innerText = mistakes.length;
         card.classList.remove('hidden');
@@ -736,14 +749,18 @@
       currentQuiz = [...mistakes];
       currentQIdx = 0;
 
-      document.getElementById('dashboardView').classList.add('hidden');
-      document.getElementById('quizView').classList.remove('hidden');
+      const dash = document.getElementById('dashboardView');
+      const quiz = document.getElementById('quizView');
+      if (dash) dash.classList.add('hidden');
+      if (quiz) quiz.classList.remove('hidden');
       renderQuestion();
     }
 
     function renderLeaderboard() {
       const lb = document.getElementById('leaderboard');
       const oppSel = document.getElementById('opponentSelect');
+      if (!lb) return;
+
       if (!db) {
         lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Tryb lokalny.</div>`;
         return;
@@ -751,7 +768,7 @@
 
       db.collection("users_6a").orderBy("xp", "desc").onSnapshot((snapshot) => {
         lb.innerHTML = "";
-        oppSel.innerHTML = "";
+        if (oppSel) oppSel.innerHTML = "";
         let rank = 1;
 
         snapshot.forEach((doc) => {
@@ -765,41 +782,53 @@
               </div>
             `;
           }
-          if (u.nick && u.nick !== currentUser.nick) {
+          if (oppSel && u.nick && currentUser && u.nick !== currentUser.nick) {
             oppSel.innerHTML += `<option value="${u.nick}">${u.nick}</option>`;
           }
           rank++;
         });
-      }, (err) => {
+      }, () => {
         lb.innerHTML = `<div class="col-span-3 text-center text-slate-500 font-bold p-2">Ranking lokalny aktywny.</div>`;
       });
     }
 
-    function openChallengeModal() { document.getElementById('challengeModal').classList.remove('hidden'); }
-    function closeChallengeModal() { document.getElementById('challengeModal').classList.add('hidden'); }
+    function openChallengeModal() { 
+      const m = document.getElementById('challengeModal');
+      if (m) m.classList.remove('hidden'); 
+    }
+    function closeChallengeModal() { 
+      const m = document.getElementById('challengeModal');
+      if (m) m.classList.add('hidden'); 
+    }
 
     function createChallenge() {
-      const target = document.getElementById('opponentSelect').value;
-      const subj = document.getElementById('challengeSubject').value;
+      const oppSel = document.getElementById('opponentSelect');
+      const subjSel = document.getElementById('challengeSubject');
+      if (!oppSel || !subjSel) return;
+
+      const target = oppSel.value;
+      const subj = subjSel.value;
 
       if (!target) { alert("Brak dostępnych przeciwników!"); return; }
 
-      if (db) {
+      if (db && currentUser) {
         db.collection("challenges_6a").add({
           from: currentUser.nick, to: target, subject: subj, status: 'pending', createdAt: new Date()
         }).then(() => {
           alert(`Wyzwanie 1 vs 1 dla ${target} wysłane!`);
           closeChallengeModal();
-        }).catch(e => alert("Wyzwanie utworzone lokalnie."));
+        }).catch(() => alert("Wyzwanie utworzone lokalnie."));
       }
     }
 
     function listenChallenges() {
-      if (!db) return;
+      if (!db || !currentUser) return;
       db.collection("challenges_6a").where("to", "==", currentUser.nick).where("status", "==", "pending")
         .onSnapshot((snapshot) => {
           const container = document.getElementById('activeChallengesContainer');
           const list = document.getElementById('challengesList');
+          if (!container || !list) return;
+
           if (snapshot.empty) { container.classList.add('hidden'); return; }
 
           container.classList.remove('hidden');
@@ -808,24 +837,25 @@
             const ch = doc.data();
             list.innerHTML += `
               <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-200">
-                <span class="font-bold text-sm text-red-900">⚔️ ${ch.from} wyzwał Cię z: ${program[ch.subject].title}!</span>
+                <span class="font-bold text-sm text-red-900">⚔️ ${ch.from} wyzwał Cię z: ${program[ch.subject]?.title || ch.subject}!</span>
                 <button onclick="acceptChallenge('${doc.id}', '${ch.subject}')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow cursor-pointer">
                   Graj (+50 XP)
                 </button>
               </div>
             `;
           });
-        }, e => {});
+        }, () => {});
     }
 
     function acceptChallenge(id, subjKey) {
       activeChallengeId = id;
       isChallengeMode = true;
-      startQuiz(`Pojedynek 1 vs 1: ${program[subjKey].title}`, subjKey);
+      startQuiz(`Pojedynek 1 vs 1: ${program[subjKey]?.title || subjKey}`, subjKey);
     }
 
     function renderSubjects() {
       const grid = document.getElementById('subjectGrid');
+      if (!grid) return;
       grid.innerHTML = "";
       for (let key in program) {
         const s = program[key];
@@ -840,9 +870,13 @@
 
     function showDashboard() {
       isMistakesMode = false;
-      document.getElementById('dashboardView').classList.remove('hidden');
-      document.getElementById('chapterView').classList.add('hidden');
-      document.getElementById('quizView').classList.add('hidden');
+      const dash = document.getElementById('dashboardView');
+      const chap = document.getElementById('chapterView');
+      const quiz = document.getElementById('quizView');
+
+      if (dash) dash.classList.remove('hidden');
+      if (chap) chap.classList.add('hidden');
+      if (quiz) quiz.classList.add('hidden');
       checkMistakesModule();
     }
 
@@ -851,21 +885,26 @@
       activeSubjectKey = key;
       isMistakesMode = false;
       const subj = program[key];
-      document.getElementById('chapterTitle').innerText = subj.title;
+      const titleEl = document.getElementById('chapterTitle');
       const list = document.getElementById('chapterList');
-      list.innerHTML = "";
+      if (titleEl) titleEl.innerText = subj.title;
+      if (list) list.innerHTML = "";
 
       subj.chapters.forEach(chap => {
-        list.innerHTML += `
-          <div onclick="startQuiz('${chap}', '${key}')" class="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 shadow-sm cursor-pointer flex justify-between items-center font-bold">
-            <span>${chap}</span>
-            <span class="text-indigo-600">Rozpocznij ▶</span>
-          </div>
-        `;
+        if (list) {
+          list.innerHTML += `
+            <div onclick="startQuiz('${chap}', '${key}')" class="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 shadow-sm cursor-pointer flex justify-between items-center font-bold">
+              <span>${chap}</span>
+              <span class="text-indigo-600">Rozpocznij ▶</span>
+            </div>
+          `;
+        }
       });
 
-      document.getElementById('dashboardView').classList.add('hidden');
-      document.getElementById('chapterView').classList.remove('hidden');
+      const dash = document.getElementById('dashboardView');
+      const chapView = document.getElementById('chapterView');
+      if (dash) dash.classList.add('hidden');
+      if (chapView) chapView.classList.remove('hidden');
     }
 
     function generateQuestionsForChapter(chapterName, subjKey) {
@@ -890,195 +929,4 @@
             },
             { q: "Które linie na globusie wyznaczają szerokość geograficzną?", options: ["Równoleżniki", "Południki", "Południk zerowy"], a: "Równoleżniki", explanation: "Równoleżniki wyznaczają szerokość północną lub południową." },
             { q: "Co przedstawia legenda mapy?", options: ["Znaczenie symboli i znaków użytych na mapie", "Tylko skalę", "Autorów"], a: "Znaczenie symboli i znaków użytych na mapie", explanation: "Legenda to klucz objaśniający oznaczenia." },
-            { q: "Południk zerowy (0°) przebiega przez:", options: ["Greenwich w Londynie", "Warszawę", "Równik"], a: "Greenwich w Londynie", explanation: "Południk zerowy dzieli Ziemię na półkulę wschodnią i zachodnią." }
-          ];
-        } else if (chapterName.includes('Ruchy Ziemi')) {
-          pool = [
-            { 
-              q: "Co powoduje zmienna ilość energii słonecznej docierająca do półkul w ciągu roku?", 
-              svgGraphic: `<svg viewBox="0 0 500 180" class="w-full h-36 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="180" fill="#0f172a"/><circle cx="100" cy="90" r="35" fill="#f59e0b"/><ellipse cx="320" cy="90" rx="90" ry="50" fill="none" stroke="#475569" stroke-width="2"/><circle cx="370" cy="70" r="18" fill="#3b82f6"/><line x1="365" y1="45" x2="375" y2="95" stroke="#ef4444" stroke-width="3"/><text x="250" y="150" fill="#38bdf8" font-size="11" font-weight="bold">Nachylenie osi ziemskiej</text></svg>`,
-              options: ["Pory roku", "Stała temperatura", "Brak zmian"], 
-              a: "Pory roku",
-              explanation: "Ruch obiegowy i nachylenie osi Ziemi wywołują pory roku."
-            },
-            { q: "Czas obrotu Ziemi wokół własnej osi to:", options: ["24 godziny (1 doba)", "365 dni", "1 miesiąc"], a: "24 godziny (1 doba)", explanation: "Powoduje następowanie dni i nocy." },
-            { q: "Kierunek obrotu Ziemi wokół osi to:", options: ["Z zachodu na wschód", "Ze wschodu na zachód", "Z południa na północ"], a: "Z zachodu na wschód", explanation: "Dlatego Słońce wschodzi na wschodzie." },
-            { q: "Najkrótszy dzień na półkuli północnej wypada około:", options: ["21 grudnia", "21 czerwca", "21 marca"], a: "21 grudnia", explanation: "Początek astronomicznej zimy." },
-            { q: "W dniach równonocy (wiosennej i jesiennej):", options: ["Dzień i noc trwają tyle samo (po 12 godzin)", "Dzień trwa 24h", "Noc trwa 24h"], a: "Dzień i noc trwają tyle samo (po 12 godzin)", explanation: "Oświetlenie półkul jest równe." }
-          ];
-        } else {
-          pool = [
-            { 
-              q: "Jak ułożone są główne pasma rzeźby terenu w Polsce?", 
-              svgGraphic: `<svg viewBox="0 0 500 160" class="w-full h-32 rounded-xl bg-slate-900 border border-slate-700 shadow-inner"><rect width="500" height="160" fill="#0f172a"/><path d="M50,130 Q120,110 180,90 T300,100 T450,120" fill="none" stroke="#38bdf8" stroke-width="3"/><text x="60" y="145" fill="#38bdf8" font-size="10">MORZE</text></svg>`,
-              options: ["Pasowo (równoleżnikowo)", "Południkowo", "Losowo"], 
-              a: "Pasowo (równoleżnikowo)",
-              explanation: "Polska ma układ pasowy od nizin po góry."
-            },
-            { q: "Najwyższy szczyt w Polsce to:", options: ["Rysy (2499 m n.p.m.)", "Śnieżka", "Giewont"], a: "Rysy (2499 m n.p.m.)", explanation: "Wysokość 2499 m n.p.m. w Tatrach." },
-            { q: "Główna rzeka w Polsce to:", options: ["Wisła", "Odra", "Warta"], a: "Wisła", explanation: "Najdłuższa rzeka kraju." },
-            { q: "Największe pojezierze w Polsce to:", options: ["Pojezierze Mazurskie", "Wielkopolskie", "Pomorskie"], a: "Pojezierze Mazurskie", explanation: "Kraina Tysiąca Jezior." },
-            { q: "Zachodni sąsiad Polski to:", options: ["Niemcy", "Ukraina", "Litwa"], a: "Niemcy", explanation: "Granica zachodnia." }
-          ];
-        }
-      }
-      else if (subjKey === 'biologia') {
-        if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
-          pool = [
-            { 
-              q: "Jakie trzy główne części budują ciało owada?", 
-              svgGraphic: `<svg viewBox="0 0 500 160" class="w-full h-32 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="160" fill="#0f172a"/><ellipse cx="170" cy="80" rx="30" ry="22" fill="#0ea5e9"/><ellipse cx="250" cy="80" rx="45" ry="30" fill="#2563eb"/><ellipse cx="360" cy="80" rx="55" ry="25" fill="#1d4ed8"/><text x="155" y="85" fill="#fff" font-size="11" font-weight="bold">GŁOWA</text><text x="230" y="85" fill="#fff" font-size="11" font-weight="bold">TUŁÓW</text><text x="335" y="85" fill="#fff" font-size="11" font-weight="bold">ODWŁOK</text></svg>`,
-              options: ["Głowa, tułów i odwłok", "Głowotułów i odwłok", "Skorupa"], 
-              a: "Głowa, tułów i odwłok",
-              explanation: "Anatomia owadów obejmuje te trzy części."
-            },
-            { q: "Ile par odnóży krocznych mają dorosłe owady?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)", explanation: "Osadzone na tułowiu." },
-            { q: "Pajęczaki posiadają:", options: ["Głowotułów, odwłok i 4 pary odnóży", "Tylko głowę", "Skrzydła"], a: "Głowotułów, odwłok i 4 pary odnóży", explanation: "8 odnóży krocznych." },
-            { q: "Skorupiaki oddychają za pomocą:", options: ["Skrzeli", "Płuc", "Skóry"], a: "Skrzeli", explanation: "Narząd oddechowy w środowisku wodnym." },
-            { q: "Wspólna cecha stawonogów to:", options: ["Chitynowy pancerz zewnętrzny", "Szkielet kostny", "Brak powłok"], a: "Chitynowy pancerz zewnętrzny", "Zewnętrzny szkielet z chityny."]
-          ];
-        } else {
-          pool = [
-            { q: "Zwierzęta stałocieplne to:", options: ["Ptaki i ssaki", "Gady i płazy", "Ryby"], a: "Ptaki i ssaki", explanation: "Utrzymują stałą temperaturę." },
-            { q: "Jedyne kręgowce zdolne do aktywnego lotu:", options: ["Ptaki", "Gady", "Płazy"], a: "Ptaki", explanation: "Posiadają skrzydła." },
-            { q: "Larwa płaza (żaby) to:", options: ["Kijkanka", "Gąsienica", "Poczwarka"], a: "Kijkanka", explanation: "Wodne stadium rozwojowe." },
-            { q: "Skóra gadów jest:", options: ["Sucha, pokryta łuskami", "Wilgotna i śluzasta", "Naga"], a: "Sucha, pokryta łuskami", explanation: "Chroni przed wysychaniem." },
-            { q: "Cel segregacji odpadów to:", options: ["Odzysk surowców i ochrona środowiska", "Zanieczyszczenie", "Brak celu"], a: "Odzysk surowców i ochrona środowiska", explanation: "Recykling." }
-          ];
-        }
-      }
-      else if (subjKey === 'technika') {
-        if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
-          pool = [
-            { 
-              q: "Co oznacza znak C-13 w kodeksie drogowym?", 
-              svgGraphic: `<svg viewBox="0 0 500 140" class="w-full h-28 rounded-xl bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center"><rect width="500" height="140" fill="#0f172a"/><circle cx="250" cy="70" r="45" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/><path d="M225,85 L240,55 L260,55 L275,85" stroke="#ffffff" stroke-width="3" fill="none"/></svg>`,
-              options: ["Droga dla rowerów", "Zakaz wjazdu", "Przejście"], 
-              a: "Droga dla rowerów",
-              explanation: "Nakaz jazdy dla rowerów."
-            },
-            { q: "Minimalny wiek na kartę rowerową to:", options: ["10 lat", "12 lat", "14 lat"], a: "10 lat", explanation: "Ukończony 10. rok życia." },
-            { q: "Obowiązkowe wyposażenie roweru po zmroku:", options: ["Światła (przód i tył) oraz odblaski", "Tylko dzwonek", "Nic"], a: "Światła (przód i tył) oraz odblaski", explanation: "Bezpieczeństwo na drodze." },
-            { q: "Znaki ostrzegawcze mają kształt:", options: ["Trójkąta w czerwonej obwódce", "Koła", "Kwadratu"], a: "Trójkąta w czerwonej obwódce", explanation: "Ostrzeżenie przed niebezpieczeństwem." },
-            { q: "Na chodniku pierwszeństwo ma:", options: ["Pieszy", "Rowerzysta", "Obaj"], a: "Pieszy", explanation: "Pieszy jest zawsze chroniony na chodniku." }
-          ];
-        } else {
-          pool = [
-            { q: "Dobry przewodnik prądu to:", options: ["Miedź", "Suche drewno", "Guma"], a: "Miedź", explanation: "Metal przewodzący prąd." },
-            { q: "Do łączenia drewna stosuje się:", options: ["Wkręty i gwoździe", "Śruby stalowe metryczne", "Klej do szyb"], a: "Wkręty i gwoździe", explanation: "Podstawowe elementy stolarskie." },
-            { q: "Rysunek techniczny jest:", options: ["Znormalizowany i zwymiarowany", "Malarski", "Dowolny"], a: "Znormalizowany i zwymiarowany", explanation: "Precyzyjne normy i wymiary." },
-            { q: "Plastik to materiał:", options: ["Syntetyczny (sztuczny)", "Naturalny", "Mineralny"], a: "Syntetyczny (sztuczny)", explanation: "Tworzywo sztuczne." },
-            { q: "Bezpiecznik elektryczny chroni przed:", options: ["Zwarciem i przeciążeniem", "Zimnem", "Niskim napięciem"], a: "Zwarciem i przeciążeniem", explanation: "Ochrona instalacji domowej." }
-          ];
-        }
-      }
-      else if (subjKey === 'historia') {
-        pool = [
-          { q: "W którym roku Kolumb dotarł do Ameryki?", options: ["1492 rok", "1410 rok", "1791 rok"], a: "1492 rok", explanation: "Koniec średniowiecza." },
-          { q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791", explanation: "Pierwsza w Europie." },
-          { q: "Bitwa pod Grunwaldem miała miejsce w roku:", options: ["1410", "1525", "1683"], a: "1410", explanation: "Zwycięstwo z zakonem krzyżackim." },
-          { q: "Ostatni król elekcyjny Polski:", options: ["Stanisław August Poniatowski", "Jan III Sobieski", "Stefan Batory"], a: "Stanisław August Poniatowski", explanation: "Panował w okresie rozbiorów." },
-          { q: "Renesans to odrodzenie kultury:", options: ["Starożytnej Grecji i Rzymu", "Średniowiecza", "Futuryzmu"], a: "Starożytnej Grecji i Rzymu", explanation: "Nawiązanie do antyku." }
-        ];
-      }
-      else if (subjKey === 'matematyka') {
-        let v = (Math.floor(Math.random() * 6) + 4) * 10;
-        let t = Math.floor(Math.random() * 3) + 2;
-        let s = v * t;
-        pool = [
-          { q: `Pojazd jedzie z prędkością ${v} km/h. Droga w czasie ${t} h to:`, options: [`${s} km`, `${s + 20} km`, `${s - 10} km`], a: `${s} km`, explanation: "Droga to prędkość razy czas." },
-          { q: "Pociąg pokonał 180 km w 3 godziny. Prędkość to:", options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h", explanation: "180 / 3 = 60." },
-          { q: "Wynik dodawania 1/4 + 2/4:", options: ["3/4", "3/8", "1/2"], a: "3/4", explanation: "1+2 / 4." },
-          { q: "Pole kwadratu o boku 7 cm:", options: ["49 cm²", "28 cm²", "14 cm²"], a: "49 cm²", explanation: "7 * 7 = 49." },
-          { q: "Liczba odwrotna do 2:", options: ["1/2", "-2", "2"], a: "1/2", explanation: "Iloczyn daje 1." }
-        ];
-      }
-      else {
-        pool = [
-          { q: "Czas przeszły (Past Simple) dla 'GO':", options: ["went", "gone", "goed"], a: "went", explanation: "Czasownik nieregularny." },
-          { q: "Przetłumacz 'Pies':", isOpen: true, a: "dog", explanation: "Dog." },
-          { q: "Czasownik w Present Continuous:", options: ["is running", "ran", "runs"], a: "is running", explanation: "To be + ing." },
-          { q: "Stopień wyższy od 'good':", options: ["better", "best", "gooder"], a: "better", explanation: "Nieregularne." },
-          { q: "Co oznacza 'Apple'?", options: ["Jabłko", "Pomarańcza", "Banan"], a: "Jabłko", explanation: "Owoc." }
-        ];
-      }
-
-      pool.sort(() => Math.random() - 0.5);
-      return pool.slice(0, 5);
-    }
-
-    function startQuiz(chapterName, subjKey) {
-      isMistakesMode = false;
-      currentQuiz = generateQuestionsForChapter(chapterName, subjKey || activeSubjectKey);
-      currentQIdx = 0;
-      
-      document.getElementById('chapterView').classList.add('hidden');
-      document.getElementById('quizView').classList.remove('hidden');
-      renderQuestion();
-    }
-
-    function renderQuestion() {
-      selectedOption = null;
-      document.getElementById('feedbackBox').classList.add('hidden');
-      const q = currentQuiz[currentQIdx];
-      
-      const pct = ((currentQIdx) / currentQuiz.length) * 100;
-      document.getElementById('progressBar').style.width = pct + "%";
-
-      const container = document.getElementById('questionContainer');
-      
-      let svgHtml = '';
-      if (q.svgGraphic) {
-        svgHtml = `<div class="w-full mb-4 overflow-hidden rounded-2xl shadow-md border border-slate-700">${q.svgGraphic}</div>`;
-      }
-
-      container.innerHTML = `
-        <h3 class="text-base font-black text-slate-800 mb-3">${q.q}</h3>
-        ${svgHtml}
-      `;
-
-      if (q.isOpen) {
-        container.innerHTML += `
-          <input type="text" id="openAns" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-indigo-600 mt-2">
-        `;
-      } else {
-        q.options.forEach(opt => {
-          container.innerHTML += `
-            <button onclick="selectOpt(this, '${opt}')" class="opt-btn w-full text-left p-3.5 rounded-xl border border-slate-200 font-bold mb-2 hover:bg-indigo-50 transition text-sm cursor-pointer">
-              ${opt}
-            </button>
-          `;
-        });
-      }
-
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.innerText = "SPRAWDŹ ODPOWIEDŹ";
-      nextBtn.onclick = submitAnswer;
-    }
-
-    function selectOpt(btn, opt) {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('border-indigo-600', 'bg-indigo-50'));
-      btn.classList.add('border-indigo-600', 'bg-indigo-50');
-      selectedOption = opt;
-    }
-
-    function submitAnswer() {
-      const q = currentQuiz[currentQIdx];
-      let userAns = q.isOpen ? document.getElementById('openAns').value.trim().toLowerCase() : selectedOption;
-
-      if (!userAns) {
-        alert("Wybierz lub wpisz odpowiedź!");
-        return;
-      }
-
-      const fb = document.getElementById('feedbackBox');
-      fb.classList.remove('hidden');
-
-      let explanationText = q.explanation ? `<br><span class="text-xs font-normal opacity-90">💡 Wyjaśnienie: ${q.explanation}</span>` : '';
-
-      if (userAns.toLowerCase() === q.a.toLowerCase()) {
-        fb.className = "p-3 rounded-2xl mb-4 font-bold text-sm text-center bg-emerald-100 text-emerald-800 border border-emerald-300";
-        fb.innerHTML = `🎉 Świetnie! Poprawna odpowiedź! ${explanationText}`;
-        addXP(10);
-        recordStat(true);
-        if (isMistakesMode) { removeMistake(q); }
+            { q: "Południk zerowy (0°) przebiega przez:", options: ["Greenwich w Londynie", "Warszawę", "Równik"], a: "Greenwich w Londynie", explanation: "Połud
