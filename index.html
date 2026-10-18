@@ -18,7 +18,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col select-none">
 
-  <!-- CZYSZCZENIE STAREGO CACHE -->
+  <!-- CZYSZCZENIE CACHE -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => { for(let r of regs) r.unregister(); });
@@ -229,6 +229,17 @@
     let selectedOption = null;
     let isChallengeMode = false;
     let activeChallengeId = null;
+
+    // REALISTYCZNE, WYSOKIEJ JAKOŚCI MAPY I MATERIAŁY GRAFICZNE
+    const realMedia = {
+      mapaPolskaFizyczna: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Relief_Map_of_Poland.svg/1024px-Relief_Map_of_Poland.svg.png",
+      mapaEuropaPolityczna: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/BlankMap-Europe-v2.svg/1024px-BlankMap-Europe-v2.svg.png",
+      ruchyZiemiSchemat: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/North_season.jpg/800px-North_season.jpg",
+      pajakKrzyzakFoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Araneus_diadematus_2007-08-11.jpg/800px-Araneus_diadematus_2007-08-11.jpg",
+      ptakAnatomia: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Eurasian_blue_tit_kipt.jpg/800px-Eurasian_blue_tit_kipt.jpg",
+      znakRowerC13: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Znak_C-13.svg/480px-Znak_C-13.svg.png",
+      kolumbOdkrycie: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Christopher_Columbus.JPG/640px-Christopher_Columbus.JPG"
+    };
 
     const program = {
       matematyka: { 
@@ -532,147 +543,101 @@
       document.getElementById('chapterView').classList.remove('hidden');
     }
 
-    // ==========================================
-    // GENERATOR ZADAŃ DLA DOWOLNEGO DZIAŁU
-    // ==========================================
     function generateQuestionsForChapter(chapterName, subjKey) {
       let qList = [];
 
-      // MATEMATYKA
-      if (subjKey === 'matematyka') {
-        if (chapterName.includes('Prędkość')) {
-          let v = (Math.floor(Math.random() * 6) + 4) * 10; // 40..90 km/h
-          let t = Math.floor(Math.random() * 3) + 2; // 2..4 h
-          let s = v * t;
-          qList.push({ q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km` });
-          qList.push({ q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h" });
-          qList.push({ q: `Rowerzysta jedzie z prędkością 15 km/h. Ile kilometrów przejedzie w ciągu 4 godzin?`, options: ["60 km", "45 km", "50 km"], a: "60 km" });
-        } else if (chapterName.includes('Pola wielokątów')) {
-          let a = Math.floor(Math.random() * 6) + 4;
-          let b = Math.floor(Math.random() * 5) + 3;
-          let p = a * b;
-          qList.push({ q: `Oblicz pole prostokąta o bokach długości a = ${a} cm oraz b = ${b} cm:`, options: [`${p} cm²`, `${(a+b)*2} cm²`, `${p + 6} cm²`], a: `${p} cm²` });
-          qList.push({ q: `Kwadrat ma bok o długości 8 cm. Ile wynosi jego pole powierzchni?`, options: ["64 cm²", "32 cm²", "16 cm²"], a: "64 cm²" });
-          qList.push({ q: `Trójkąt ma podstawę a = 10 cm i wysokość h = 6 cm. Oblicz jego pole (P = a·h / 2):`, options: ["30 cm²", "60 cm²", "16 cm²"], a: "30 cm²" });
-        } else if (chapterName.includes('Równania')) {
-          let x = Math.floor(Math.random() * 8) + 2;
-          let add = Math.floor(Math.random() * 10) + 5;
-          let res = x + add;
-          qList.push({ q: `Rozwiąż równanie z jedną niewiadomą: x + ${add} = ${res}`, options: [`x = ${x}`, `x = ${x + 2}`, `x = ${res}`], a: `x = ${x}` });
-          qList.push({ q: `Rozwiąż równanie: 3x = 21`, options: ["x = 7", "x = 6", "x = 8"], a: "x = 7" });
-          qList.push({ q: `Jaka wartość x spełnia równanie: 2x + 4 = 14?`, options: ["x = 5", "x = 4", "x = 6"], a: "x = 5" });
-        } else {
-          qList.push({ q: `Oblicz wartość wyrażenia: 3/4 + 2/4`, options: ["5/4 (1 i 1/4)", "5/8", "1"], a: "5/4 (1 i 1/4)" });
-          qList.push({ q: `Zaokrąglij ułamek dziesiętny 4,378 do części setnych:`, options: ["4,38", "4,37", "4,40"], a: "4,38" });
-          qList.push({ q: `Ile wynosi wynik mnożenia: 0,5 · 0,4?`, options: ["0,2", "0,02", "2,0"], a: "0,2" });
-        }
-      } 
-      
-      // GEOGRAFIA (Z MAPAMI)
-      else if (subjKey === 'geografia') {
+      if (subjKey === 'geografia') {
         if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
           qList.push({ 
-            q: "Na poniższej konturowej mapie Europy wskaż położenie Polski (Europa Środkowa):", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/BlankMap-Europe-v2.svg/640px-BlankMap-Europe-v2.svg.png",
-            options: ["Obszar w centrum (Europy Środkowej)", "Obszar na południu (Półwysep Apeniński)", "Półwysep Iberyjski na zachodzie"], 
-            a: "Obszar w centrum (Europy Środkowej)" 
+            q: "Przeanalizuj poniższą fizyczno-konturową mapę Europy. Zielone terytorium zlokalizowane w Europie Środkowej to:", 
+            image: realMedia.mapaEuropaPolityczna,
+            options: ["Polska", "Niemcy", "Francja"], 
+            a: "Polska" 
           });
-          qList.push({ q: "Które linie na globusie zbiegają się na biegunach?", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
-          qList.push({ q: "Równoleżnik o szerokości geograficznej 0° to:", options: ["Równik", "Zwrotnik Raka", "Południk zerowy"], a: "Równik" });
+          qList.push({ q: "Linie na globusie zbiegające się na obu biegunach to:", options: ["Południki", "Równoleżniki", "Równik"], a: "Południki" });
         } else if (chapterName.includes('Ruchy Ziemi')) {
           qList.push({ 
-            q: "Przeanalizuj schemat oświetlenia Ziemi. Ruch obiegowy Ziemi wokół Słońca (365 dni) odpowiada za:", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/North_season.jpg/640px-North_season.jpg",
-            options: ["Pory roku", "Dzień i noc", "Spłaszczenie Ziemi na biegunach"], 
+            q: "Przeanalizuj poniższy naukowy schemat oświetlenia Ziemi. Ruch obiegowy Ziemi wokół Słońca (365 dni) odpowiada za:", 
+            image: realMedia.ruchyZiemiSchemat,
+            options: ["Pory roku", "Dzień i noc", "Pływy morskie"], 
             a: "Pory roku" 
           });
-          qList.push({ q: "Ile czasu trwa pełny obrót Ziemi wokół własnej osi (ruch obrotowy)?", options: ["24 godziny (1 doba)", "365 dni", "30 dni"], a: "24 godziny (1 doba)" });
+          qList.push({ q: "Pełny obrót Ziemi wokół własnej osi trwa:", options: ["24 godziny (1 doba)", "365 dni", "30 dni"], a: "24 godziny (1 doba)" });
         } else {
           qList.push({ 
-            q: "Spójrz na fizyczną mapę Polski. Najważniejsza i najdłuższa rzeka w Polsce to:", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Relief_Map_of_Poland.svg/640px-Relief_Map_of_Poland.svg.png",
+            q: "Spójrz na ukształtowanie terenu na mapie fizycznej Polski. Najdłuższa rzeka w Polsce płynąca od gór do Bałtyku to:", 
+            image: realMedia.mapaPolskaFizyczna,
             options: ["Wisła", "Odra", "Warta"], 
             a: "Wisła" 
           });
-          qList.push({ q: "Najwyższy szczyt w polskich Tatrach to:", options: ["Rysy (2499 m n.p.m.)", "Giewont", "Śnieżka"], a: "Rysy (2499 m n.p.m.)" });
+          qList.push({ q: "Najwyższy szczyt po polskiej stronie Tatr (2499 m n.p.m.) to:", options: ["Rysy", "Giewont", "Śnieżka"], a: "Rysy" });
         }
       }
-
-      // BIOLOGIA (ZE SCHEMATAMI)
       else if (subjKey === 'biologia') {
-        if (chapterName.includes('Stawonogi')) {
+        if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
           qList.push({ 
-            q: "Rozpoznaj przedstawiciela stawonogów ze zdjęcia. Do której grupy bezkręgowców należy pająk?", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Araneus_diadematus_2007-08-11.jpg/640px-Araneus_diadematus_2007-08-11.jpg",
-            options: ["Pajęczaki (4 pary odnóży)", "Owady (3 pary odnóży)", "Skorupiaki"], 
-            a: "Pajęczaki (4 pary odnóży)" 
+            q: "Przeanalizuj poniższe zdjęcie makro stawonoga. Do której grupy bezkręgowców należy pająk krzyżak (4 pary odnóży)?", 
+            image: realMedia.pajakKrzyzakFoto,
+            options: ["Pajęczaki", "Owady", "Skorupiaki"], 
+            a: "Pajęczaki" 
           });
-          qList.push({ q: "Ile par odnóży krocznych posiadają owady (np. pszczoła, mrówka)?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)" });
-        } else if (chapterName.includes('Ptaki')) {
+          qList.push({ q: "Ile par odnóży krocznych posiadają owady (np. mrówka, pszczoła)?", options: ["3 pary (6 odnóży)", "4 pary (8 odnóży)", "5 par"], a: "3 pary (6 odnóży)" });
+        } else if (chapterName.includes('Ptaki') || chapterName.includes('stałocieplność')) {
           qList.push({ 
-            q: "Przeanalizuj budowę ciała ptaka. Co umożliwia ptakom lot w powietrzu?", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Eurasian_blue_tit_kipt.jpg/640px-Eurasian_blue_tit_kipt.jpg",
-            options: ["Aromatyczne kości pneumatyczne i pióra", "Ciężki szkielet i gruba skóra", "Płetwy i skrzela"], 
-            a: "Aromatyczne kości pneumatyczne i pióra" 
+            q: "Przeanalizuj budowę i upierzenie ptaka. Która cecha umożliwia ptakom sprawne latanie?", 
+            image: realMedia.ptakAnatomia,
+            options: ["Lekkie kości pneumatyczne i pióra", "Masywny szkielet i gruba skóra", "Skrzela i płetwy"], 
+            a: "Lekkie kości pneumatyczne i pióra" 
           });
-          qList.push({ q: "Zwierzęta stałocieplne to:", options: ["Ptaki i ssaki", "Ryby i płazy", "Gady i owady"], a: "Ptaki i ssaki" });
+          qList.push({ q: "Zwierzęta zdolne do utrzymywania stałej temperatury ciała niezależnie od otoczenia to:", options: ["Ptaki i ssaki", "Ryby i płazy", "Gady i owady"], a: "Ptaki i ssaki" });
         } else {
-          qList.push({ q: "Które z wymienionych zwierząt jest płazem?", options: ["Żaba trawna", "Jaszczurka zwinka", "Zaskroniec"], a: "Żaba trawna" });
-          qList.push({ q: "Pokrycie ciała gadów stanowią:", options: ["Suche łuski i tarczki", "Wilgotna skóra z śluzem", "Pióra i puch"], a: "Suche łuski i tarczki" });
+          qList.push({ q: "Zwierzę przechodzące przeobrażenie (kijanka -> dorosły osobnik) to:", options: ["Żaba trawna (płaz)", "Jaszczurka zwinka (gad)", "Zaskroniec"], a: "Żaba trawna (płaz)" });
         }
       }
-
-      // HISTORIA (Z GRAFIKAMI)
-      else if (subjKey === 'historia') {
-        if (chapterName.includes('Wielkie odkrycia')) {
-          qList.push({ 
-            q: "Na obrazie przedstawiono Krzysztofa Kolumba. W którym roku odkrył on Amerykę?", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Christopher_Columbus.JPG/640px-Christopher_Columbus.JPG",
-            options: ["1492 rok", "1410 rok", "1569 rok"], 
-            a: "1492 rok" 
-          });
-          qList.push({ q: "Kto dowodził pierwszą wyprawą, która opłynęła Ziemię wokół?", options: ["Ferdynand Magellan", "Vasco da Gama", "Krzysztof Kolumb"], a: "Ferdynand Magellan" });
-        } else if (chapterName.includes('Potop') || chapterName.includes('XVII')) {
-          qList.push({ 
-            q: "Obraz przedstawia obronę Jasnej Góry podczas potopu. Z jakim państwem walczyła Rzeczpospolita?", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Jasna_G%C3%B3ra_1655.jpg/640px-Jasna_G%C3%B3ra_1655.jpg",
-            options: ["Szwecja", "Rosja", "Turcja"], 
-            a: "Szwecja" 
-          });
-          qList.push({ q: "Słynny polski król, który odniósł zwycięstwo pod Wiedniem w 1683 r. to:", options: ["Jan III Sobieski", "Zygmunt III Waza", "Kazimierz Wielki"], a: "Jan III Sobieski" });
-        } else {
-          qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
-          qList.push({ q: "Polski bohater narodowy, przywódca powstania z 1794 roku to:", options: ["Tadeusz Kościuszko", "Józef Poniatowski", "Jan Henryk Dąbrowski"], a: "Tadeusz Kościuszko" });
-        }
-      }
-
-      // TECHNIKA (ZE SCHEMATAMI)
       else if (subjKey === 'technika') {
         if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
           qList.push({ 
-            q: "Spójrz na poniższy znak drogowy. Co oznacza niebieski okrągły znak z rowerem?", 
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Znak_C-13.svg/480px-Znak_C-13.svg.png",
-            options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Ostrzeżenie o rowerzystach"], 
-            a: "Droga dla rowerów (nakaz)" 
+            q: "Oto oficjalny znak drogowy C-13. Co oznacza ten nakaz w ruchu drogowym?", 
+            image: realMedia.znakRowerC13,
+            options: ["Droga dla rowerów", "Zakaz wjazdu rowerów", "Uwaga na rowerzystów"], 
+            a: "Droga dla rowerów" 
           });
-          qList.push({ q: "Kto ma pierwszeństwo na skrzyżowaniu równorzędnym?", options: ["Pojazd nadjeżdżający z prawej strony", "Pojazd jadący szybciej", "Pojazd nadjeżdżający z lewej strony"], a: "Pojazd nadjeżdżający z prawej strony" });
+          qList.push({ q: "Kto ma pierwszeństwo na skrzyżowaniu równorzędnym bez znaków?", options: ["Pojazd nadjeżdżający z prawej strony", "Pojazd jadący szybciej", "Pojazd z lewej strony"], a: "Pojazd nadjeżdżający z prawej strony" });
         } else {
-          qList.push({ q: "Rysunek techniczny w liniach przerywanych przedstawia:", options: ["Krawędzie niewidoczne", "Główne krawędzie obiektu", "Oś symetrii"], a: "Krawędzie niewidoczne" });
-          qList.push({ q: "Jaki materiał jest dobrym przewodnikiem elektryczności?", options: ["Miedź i glin (metale)", "Drewno i plastik", "Szkło i guma"], a: "Miedź i glin (metale)" });
+          qList.push({ q: "Dobre przewodnictwo elektryczne charakteryzuje:", options: ["Miedź i aluminium (metale)", "Drewno i plastik", "Szkło"], a: "Miedź i aluminium (metale)" });
         }
       }
-
-      // ANGIELSKI
-      else {
-        if (chapterName.includes('Past Simple')) {
-          qList.push({ q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went" });
-          qList.push({ q: "Wpisz po angielsku formę przeszłą od 'SEE' (widzieć):", isOpen: true, a: "saw" });
-          qList.push({ q: "Forma przeszła od czasownika 'BUY' to:", options: ["bought", "buyed", "bring"], a: "bought" });
+      else if (subjKey === 'historia') {
+        if (chapterName.includes('Wielkie odkrycia')) {
+          qList.push({ 
+            q: "Poniższy portret przedstawia żeglarza, który dopłynął do Ameryki w 1492 roku. Jest to:", 
+            image: realMedia.kolumbOdkrycie,
+            options: ["Krzysztof Kolumb", "Ferdynand Magellan", "Vasco da Gama"], 
+            a: "Krzysztof Kolumb" 
+          });
+          qList.push({ q: "Kto stanął na czele pierwszej wyprawy, która opłynęła Ziemię?", options: ["Ferdynand Magellan", "Krzysztof Kolumb", "Amerigo Vespucci"], a: "Ferdynand Magellan" });
         } else {
-          qList.push({ q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog" });
-          qList.push({ q: "Wybierz poprawne dokończenie zdania: She ___ reading a book right now.", options: ["is", "are", "am"], a: "is" });
-          qList.push({ q: "Przeciwieństwem słowa 'BIG' (duży) jest:", options: ["small", "tall", "fast"], a: "small" });
+          qList.push({ q: "Konstytucja 3 maja została uchwalona w roku:", options: ["1791", "1772", "1795"], a: "1791" });
         }
+      }
+      else if (subjKey === 'matematyka') {
+        if (chapterName.includes('Prędkość')) {
+          let v = (Math.floor(Math.random() * 6) + 4) * 10;
+          let t = Math.floor(Math.random() * 3) + 2;
+          let s = v * t;
+          qList.push({ q: `Pojazd porusza się ze stałą prędkością ${v} km/h. Jaką drogę pokona w czasie ${t} godzin?`, options: [`${s} km`, `${s + 20} km`, `${s - 15} km`], a: `${s} km` });
+          qList.push({ q: `Pociąg pokonał drogę 180 km w czasie 3 godzin. Z jaką średnią prędkością jechał?`, options: ["60 km/h", "50 km/h", "70 km/h"], a: "60 km/h" });
+        } else {
+          let a = Math.floor(Math.random() * 6) + 4;
+          let b = Math.floor(Math.random() * 5) + 3;
+          let p = a * b;
+          qList.push({ q: `Oblicz pole prostokąta o bokach a = ${a} cm oraz b = ${b} cm:`, options: [`${p} cm²`, `${(a+b)*2} cm²`, `${p + 6} cm²`], a: `${p} cm²` });
+          qList.push({ q: `Kwadrat ma bok o długości 8 cm. Ile wynosi jego pole powierzchni?`, options: ["64 cm²", "32 cm²", "16 cm²"], a: "64 cm²" });
+        }
+      }
+      else {
+        qList.push({ q: "Wybierz poprawną formę czasu przeszłego (Past Simple) dla czasownika 'GO':", options: ["went", "gone", "goed"], a: "went" });
+        qList.push({ q: "Przetłumacz na język angielski słowo 'Pies':", isOpen: true, a: "dog" });
       }
 
       return qList;
@@ -696,7 +661,7 @@
       document.getElementById('progressBar').style.width = pct + "%";
 
       const container = document.getElementById('questionContainer');
-      let imgHtml = q.image ? `<img src="${q.image}" class="w-full max-h-52 object-contain rounded-2xl mb-4 border border-slate-200 shadow-sm bg-slate-50 p-2">` : '';
+      let imgHtml = q.image ? `<div class="w-full flex justify-center mb-4 bg-slate-900 p-2 rounded-2xl border border-slate-300 shadow-md"><img src="${q.image}" class="max-h-60 w-auto object-contain rounded-xl"></div>` : '';
 
       container.innerHTML = `
         <h3 class="text-lg font-black text-slate-800 mb-3">${q.q}</h3>
