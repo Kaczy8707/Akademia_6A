@@ -48,48 +48,73 @@
     }
   </script>
 
-  <!-- EKRAN LOGOWANIA -->
+  <!-- EKRAN AUTORYZACJI (LOGOWANIE / REJESTRACJA / ODZYSKIWANIE) -->
   <div id="authScreen" style="display: flex;" class="fixed inset-0 bg-indigo-950 bg-opacity-95 z-50 items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
-      <div class="text-5xl mb-3">⚡</div>
+      <div class="text-5xl mb-2">⚡</div>
       <h1 class="text-3xl font-black text-indigo-950 mb-1">AKADEMIA 6A</h1>
-      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wpisz swój Nick i PIN, aby dołączyć!</p>
+      <p class="text-slate-500 text-sm mb-6" id="authSubtitle">Wybierz opcję, aby kontynuować naukę</p>
 
+      <!-- WYBÓR TRYBU: LOGOWANIE / REJESTRACJA -->
+      <div id="authTabs" class="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
+        <button type="button" onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow">LOGOWANIE</button>
+        <button type="button" onclick="switchAuthTab('register')" id="tabRegBtn" class="flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600">REJESTRACJA</button>
+      </div>
+
+      <!-- FORMULARZ LOGOWANIA -->
       <div id="loginForm" class="space-y-4 text-left">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Nick ucznia:</label>
-          <input type="text" id="userNick" placeholder="Np. Karol_SP7" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
+          <input type="text" id="loginNick" placeholder="Np. Karol_SP7" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">PIN (4 cyfry):</label>
-          <input type="password" id="userPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
+          <input type="password" id="loginPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
+        </div>
+        
+        <button type="button" onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
+          ZALOGUJ SIĘ 🚀
+        </button>
+        
+        <div class="text-center mt-3 flex justify-between items-center text-xs">
+          <button type="button" onclick="switchAuthTab('recovery')" class="text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
+          <button type="button" onclick="installPWA()" id="installBtnLogin" class="hidden text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">📱 Zainstaluj aplikację</button>
+        </div>
+      </div>
+
+      <!-- FORMULARZ REJESTRACJI -->
+      <div id="registerForm" class="space-y-4 text-left hidden">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nowy Nick:</label>
+          <input type="text" id="regNick" placeholder="Np. Karol_SP7" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Pytanie bezpieczeństwa (opcjonalne):</label>
-          <select id="secQuestion" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-xs text-slate-700 focus:outline-none mb-2">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Ustal PIN (4 cyfry):</label>
+          <input type="password" id="regPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Pytanie pomocnicze (do odzyskania PIN):</label>
+          <select id="regSecQuestion" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold text-xs text-slate-700 focus:outline-none mb-2">
             <option value="pet">Imię pierwszego zwierzaka?</option>
             <option value="color">Twój ulubiony kolor?</option>
             <option value="hero">Twój ulubiony superbohater?</option>
           </select>
-          <input type="text" id="secAnswer" placeholder="Odpowiedź..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
+          <input type="text" id="regSecAnswer" placeholder="Odpowiedź..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-xs text-slate-800">
         </div>
         
-        <button type="button" onclick="forceLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
-          ROZPOCZNIJ NAUKĘ 🚀
+        <button type="button" onclick="handleRegister()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-center block mt-4 cursor-pointer">
+          UTWÓRZ KONTO I STARTUJ ✨
         </button>
-        
-        <div class="text-center mt-3">
-          <button type="button" onclick="toggleRecovery(true)" class="text-xs text-indigo-600 hover:underline font-bold">Zapomniałeś PIN-u?</button>
-        </div>
       </div>
 
+      <!-- FORMULARZ ODZYSKIWANIA PIN -->
       <div id="recoveryForm" class="space-y-4 text-left hidden">
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Wpisz swój Nick:</label>
-          <input type="text" id="recNick" placeholder="Twój Nick" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Twój Nick:</label>
+          <input type="text" id="recNick" placeholder="Wpisz swój Nick" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Odpowiedź na pytanie bezpieczeństwa:</label>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Odpowiedź na pytanie pomocnicze:</label>
           <input type="text" id="recAnswer" placeholder="Wpisz odpowiedź..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800">
         </div>
         <div>
@@ -97,10 +122,10 @@
           <input type="password" id="recNewPin" maxlength="4" placeholder="****" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:outline-none font-bold text-slate-800 text-center tracking-widest">
         </div>
         <button type="button" onclick="resetPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-center block mt-2 cursor-pointer">
-          ZMIEŃ PIN I ZALOGUJ 🔑
+          ZRESETUJ PIN I ZALOGUJ 🔑
         </button>
         <div class="text-center mt-2">
-          <button type="button" onclick="toggleRecovery(false)" class="text-xs text-slate-500 hover:underline font-bold">Powrót do logowania</button>
+          <button type="button" onclick="switchAuthTab('login')" class="text-xs text-slate-500 hover:underline font-bold">Powrót do logowania</button>
         </div>
       </div>
 
@@ -116,6 +141,9 @@
       </div>
       
       <div class="flex items-center gap-3">
+        <button onclick="installPWA()" id="installBtnHeader" class="hidden text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-extrabold shadow">
+          📱 Zainstaluj
+        </button>
         <div class="flex items-center gap-1 bg-amber-500/20 border border-amber-400 px-3 py-1 rounded-full text-amber-300 font-extrabold text-sm">
           🔥 <span id="streakDisplay">1</span> d.
         </div>
@@ -229,15 +257,30 @@
     let selectedOption = null;
     let isChallengeMode = false;
     let activeChallengeId = null;
+    let deferredPrompt = null;
 
-    // OFICJALNE, PROFESJONALNE GRAFIKI I MAPY Z WIKIMEDIA COMMONS
-    const proGraphics = {
-      mapaEuropa: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/BlankMap-Europe-v2.svg/1024px-BlankMap-Europe-v2.svg.png",
-      mapaPolska: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Relief_Map_of_Poland.svg/1024px-Relief_Map_of_Poland.svg.png",
-      ruchZiemi: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/North_season.jpg/800px-North_season.jpg",
-      owadBiologia: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Araneus_diadematus_2007-08-11.jpg/800px-Araneus_diadematus_2007-08-11.jpg",
-      znakDrogowy: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Znak_C-13.svg/480px-Znak_C-13.svg.png"
-    };
+    // OBSŁUGA INSTALACJI PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtnLogin').classList.remove('hidden');
+      document.getElementById('installBtnHeader').classList.remove('hidden');
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('installBtnLogin').classList.add('hidden');
+            document.getElementById('installBtnHeader').classList.add('hidden');
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        alert("Aplikacja jest już zainstalowana lub przeglądarka nie wymaga instalacji ręcznej (możesz też dodać stronę do ekranu głównego przez menu przeglądarki).");
+      }
+    }
 
     const program = {
       matematyka: { 
@@ -317,35 +360,107 @@
       renderSubjects();
     };
 
-    function toggleRecovery(show) {
-      document.getElementById('loginForm').classList.toggle('hidden', show);
-      document.getElementById('recoveryForm').classList.toggle('hidden', !show);
-      document.getElementById('authSubtitle').innerText = show ? "Resetowanie PIN-u konta" : "Wpisz swój Nick i PIN, aby dołączyć!";
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const recoveryForm = document.getElementById('recoveryForm');
+      const authTabs = document.getElementById('authTabs');
+      const subtitle = document.getElementById('authSubtitle');
+
+      loginForm.classList.add('hidden');
+      registerForm.classList.add('hidden');
+      recoveryForm.classList.add('hidden');
+      authTabs.classList.add('hidden');
+
+      const btnLog = document.getElementById('tabLoginBtn');
+      const btnReg = document.getElementById('tabRegBtn');
+      btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600";
+      btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition text-slate-600 hover:text-indigo-600";
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        authTabs.classList.remove('hidden');
+        btnLog.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-indigo-600 text-white shadow";
+        subtitle.innerText = "Wpisz swój Nick i PIN, aby się zalogować";
+      } else if (tab === 'register') {
+        registerForm.classList.remove('hidden');
+        authTabs.classList.remove('hidden');
+        btnReg.className = "flex-1 py-2.5 rounded-lg font-extrabold text-xs transition bg-emerald-600 text-white shadow";
+        subtitle.innerText = "Załóż nowe konto ucznia w Akademii 6A";
+      } else if (tab === 'recovery') {
+        recoveryForm.classList.remove('hidden');
+        subtitle.innerText = "Odzyskiwanie dostępu do konta";
+      }
     }
 
-    function forceLogin() {
-      const n = document.getElementById('userNick').value.trim();
-      const p = document.getElementById('userPin').value.trim();
-      const a = document.getElementById('secAnswer').value.trim().toLowerCase();
+    function handleLogin() {
+      const n = document.getElementById('loginNick').value.trim();
+      const p = document.getElementById('loginPin').value.trim();
 
       if (!n || !p) {
-        alert("Wpisz Nick i PIN!");
+        alert("Wpisz Nick oraz PIN!");
         return;
       }
 
-      currentUser = { nick: n, pin: p };
+      if (db) {
+        db.collection("users_6a").doc(n).get().then((doc) => {
+          if (!doc.exists) {
+            alert("Nie znaleziono takiego konta! Sprawdź Nick lub przejdź do zakładki Rejestracja.");
+            return;
+          }
+          const data = doc.data();
+          if (data.pin === p) {
+            currentUser = { nick: n, pin: p };
+            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+            document.getElementById('authScreen').style.display = 'none';
+            initDashboard();
+          } else {
+            alert("Błędny PIN!");
+          }
+        }).catch(err => {
+          // Awaryjne logowanie offline jeśli Firebase nie odpowiada
+          currentUser = { nick: n, pin: p };
+          try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+          document.getElementById('authScreen').style.display = 'none';
+          initDashboard();
+        });
+      } else {
+        currentUser = { nick: n, pin: p };
+        document.getElementById('authScreen').style.display = 'none';
+        initDashboard();
+      }
+    }
 
-      try {
-        localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser));
-      } catch(e) {}
+    function handleRegister() {
+      const n = document.getElementById('regNick').value.trim();
+      const p = document.getElementById('regPin').value.trim();
+      const a = document.getElementById('regSecAnswer').value.trim().toLowerCase();
 
-      document.getElementById('authScreen').style.display = 'none';
-      initDashboard();
+      if (!n || p.length < 4 || !a) {
+        alert("Wypełnij wszystkie pola! PIN musi mieć 4 cyfry.");
+        return;
+      }
 
       if (db) {
-        db.collection("users_6a").doc(n).set({
-          nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
-        }, { merge: true }).catch(err => {});
+        db.collection("users_6a").doc(n).get().then((doc) => {
+          if (doc.exists) {
+            alert("Taki Nick jest już zajęty! Wybierz inny lub zaloguj się na swoje konto.");
+            return;
+          }
+          db.collection("users_6a").doc(n).set({
+            nick: n, pin: p, secAnswer: a, xp: 0, updatedAt: new Date()
+          }).then(() => {
+            currentUser = { nick: n, pin: p };
+            try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+            document.getElementById('authScreen').style.display = 'none';
+            initDashboard();
+          });
+        });
+      } else {
+        currentUser = { nick: n, pin: p };
+        try { localStorage.setItem('akademia6a_saved_user', JSON.stringify(currentUser)); } catch(e) {}
+        document.getElementById('authScreen').style.display = 'none';
+        initDashboard();
       }
     }
 
@@ -355,22 +470,25 @@
       const newPin = document.getElementById('recNewPin').value.trim();
 
       if (!nick || !ans || newPin.length < 4) {
-        alert("Wpisz Nick, odpowiedź i nowy 4-cyfrowy PIN!");
+        alert("Wpisz Nick, poprawną odpowiedź i nowy 4-cyfrowy PIN!");
         return;
       }
 
       if (db) {
         db.collection("users_6a").doc(nick).get().then((doc) => {
-          if (!doc.exists) { alert("Nie znaleziono takiego Nicku!"); return; }
+          if (!doc.exists) { alert("Nie znaleziono takiego konta!"); return; }
           const data = doc.data();
           if (data.secAnswer === ans) {
-            db.collection("users_6a").doc(nick).update({ pin: newPin });
-            alert("PIN zmieniony! Zaloguj się nowym PIN-em.");
-            toggleRecovery(false);
+            db.collection("users_6a").doc(nick).update({ pin: newPin }).then(() => {
+              alert("PIN został pomyślnie zmieniony! Zaloguj się teraz nowym PIN-em.");
+              switchAuthTab('login');
+            });
           } else {
-            alert("Błędna odpowiedź na pytanie bezpieczeństwa!");
+            alert("Błędna odpowiedź na pytanie pomocnicze!");
           }
-        }).catch(e => alert("Błąd połączenia."));
+        }).catch(e => alert("Błąd połączenia z chmurą."));
+      } else {
+        alert("Brak połączenia z bazą danych.");
       }
     }
 
@@ -547,8 +665,8 @@
       if (subjKey === 'geografia') {
         if (chapterName.includes('czytanie mapy') || chapterName.includes('Współrzędne')) {
           qList.push({ 
-            q: "Przeanalizuj poniższą mapę polityczną Europy i wskaż prawidłową odpowiedź:", 
-            image: proGraphics.mapaEuropa,
+            q: "Przeanalizuj poniższe dane kartograficzne i wskaż prawidłową odpowiedź:", 
+            visualCard: { icon: "🇪🇺", label: "Mapa Polityczna Europy", text: "Analiza położenia matematycznego i fizycznego Polski na kontynencie." },
             options: ["Polska leży w Europie Środkowej", "Polska leży w Europie Południowej", "Polska leży na innym kontynencie"], 
             a: "Polska leży w Europie Środkowej" 
           });
@@ -556,15 +674,15 @@
         } else if (chapterName.includes('Ruchy Ziemi')) {
           qList.push({ 
             q: "Przeanalizuj poniższy schemat astronomiczny ruchu obiegowego Ziemi:", 
-            image: proGraphics.ruchZiemi,
+            visualCard: { icon: "🌍☀️", label: "Model Astronomiczny", text: "Ruch obiegowy Ziemi wokół Słońca a zmiana kąta padania promieni słonecznych." },
             options: ["Ruch wokół Słońca trwa 365 dni i powoduje pory roku", "Ruch wokół osi trwa 24h", "Ruch ten nie ma znaczenia"], 
             a: "Ruch wokół Słońca trwa 365 dni i powoduje pory roku" 
           });
           qList.push({ q: "Czas trwania jednego pełnego obrotu Ziemi wokół własnej osi to:", options: ["24 godziny", "365 dni", "30 dni"], a: "24 godziny" });
         } else {
           qList.push({ 
-            q: "Spójrz na profesjonalną mapę fizyczną Polski. Główna rzeka kraju to:", 
-            image: proGraphics.mapaPolska,
+            q: "Spójrz na ukształtowanie terenu z mapy fizycznej Polski. Główna rzeka kraju to:", 
+            visualCard: { icon: "🏞️", label: "Mapa Fizyczna Polski", text: "Główne pasma górskie, wyżyny, niziny oraz dorzecze Wisły i Odry." },
             options: ["Wisła", "Dunaj", "Sekwana"], 
             a: "Wisła" 
           });
@@ -574,8 +692,8 @@
       else if (subjKey === 'biologia') {
         if (chapterName.includes('Stawonogi') || chapterName.includes('klasyfikacja')) {
           qList.push({ 
-            q: "Przeanalizuj poniższe zdjęcie entomologiczne. Do jakiej grupy zaliczamy ten organizm?", 
-            image: proGraphics.owadBiologia,
+            q: "Przeanalizuj poniższy schemat biologiczny stawonogów:", 
+            visualCard: { icon: "🕷️", label: "Zoologia / Entomologia", text: "Charakterystyczne cechy budowy ciała stawonogów (odnóża członowane)." },
             options: ["Pajęczaki", "Owady", "Ryby"], 
             a: "Pajęczaki" 
           });
@@ -588,7 +706,7 @@
         if (chapterName.includes('znaki drogowe') || chapterName.includes('rowerowa')) {
           qList.push({ 
             q: "Co oznacza ten oficjalny znak drogowy w polskim kodeksie?", 
-            image: proGraphics.znakDrogowy,
+            visualCard: { icon: "🚲🔵", label: "Kodeks Drogowy - Znak C-13", text: "Obowiązkowy znak pionowy dla kierujących rowerami." },
             options: ["Droga dla rowerów", "Zakaz wjazdu", "Uwaga piesi"], 
             a: "Droga dla rowerów" 
           });
@@ -633,11 +751,21 @@
       document.getElementById('progressBar').style.width = pct + "%";
 
       const container = document.getElementById('questionContainer');
-      let imgHtml = q.image ? `<div class="w-full flex justify-center mb-4 bg-slate-900 p-3 rounded-2xl border border-slate-300 shadow-md"><img src="${q.image}" class="max-h-56 w-auto object-contain rounded-xl"></div>` : '';
+      
+      let graphicCardHtml = '';
+      if (q.visualCard) {
+        graphicCardHtml = `
+          <div class="w-full bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl border border-indigo-500/30 shadow-lg text-center mb-5 text-white">
+            <div class="text-4xl mb-2">${q.visualCard.icon}</div>
+            <div class="text-xs uppercase tracking-widest text-indigo-300 font-extrabold mb-1">${q.visualCard.label}</div>
+            <div class="text-base font-bold text-slate-100">${q.visualCard.text}</div>
+          </div>
+        `;
+      }
 
       container.innerHTML = `
         <h3 class="text-lg font-black text-slate-800 mb-3">${q.q}</h3>
-        ${imgHtml}
+        ${graphicCardHtml}
       `;
 
       if (q.isOpen) {
