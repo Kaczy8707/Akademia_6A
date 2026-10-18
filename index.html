@@ -743,7 +743,7 @@
       if (chapView) chapView.classList.remove('hidden');
     }
 
-    // GENERATORY 1000 WARIANTÓW (PODSTAWA PROGRAMOWA KLASA 6)
+    // GENERATORY 1000 WARIANTÓW (CZYSTE ZADANIA TEKSTOWE I PROBLEMOWE ZGODNE Z MEN)
     function generateMathPool() {
       let pool = [];
       for (let i = 0; i < 1000; i++) {
@@ -786,16 +786,22 @@
       for (let i = 0; i < 1000; i++) {
         let h = 200 + (i % 150) * 5;
         pool.push({
-          q: `Zadanie geograficzne #${i+1}: Punkt szczytowy na mapie poziomicowej opisany jest warstwicą o wartości ${h} m n.p.m. Jaka jest wysokość bezwzględna tego wzniesienia?`,
-          options: [`${h} m n.p.m.`, `${h + 100} m n.p.m.`, `${h - 50} m n.p.m.`, `${h + 200} m n.p.m.`],
-          a: `${h} m n.p.m.`,
-          explanation: `Wysokość bezwzględna odpowiada wartości podanej na mapie topograficznej i wynosi ${h} m n.p.m.`
+          q: `Zadanie geograficzne #${i+1}: Wzniesienie opisane jest wysokością bezwzględną równą ${h} m n.p.m. Co oznacza skrót n.p.m.?`,
+          options: ["nad poziomem morza", "na poziomie miast", "niższy punkt mapy", "najwyższy pomiar"],
+          a: "nad poziomem morza",
+          explanation: `Skrót n.p.m. oznacza wysokość nad poziomem morza.`
         });
         pool.push({
           q: `Geografia regionalna #${i+1}: W jakim regionie Europy leży Polska oraz jej bezpośredni sąsiedzi?`,
           options: ["W Europie Środkowej", "W Europie Południowej", "W Europie Północnej", "W Europie Zachodniej"],
           a: "W Europie Środkowej",
           explanation: "Polska znajduje się w Europie Środkowej."
+        });
+        pool.push({
+          q: `Ruchy Ziemi #${i+1}: Jak długo trwa pełny obieg Ziemi wokół Słońca (ruch obiegowy)?`,
+          options: ["Około 365 dni i 6 godzin", "Dokładnie 24 godziny", "Około 30 dni", "7 dni"],
+          a: "Około 365 dni i 6 godzin",
+          explanation: "Ruch obiegowy Ziemi wokół Słońca trwa rok kalendarzowy (365 dni i 6 godzin)."
         });
       }
       return pool;
@@ -814,7 +820,7 @@
           q: `Zoologia #${i+1}: Które gromady kręgowców zaliczamy do zwierząt stałocieplnych?`,
           options: ["Ptaki i ssaki", "Gady i płazy", "Ryby i płazy", "Wszystkie kręgowce są zmiennocieplne"],
           a: "Ptaki i ssaki",
-          explanation: "Ptaki i ssaki potrafią utrzymać stałą temperaturę ciała."
+          explanation: "Ptaki i ssaki potrafią utrzymać stałą temperaturę ciała niezależnie od otoczenia."
         });
       }
       return pool;
@@ -824,7 +830,7 @@
       let pool = [];
       for (let i = 0; i < 1000; i++) {
         pool.push({
-          q: `Brd #${i+1}: Co oznacza niebieski okrągły znak drogowy z białym piktogramem roweru (znak C-13)?`,
+          q: `BRD #${i+1}: Co oznacza niebieski okrągły znak drogowy nakazujący ruch rowerów (znak C-13)?`,
           options: ["Droga dla rowerów (nakaz)", "Zakaz wjazdu rowerów", "Przejście dla pieszych", "Strefa zamieszkania"],
           a: "Droga dla rowerów (nakaz)",
           explanation: "Znak C-13 wyznacza obowiązkową drogę dla kierujących rowerami."
@@ -833,7 +839,7 @@
           q: `Technologia #${i+1}: Który z wymienionych materiałów charakteryzuje się najlepszym przewodnictwem elektrycznym?`,
           options: ["Miedź", "Suche drewno", "Guma", "Szkło"],
           a: "Miedź",
-          explanation: "Miedź jest doskonałym przewodnikiem prądu."
+          explanation: "Miedź jest powszechnie stosowanym i doskonałym przewodnikiem prądu."
         });
       }
       return pool;
